@@ -19,11 +19,12 @@ from typing import Literal, NamedTuple
 
 from .interlocking import Interlocking, Refusal, Resource, claims, walk
 from .model import Call, Move, Network, Platform, Side, Track, TrainSpec, Trip
-from .routing import find_route
+from .routing import find_route, portal_track
 from .rules import NetRule
 
 IDLE_MIN = 30  # §5.2 item 7: look in at least this often
 LOOKAHEAD_MIN = 15  # §5.1: contention is raised this far ahead, not only for trains ready this minute
+TURNAROUND_MIN = 8  # §2.3: a booked stop at least this long is a turnaround, so the driver can change ends
 Phase = Literal["offstage", "berthed", "running", "done"]
 Key = Resource | tuple[str, str]  # a claimed resource, or a pair of moves whose paths cross
 
@@ -58,6 +59,14 @@ class Decision(NamedTuple):
     trains: tuple[str, ...] = ()
 
 
+class Visit(NamedTuple):
+    """When a train really stood at a platform, which is what the generator books and the reward charges."""
+
+    platform: str
+    arrived: int
+    departed: int | None = None
+
+
 class Row(NamedTuple):
     train: str
     phase: str
@@ -84,6 +93,8 @@ class Movement:
     held_until: int | None = None
     arrived: int | None = None
     at: Call | None = None  # the call it stands at
+    worst_late: int = 0  # the most it has been late at any call so far
+    visits: list[Visit] = field(default_factory=list)  # every call it has actually made
 
     @property
     def train(self) -> TrainSpec:
@@ -93,15 +104,26 @@ class Movement:
         element = net.element(self.position)
         return element.other(self.behind) if isinstance(element, Track) else self.behind
 
+    @property
+    def working(self) -> bool:
+        """Still has somewhere to go: another booked call, or the portal it runs out of the area by."""
+        return bool(self.plan) or (self.phase == "berthed" and self.trip.exit_node is not None)
+
     def ready_at(self) -> int | None:
         """When this train next wants to move, or None if it is running or finished."""
         if self.phase == "offstage":
             due = self.trip.entry_tick
-        elif self.phase == "berthed" and self.plan:
+        elif self.phase == "berthed" and self.working:
             due = max(self.at.depart or 0, (self.arrived or 0) + self.at.min_dwell)
         else:
             return None
         return max(due, self.held_until or 0)
+
+    def booked(self) -> int:
+        """The time the timetable has this train away from where it stands: what "timetable order" sorts on."""
+        if self.at is None or self.at.depart is None:
+            return self.trip.entry_tick
+        return self.at.depart
 
     def lateness(self, now: int) -> int:
         """How late the train is: measured at its last call, or against the call it is running to."""
@@ -129,21 +151,24 @@ class Engine:
 
     def _place(self, trip: Trip) -> Movement:
         plan = list(trip.calls)
+        if trip.exit_node is not None and portal_track(self.net, trip.exit_node, inbound=False) is None:
+            raise ValueError(f"{trip.train.id}: no track leads out of the network to {trip.exit_node}")
         if trip.entry_node is not None:
-            node = trip.entry_node
-            entry = next(
-                (t for t in self.net.tracks if node in (t.a, t.b) and t.direction in (t.travel_from(node), "both")),
-                None,
-            )
+            entry = portal_track(self.net, trip.entry_node, inbound=True)
             if entry is None:
-                raise ValueError(f"{trip.train.id}: no track leads into the network from {node}")
-            return Movement(trip, plan, entry.id, node)
+                raise ValueError(f"{trip.train.id}: no track leads into the network from {trip.entry_node}")
+            return Movement(trip, plan, entry, trip.entry_node)
         start = self.net.element(plan[0].platform)
         if not isinstance(start, Platform):
             raise ValueError(f"{trip.train.id}: {plan[0].platform} is not a platform it can start from")
+        if start.length_m < trip.train.length_m:  # it would stand there with no route it could ever be given
+            raise ValueError(f"{trip.train.id} is {trip.train.length_m} m and cannot stand in {start.id}")
         if blocker := self.il.occupy(trip.train.id, start.id):
             raise ValueError(f"{trip.train.id} and {blocker} both start in {start.id}")
-        return Movement(trip, plan[1:], start.id, start.node, "berthed", at=plan[0], arrived=trip.entry_tick)
+        visits = [Visit(start.id, trip.entry_tick)]
+        return Movement(
+            trip, plan[1:], start.id, start.node, "berthed", at=plan[0], arrived=trip.entry_tick, visits=visits
+        )
 
     # ------------------------------------------------------------------ actions
 
@@ -182,7 +207,7 @@ class Engine:
             return Refusal(NetRule.NO_ROUTE, f"{train_id} already stands in {platform_id}")
         if not isinstance(self.net.element(platform_id), Platform):
             return Refusal(NetRule.NO_ROUTE, f"{platform_id} is not a platform")
-        if find_route(self.net, mv.position, mv.facing(self.net), platform_id, mv.train, mv.side_in) is None:
+        if find_route(self.net, mv.position, mv.facing(self.net), platform_id, mv.train, self._side_in(mv)) is None:
             return Refusal(NetRule.NO_ROUTE, f"no route from {mv.position} to {platform_id} for {train_id}")
         mv.plan[0] = mv.plan[0].model_copy(update={"platform": platform_id})
         self.stranded.discard(train_id)
@@ -228,12 +253,22 @@ class Engine:
 
     # ------------------------------------------------------------------ route setting
 
+    def _side_in(self, mv: Movement) -> Side | None:
+        """The platform side it may not leave by; a turnaround dwell clears it, because the driver changes ends."""
+        if mv.at is not None and mv.at.min_dwell >= TURNAROUND_MIN:
+            return None
+        return mv.side_in
+
     def _journey(self, mv: Movement) -> list[str] | None:
         if mv.path:
             return mv.path
-        if not mv.plan:
+        if mv.plan:
+            target = mv.plan[0].platform
+        elif mv.working:  # its calls are made: it runs off the area through its exit portal
+            target = portal_track(self.net, mv.trip.exit_node, inbound=False)
+        else:
             return None
-        return find_route(self.net, mv.position, mv.facing(self.net), mv.plan[0].platform, mv.train, mv.side_in)
+        return find_route(self.net, mv.position, mv.facing(self.net), target, mv.train, self._side_in(mv))
 
     def _segment(self, mv: Movement, path: list[str]) -> list[str]:
         """The next section to ask for: the moves up to, and including, the next track or platform."""
@@ -247,6 +282,8 @@ class Engine:
             soon = due is not None and due <= self.tick + window
             if not (soon or (mv.phase == "running" and mv.waiting)):
                 continue
+            if self._blocks_left(mv):
+                continue  # stopped by the train ahead in its own section: it needs that block, not a new route
             path = self._journey(mv)
             if path is None:
                 continue
@@ -255,8 +292,40 @@ class Engine:
                 out[mv.train.id] = segment
         return out
 
+    def _blocks_left(self, mv: Movement) -> bool:
+        """Whether the train still has track to run before the signal that guards its next section."""
+        track = self.net.element(mv.position)
+        return mv.phase == "running" and isinstance(track, Track) and mv.block < track.blocks - 1
+
+    def _running_out(self, mv: Movement) -> bool:
+        """Whether the train is on the last element of its route and that element is a track: the leg to a portal.
+
+        Only an exit leg ends on a track; every other route ends at the platform the train has been called to.
+        """
+        return mv.idx == len(mv.path) - 1 and isinstance(self.net.element(mv.position), Track)
+
+    def _advance_block(self, mv: Movement, track: Track, restarting: bool) -> None:
+        """Move a train up one block inside the track it already holds, or stand it at the signal."""
+        if self.il.step_block(mv.train.id, track.id, track.travel_from(mv.behind), mv.block) is not None:
+            mv.waiting, mv.next_tick = True, None  # the block ahead is taken: stand at the signal
+            return
+        mv.block, mv.waiting = mv.block + 1, False
+        restart = mv.train.restart_min if restarting else 0  # heavy trains take longer to get going again
+        mv.next_tick = self.tick + restart + block_minutes(track, mv.train, mv.block)
+
+    def _resume(self) -> None:
+        """A train held by the one ahead in its own section moves up as soon as that block clears.
+
+        Setting a route past it instead would let a following train lock the junction its leader still needs,
+        which deadlocks the pair: the leader cannot clear and the follower cannot pass it.
+        """
+        for mv in sorted(self.trains.values(), key=lambda m: m.train.id):
+            if mv.waiting and self._blocks_left(mv):
+                self._advance_block(mv, self.net.element(mv.position), restarting=True)
+
     def _set_routes(self) -> Decision | None:
         """One ARS pass: extend authority where nothing competes, and hand real contention to the agent."""
+        self._resume()
         if fresh := self._unroutable():
             return Decision(self.tick, "UNROUTABLE", trains=fresh)
         soon = self._wanting(LOOKAHEAD_MIN)
@@ -266,14 +335,20 @@ class Engine:
         now = {t: s for t, s in self._wanting(0).items() if t in soon}
         for train_id in self._priority(now):
             self._extend(self.trains[train_id], now[train_id])
-        self.orders = {k: o for k, o in self.orders.items() if k in self._keys_in_play(soon)}
+        # An order stands until the trains it names have finished. Pruning it by what is wanted this minute would
+        # drop it while one of them is held behind another, and the same conflict would simply be raised again.
+        self.orders = {
+            key: order
+            for key, order in self.orders.items()
+            if any(self.trains[t].working for t in order if t in self.trains)
+        }
         return None
 
     def _unroutable(self) -> tuple[str, ...]:
         lost = set()
         for mv in self.trains.values():
             due = mv.ready_at()
-            if due is not None and due <= self.tick and self._journey(mv) is None and mv.plan:
+            if due is not None and due <= self.tick and mv.working and self._journey(mv) is None:
                 lost.add(mv.train.id)
         fresh = tuple(sorted(lost - self.stranded))
         self.stranded = (self.stranded | lost) & lost
@@ -338,9 +413,7 @@ class Engine:
             ranks = [
                 order.index(train_id) for k, order in self.orders.items() if train_id in order and k in keys[train_id]
             ]
-            mv = self.trains[train_id]
-            booked = mv.trip.entry_tick if mv.at is None else (mv.at.depart or 0)
-            return (min(ranks) if ranks else inf, booked, train_id)
+            return (min(ranks) if ranks else inf, self.trains[train_id].booked(), train_id)
 
         return sorted(wanted, key=key)
 
@@ -351,6 +424,8 @@ class Engine:
             return False
         mv.authority = mv.idx + len(segment) - 1
         if mv.phase != "running":
+            if mv.visits:
+                mv.visits[-1] = mv.visits[-1]._replace(departed=self.tick)
             mv.path, mv.idx, mv.phase, mv.held_until = self._journey(mv), 0, "running", None
             mv.authority = len(segment) - 1
             element = self.net.element(mv.position)
@@ -370,13 +445,10 @@ class Engine:
 
     def _step(self, mv: Movement) -> None:
         current = self.net.element(mv.path[mv.idx])
-        if isinstance(current, Track) and mv.block < current.blocks - 1:
-            if self.il.step_block(mv.train.id, current.id, current.travel_from(mv.behind), mv.block):
-                mv.waiting, mv.next_tick = True, None  # the block ahead is taken: stand at the signal
-                return
-            mv.block += 1
-            mv.next_tick = self.tick + block_minutes(current, mv.train, mv.block)
-            return
+        if self._blocks_left(mv):
+            return self._advance_block(mv, current, restarting=False)
+        if self._running_out(mv):
+            return self._leave(mv, current)
         if mv.authority <= mv.idx:
             mv.waiting, mv.next_tick = True, None
             return
@@ -399,10 +471,24 @@ class Engine:
         else:
             mv.next_tick = self.tick + 1  # running through a platform it does not call at
 
+    def _leave(self, mv: Movement, track: Track) -> None:
+        """It has run off the area through a portal: it gives everything back and its work for the shift is over.
+
+        Its `position` becomes the portal's node id, the one place a Movement names a node rather than an element,
+        because where a train went is the only useful thing left to say about it.
+        """
+        self.il.release_train(mv.train.id)
+        mv.position = mv.behind = track.other(mv.behind)
+        mv.phase, mv.next_tick, mv.waiting = "done", None, False
+        mv.path, mv.idx, mv.authority = [], 0, 0
+
     def _berth(self, mv: Movement, platform: Platform) -> None:
         entered = self.net.element(mv.path[mv.idx - 1])
         mv.at = mv.plan.pop(0) if mv.plan else mv.at
-        mv.phase = "berthed" if mv.plan else "done"
+        if mv.at is not None and mv.at.arrive is not None:
+            mv.worst_late = max(mv.worst_late, self.tick - mv.at.arrive)
+        mv.visits.append(Visit(platform.id, self.tick))
+        mv.phase = "berthed" if mv.plan or mv.trip.exit_node else "done"
         mv.behind, mv.arrived, mv.next_tick = platform.node, self.tick, None
         mv.side_in = entered.side if isinstance(entered, Move) else None
         mv.path, mv.idx, mv.authority, mv.waiting = [], 0, 0, False

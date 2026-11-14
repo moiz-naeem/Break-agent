@@ -3,16 +3,17 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from railway.net.interlocking import Interlocking, Refusal
-from railway.net.model import Move, Track, TrainSpec
+from railway.net.model import Move, Track
 from railway.net.rules import NetRule
 from railway.net.templates import trunk_and_branches
+from railway.net.trains import TYPES
 
 NET = trunk_and_branches()
-IC = TrainSpec(id="IC1", length_m=260, electric=True, passenger=True)
-S = TrainSpec(id="S1", length_m=160, electric=True, passenger=True)
-S2 = TrainSpec(id="S2", length_m=160, electric=True, passenger=True)
-FD = TrainSpec(id="F1", length_m=740, electric=False, passenger=False)
-FE = TrainSpec(id="F2", length_m=600, electric=True, passenger=False)
+IC = TYPES["IC"].spec("IC1")
+S = TYPES["S"].spec("S1")
+S2 = TYPES["S"].spec("S2")
+FD = TYPES["FB"].spec("F1")
+FE = TYPES["FI"].spec("F2").model_copy(update={"electric": True})
 
 
 def rule(result):
@@ -23,11 +24,12 @@ def rule(result):
 def test_entry_into_platform_and_conflicting_crossover():
     il = Interlocking(NET)
     assert il.lock(IC, "PW", ["PW-A.u", "A.w1", "A1"]) is None
-    assert il.holder["A1"] == "IC1" and il.holder[("PW-A.u", 3)] == "IC1"  # entering takes the whole entry track
+    assert il.holder["A1"] == "IC1" and il.holder[("PW-A.u", 0)] == "IC1"
+    assert ("PW-A.u", 3) not in il.holder  # entering takes one block, as any other train does
     assert rule(il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"])) == NetRule.MOVE_CONFLICT
     il.release("IC1", "A.w1")
-    assert rule(il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"])) == NetRule.BLOCK_OCCUPIED  # IC1 still on PW-A.u
-    il.release("IC1", "PW-A.u")  # IC1 has arrived in A1
+    assert rule(il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"])) == NetRule.BLOCK_OCCUPIED  # IC1 still in the entry block
+    il.release("IC1", "PW-A.u")  # IC1 has run on up the line
     assert il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"]) is None
     for passed in ("PW-A.u", "A.w3"):
         il.release("S1", passed)
@@ -56,7 +58,7 @@ def test_single_track_direction_lock_and_refusal_changes_nothing():
     before = snapshot(il)
     assert rule(il.lock(FE, "N", ["N2", "N.w2", "JA-N", "JA.m4", "A-JA.d"])) == NetRule.DIRECTION_LOCKED
     assert snapshot(il) == before  # N.w2 was free but is not taken
-    assert rule(il.lock(IC, "N", ["N1", "N.w1", "JA-N", "JA.m4", "A-JA.d"])) == NetRule.DIRECTION_LOCKED  # own, too
+    assert rule(il.lock(IC, "N", ["N2", "N.w2", "JA-N", "JA.m4", "A-JA.d"])) == NetRule.DIRECTION_LOCKED  # own, too
 
 
 def test_following_train_waits_for_the_entry_block():
@@ -100,7 +102,7 @@ def test_a_route_that_can_never_work_is_not_told_to_wait():
     [
         (FD, "JA", ["A-JA.d", "A.e2", "A2", "A.e3", "A-JA.u"], "reverse in a platform"),  # 740 m in a 270 m platform
         (IC, "JB", ["JB-C.u", "C.a3", "C3", "C.d3", "JB-C.d"], "reverse in a platform"),  # "through" a dead-end bay
-        (S, "JA", ["JA-N", "N.w2", "N2", "N.w2", "JA-N"], "twice"),  # reverse in a siding
+        (S, "JA", ["JA-N", "N.w2", "N2", "N.w2", "JA-N"], "twice"),  # reverse in the branch loop
         (IC, "A", ["A1", "A.e1", "A-JA.u", "JA.m3", "JA-N", "N.w1", "N1", "N.w1", "JA-N"], "visits JA-N twice"),
     ],
 )

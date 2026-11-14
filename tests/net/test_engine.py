@@ -1,9 +1,10 @@
 import pytest
 
 from railway.net.engine import Engine
-from railway.net.model import Call, TrainSpec, Trip
+from railway.net.model import Call, Trip
 from railway.net.rules import NetRule
-from railway.net.templates import COMMUTER, INTERCITY, sample_trips, trunk_and_branches
+from railway.net.templates import sample_trips, trunk_and_branches
+from railway.net.trains import TYPES
 
 NET = trunk_and_branches()
 
@@ -12,8 +13,8 @@ def engine(trips=None, shift=180):
     return Engine(NET, trips or sample_trips(), shift)
 
 
-def trip(train_id, calls, spec=COMMUTER, **kw):
-    return Trip(train=TrainSpec(id=train_id, **spec), calls=calls, **kw)
+def trip(train_id, calls, code="S", **kw):
+    return Trip(train=TYPES[code].spec(train_id), calls=calls, **kw)
 
 
 def run(eng, first=None, answer=True, limit=40):
@@ -161,7 +162,7 @@ def test_actions_are_refused_once_the_shift_is_over():
 def stranded_trips():
     """IC9 is booked into N1, which is too short for a 260 m intercity."""
     return [
-        trip("IC9", (Call(platform="A1", depart=5), Call(platform="N1", arrive=30)), spec=INTERCITY),
+        trip("IC9", (Call(platform="A1", depart=5), Call(platform="N1", arrive=30)), code="IC"),
         trip("L8", (Call(platform="A2", depart=5), Call(platform="B1", arrive=30))),
     ]
 
@@ -189,7 +190,7 @@ def test_a_deadlock_is_reported_once_and_then_the_shift_runs_out():
 
 def test_a_train_may_not_turn_back_through_a_platform_it_called_at():
     """It enters A2 from the east, so it cannot leave east again towards B."""
-    calls = (Call(platform="N1", depart=0), Call(platform="A2", arrive=25), Call(platform="B1", arrive=70))
+    calls = (Call(platform="N1", depart=0), Call(platform="A2", arrive=25, depart=26), Call(platform="B1", arrive=70))
     eng = engine([trip("L9", calls)], shift=200)
     assert [d.kind for d in run(eng)][:2] == ["UNROUTABLE", "BLOCKED"]
     assert ("L9", "berthed", "A2") in [row[:3] for row in eng.state()]

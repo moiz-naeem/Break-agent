@@ -85,26 +85,77 @@ class TrainSpec(NetModel):
 
 
 class Call(NetModel):
-    """A scheduled stop. `arrive` is None at the origin, `depart` at the destination."""
+    """A scheduled stop. `arrive` is None at the origin, `depart` at the destination.
+
+    `alight` and `board` are the passengers this call serves; the reward charges both when the call is missed
+    (DESIGN.md §6.6 C2). A dwell of TURNAROUND_MIN or more is a turnaround: the train may leave the way it came.
+    """
 
     platform: str
     arrive: int | None = None
     depart: int | None = None
     min_dwell: int = Field(default=1, ge=0)
+    alight: int = Field(default=0, ge=0)
+    board: int = Field(default=0, ge=0)
 
 
 class Trip(NetModel):
-    """One train's work for the shift: where it starts and the calls it must make, in order."""
+    """One train's work for the shift: where it starts, the calls it must make, and where it leaves the area."""
 
     train: TrainSpec
-    calls: tuple[Call, ...] = Field(min_length=2)
+    calls: tuple[Call, ...] = Field(min_length=1)
     entry_node: str | None = None  # portal it enters from; None means it starts standing at calls[0]
     entry_tick: int = Field(default=0, ge=0)
+    exit_node: str | None = None  # portal it runs out to after its last call; None means it stays in the platform
 
     @model_validator(mode="after")
     def valid_trip(self):
-        if self.calls[0].depart is None or self.calls[-1].arrive is None:
-            raise ValueError(f"trip {self.train.id}: the origin needs a departure and the destination an arrival")
+        """A call the train leaves needs a departure; a call it arrives at needs an arrival. One call can be both."""
+        leaves = len(self.calls) - (0 if self.exit_node else 1)
+        arrives = 0 if self.entry_node else 1
+        for i, call in enumerate(self.calls):
+            if i < leaves and call.depart is None:
+                raise ValueError(f"trip {self.train.id}: it leaves {call.platform}, so that call needs a departure")
+            if i >= arrives and call.arrive is None:
+                raise ValueError(f"trip {self.train.id}: it arrives at {call.platform}, so that call needs an arrival")
+        return self
+
+
+class ServiceGroup(NetModel):
+    """One clockface line, repeated every `every_min` from `first_min` while a whole run still fits in the shift."""
+
+    code: str
+    type: str
+    entry_node: str
+    stops: tuple[str, ...] = Field(min_length=1)
+    dwell: tuple[int, ...] = Field(min_length=1)
+    exit_node: str | None = None
+    first_min: int = Field(default=0, ge=0)
+    every_min: int = Field(default=60, gt=0)
+    slack_pct: int = Field(default=10, ge=0)
+
+    @model_validator(mode="after")
+    def valid_group(self):
+        if len(self.dwell) != len(self.stops):
+            raise ValueError(f"group {self.code}: one dwell per stop, got {len(self.dwell)} for {len(self.stops)}")
+        if not self.code or self.code[-1].isdigit():
+            raise ValueError(f"group {self.code!r}: a code may not end in a digit, or train ids would not say the line")
+        return self
+
+
+class Connection(NetModel):
+    """Passengers changing from one service to another at a node (§4.1). Missing it is charged by §6.6 C2."""
+
+    feeder: str
+    connector: str
+    node: str
+    transfers: int = Field(gt=0)
+    min_transfer_min: int = Field(default=5, gt=0)
+
+    @model_validator(mode="after")
+    def valid_connection(self):
+        if self.feeder == self.connector:
+            raise ValueError(f"connection at {self.node}: {self.feeder} cannot feed itself")
         return self
 
 
@@ -200,3 +251,34 @@ class Network(NetModel):
 
     def conflicts(self, move_id: str) -> list[str]:
         return sorted(self._conflicts.get(move_id, ()))
+
+
+class Timetable(NetModel):
+    """A generated scenario: the layout, the shift's trips, and the connections passengers rely on."""
+
+    net: Network
+    trips: tuple[Trip, ...] = Field(min_length=1)
+    connections: tuple[Connection, ...] = ()
+    shift_min: int = Field(gt=0)
+    seed: int = 0
+    tier: str = "T1"
+
+    @model_validator(mode="after")
+    def valid_timetable(self):
+        trips = {t.train.id for t in self.trips}
+        if len(trips) != len(self.trips):
+            raise ValueError("two trips share a train id")
+        for trip in self.trips:
+            for call in trip.calls:
+                if not isinstance(self.net.element(call.platform), Platform):
+                    raise ValueError(f"trip {trip.train.id} calls at {call.platform}, which is not a platform")
+            for portal in (trip.entry_node, trip.exit_node):
+                node = self.net.node(portal) if portal else None
+                if portal is not None and (node is None or node.kind != "portal"):
+                    raise ValueError(f"trip {trip.train.id}: {portal} is not a portal")
+        for link in self.connections:
+            if missing := sorted({link.feeder, link.connector} - trips):
+                raise ValueError(f"connection at {link.node} names unknown train {missing[0]}")
+            if self.net.node(link.node) is None:
+                raise ValueError(f"connection {link.feeder}->{link.connector} is at unknown node {link.node}")
+        return self

@@ -2,7 +2,7 @@
 
 This specifies the network, trains, traffic and agent decisions for v0.3. It turns the
 agreed direction in `docs/design-changes-v0.3.md` §4 into mechanics that can be built.
-The reward is `DESIGN.md` §6.6. Step 1 is implemented (see §8).
+The reward is `DESIGN.md` §6.6. Steps 1 to 3 are implemented (see §8).
 
 **The idea in one line:** model a real control centre. The timetable is feasible when
 everything runs on time. Disruptions and small delays break it. The agent is the
@@ -40,7 +40,7 @@ terminals. Edges are track segments.
 
 | Kind | What it is | What it forces |
 |---|---|---|
-| **Double track** | One track per direction, split into signal blocks of 1.5–3 km. Following trains run automatically, one block apart (a 2–4 min headway). | A slow train ahead caps everyone behind it until the next overtaking point. |
+| **Double track** | One track per direction, split into signal blocks of 1.5–3 km. Following trains run automatically, one block apart (a 2–4 min headway). A train entering from a portal occupies one block like any other, so a portal is not a capacity limit in itself. | A slow train ahead caps everyone behind it until the next overtaking point. |
 | **Bidirectional double track** | Either track usable in either direction (on some segments only) | Overtaking on the move, and single-line working when one track is blocked. |
 | **Single track** | One train between passing points (as in v0.2) | Crossing decisions, as today. |
 | **Loops / overtaking sidings** | Off the main line, with a length limit | Where a slow train steps aside, if it fits. |
@@ -64,7 +64,7 @@ branch costs time.
 |---|---|---|
 | **Through station** | Numbered platforms, each with a length and the lines that can reach it. A **station throat** of conflicting routes on the approach. | Platform allocation and the order through the throat. |
 | **Hub** | A big through station where 3–4 lines converge, with connections between services | Holding for connections, platform juggling. |
-| **Terminal** | A finite number of bay platforms. Trains turn around (minimum 8–15 min) and form their next service. | A full terminal makes arrivals queue outside. Turnaround is the main way delay spreads. |
+| **Terminal** | A finite number of bay platforms. A booked dwell of 8 minutes or more is a turnaround: only then may a train leave a platform the way it came in, because that is how long changing ends takes. | A full terminal makes arrivals queue outside. Turnaround is the main way delay spreads. |
 | **Yard / depot** | Finite sidings for empty trains | Empty trains must reach it so the next service can start. |
 | **Freight terminal / port** | Finite reception sidings and slot times (F13) | Freight windows. |
 
@@ -102,16 +102,32 @@ branch costs time.
 ### 4.1 Timetable (generator)
 
 - **Clockface service groups** (for example, IC every 30 min A↔B, commuter every 15 min
-  C↔D), **peaks** with extra trains and longer dwells, and **freight paths** in the gaps.
-- **Utilisation target:** the generator adds traffic until the busiest bottleneck
-  reaches 75–90% of capacity.
+  C↔D), a **peak** in the middle third of the shift with longer dwells and fuller trains,
+  and **freight paths** in the gaps. The peak does not yet add extra services; the dwell
+  bump is capped so it can never turn a stop into a turnaround.
+- **Utilisation target:** the generator adds filler paths until the busiest bottleneck
+  reaches 75–90% of capacity. Occupancy is measured as real capacity analysis measures
+  it: a junction move is unavailable for its own clearing time and for every conflicting
+  move's, a one-way track for its critical block and a bidirectional one for the whole
+  transit, each plus a two-minute signalling margin (the junction margin in Network Rail's
+  Timetable Planning Rules is 2–3 minutes). T1 tops out around 63–69% rather than 75%,
+  because its single-track branch runs out of paths first; the band is the target the
+  generator fills toward, not a guarantee. A filler path is only taken if the run still
+  gets every other train home, so freight never displaces a passenger service.
 - **Rotations:** each passenger train forms another service after turning around at a
-  terminal, so late arrivals carry over.
+  terminal, so late arrivals carry over. A rotation is not a separate object: it is one
+  trip whose middle call has a turnaround dwell.
 - **Connections** at hubs: feeder, connector, transfer passengers, minimum transfer
   time.
 - **Passenger counts per stop** (getting on and off), with peak-period profiles.
-- **Feasibility check:** with no delays, the timetable must run with zero conflicts, as
-  a real one does. A seed that fails is rejected.
+- **Feasibility check:** booked times come from the planner's own run of the shift, in
+  which every conflict is settled in timetable order and nothing goes wrong. The published
+  timetable is therefore one the network really delivers, and an undisrupted shift costs
+  nothing. Publishing new departures can reorder the next run, since timetable order is
+  what settles conflicts, so the generator rebooks until re-running the published book
+  changes nothing and rejects the seed if it never settles. A service the run cannot get
+  home inside the shift is dropped, latest path first, exactly as a real timetable gives
+  up its freight paths first.
 
 ### 4.2 What breaks the plan
 
@@ -214,6 +230,8 @@ one problem.
 
 - Continuous train physics, signal aspects and braking curves. Blocks and run times
   per type are enough to make conflicts real.
+- Trains that start or finish the shift in a depot. Every service enters and leaves the
+  area through a portal, or terminates in a siding that holds it for the rest of the shift.
 - Passenger flow simulation, crowding and dynamic demand. Passenger counts per stop
   are fixed by the seed.
 - Safety failures. The interlocking makes collisions impossible, as in v0.2.
@@ -239,12 +257,21 @@ check, solver, policies and stringline (team record §4.6). Suggested order:
 
 Each step ends with one runnable tier: T1 after step 4, T2 and T3 after step 6.
 
-**Status:** step 1 is built in `railway/net`:
-- `model.py`: graph, blocks, platform sides, and conflicts derived from shared points plus listed crossings.
-- `interlocking.py`: route locking.
-- `templates.py`: the fixed T1 layout.
+**Status:** steps 1 to 3 are built in `railway/net`:
+- `model.py`: graph, blocks, platform sides, conflicts derived from shared points plus listed crossings, and the
+  `Trip`, `Connection` and `Timetable` records.
+- `interlocking.py`: route locking. A train must fit every platform road it runs over, not only the one it stops at.
+- `routing.py`: shortest route, and the track a train runs out of the area on.
+- `engine.py`: block signalling, ARS, decision points, `order`, `hold`, `platform`.
+- `trains.py`: the §3 type table.
+- `timetable.py`: run times, utilisation, the generator and the feasibility check.
+- `templates.py`: the fixed T1 layout and its service groups.
 
 It has its own tests in `tests/net`. The v0.2 simulator in `railway/sim` is untouched.
 
-Deferred to step 3, the generator: checking that every track can be left in its own direction, i.e. directed
-reachability.
+Directed reachability, deferred from step 1, is covered in effect: the generator routes every leg before it books
+it and reports any train it cannot get home, so a layout with a track nobody can leave is rejected when it is used.
+
+Known cost, to be dealt with before T2 and T3: generating one T1 shift takes 7 s at 180 minutes and about a minute
+at 360, because every filler candidate is tried with a full run of the shift. T3's 130–160 trains will need the
+per-trip occupancy cached and summed rather than the whole timetable re-measured for each candidate.

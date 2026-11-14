@@ -3,8 +3,9 @@
 A route is a list of element ids walked from `start_node`. elements[0] is where the train is now:
 - a platform: `start_node` is that platform's node;
 - a track: `start_node` is the track end the train came from (a portal when it is entering the network).
-Moves, platforms and tracks crossed are taken whole; a final track only by its entry block, after which the train
-runs on under automatic block signalling. The train's own position is checked, and taken only when entering.
+Moves and platforms are taken whole. A track the route starts on or ends on is taken only by its entry block,
+after which the train runs on under automatic block signalling; a track crossed in the middle of one route is
+taken whole. The train's own position is checked, and taken only when entering.
 """
 
 from __future__ import annotations
@@ -68,15 +69,16 @@ def walk(net: Network, start_node: str, elements: list[str]) -> list[Step] | Ref
 
 def admissible(train: TrainSpec, steps: list[Step]) -> Refusal | None:
     """Checks that no amount of waiting can fix, so a caller never retries a route that can never be granted."""
-    for el, _ in steps:
+    for i, (el, _) in enumerate(steps):
         if train.electric and not isinstance(el, Move) and not el.electrified:
             return Refusal(NetRule.NOT_ELECTRIFIED, f"{el.id} has no overhead line for electric {train.id}")
+        # A train must fit every road it runs onto, not only the one it stops at. Never steps[0]: that is where
+        # the train already stands, and refusing it there would strand the train instead of keeping it out.
+        if i and isinstance(el, Platform) and el.length_m < train.length_m:
+            return Refusal(NetRule.PLATFORM_LEN, f"{el.id} is {el.length_m} m, {train.id} is {train.length_m} m")
     last = steps[-1].element
-    if isinstance(last, Platform):
-        if last.length_m < train.length_m:
-            return Refusal(NetRule.PLATFORM_LEN, f"{last.id} is {last.length_m} m, {train.id} is {train.length_m} m")
-        if train.passenger and last.kind == "siding":
-            return Refusal(NetRule.PLATFORM_KIND, f"{last.id} is a siding; passenger trains need a platform")
+    if isinstance(last, Platform) and train.passenger and last.kind == "siding":
+        return Refusal(NetRule.PLATFORM_KIND, f"{last.id} is a siding; passenger trains need a platform")
     return None
 
 
@@ -90,7 +92,11 @@ def claims(steps: list[Step], entering: bool) -> list[tuple[Resource, Step]]:
         el = step.element
         if isinstance(el, Track):
             order = list(range(el.blocks)) if step.travel == "ab" else list(range(el.blocks - 1, -1, -1))
-            out += [((el.id, idx), step) for idx in (order[:1] if i == last else order)]
+            # Only the entry block, at both ends: a train entering the area occupies one block like any other,
+            # and runs on under automatic block signalling. Taking the whole track would cap a portal at one
+            # train per transit, which is several times the real entry headway.
+            whole = order if 0 < i < last else order[:1]
+            out += [((el.id, idx), step) for idx in whole]
         else:
             out.append((el.id, step))
     return out
@@ -145,13 +151,6 @@ class Interlocking:
         for rule, detail, _ in self._obstacles(train, start_node, steps):
             return Refusal(rule, detail)
         return steps
-
-    def blockers(self, train: TrainSpec, start_node: str, elements: list[str]) -> set[str]:
-        """Trains holding something this route needs (empty if it is malformed or inadmissible)."""
-        steps = walk(self.net, start_node, elements)
-        if isinstance(steps, Refusal) or admissible(train, steps):
-            return set()
-        return {holder for *_, holder in self._obstacles(train, start_node, steps)} - {train.id}
 
     def step_block(self, train_id: str, track_id: str, travel: Travel, done: int) -> str | None:
         """Move a train from its done-th block (in travel order) into the next one; return the blocker, if any."""
