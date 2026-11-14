@@ -10,7 +10,8 @@ from railway.sim.constants import NOTES_MAX, TOOL_BUDGET
 from railway.sim.cost import CostBreakdown
 from railway.sim.engine import Simulator
 from railway.sim.manual import render_manual
-from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse, Scenario
+from railway.sim.engine import COUNTERS
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Scenario
 from railway.sim.observe import Change
 from railway.sim.rules import RuleId
 from railway.tools import formats
@@ -33,6 +34,7 @@ class AuthorizeArgs(Args):
     train: str
     station: str
     track: str
+    via: list[str] = []
 
 
 class HoldArgs(Args):
@@ -84,6 +86,10 @@ def tool(name: str, args: type[Args] = NoArgs):
     return register
 
 
+# Session counters, then the simulator's red-flag counters (merged at close).
+SESSION_COUNTS = ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points")
+COUNT_KEYS = (*SESSION_COUNTS, *COUNTERS)
+
 INVALID_RULES = {RuleId.BAD_ARGS, RuleId.UNKNOWN_TRAIN, RuleId.UNKNOWN_STATION, RuleId.UNKNOWN_TRACK}
 
 
@@ -111,9 +117,7 @@ class Session:
         self.log: list[dict] = []
         self.closed = False
         self.final: FinalResult | None = None
-        self.counts = dict.fromkeys(
-            ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"), 0
-        )
+        self.counts = dict.fromkeys(COUNT_KEYS, 0)
         # Movement changes, for stringline. Trains already in the network at load never emit ENTRY, so seed them.
         self.history: list = [
             Change(tick=0, kind="ENTRY", train=t.id, text=f"{t.id} enters at {t.station}")
@@ -153,7 +157,9 @@ class Session:
         if self.final is None:
             if not self.sim.done:
                 self._record(self.sim.end_shift())
-            self.final = FinalResult(tick=self.sim.tick, cost=self.sim.cost(), counts=dict(self.counts))
+            self.final = FinalResult(
+                tick=self.sim.tick, cost=self.sim.cost(), counts=dict(self.counts) | dict(self.sim.counters)
+            )
         self.closed = True
         return self.final
 
@@ -272,7 +278,8 @@ def _kpis(s: Session, a):
     """Cost so far, counters and budget as JSON. See manual()."""
     cost = s.sim.cost().model_dump(mode="json")
     budget = {"used": s.used, "left": s.budget - s.used, "total": s.budget}
-    return canonical_json({"tick": s.sim.tick, "cost": cost, "counts": s.counts, "budget": budget}), "INFO", None
+    counts = s.counts | s.sim.counters
+    return canonical_json({"tick": s.sim.tick, "cost": cost, "counts": counts, "budget": budget}), "INFO", None
 
 
 @tool("stringline", StringlineArgs)
@@ -295,8 +302,8 @@ def _notes(s: Session, a: NotesArgs):
 # -- actions -------------------------------------------------------------------------
 @tool("authorize", AuthorizeArgs)
 def _authorize(s: Session, a: AuthorizeArgs):
-    """Grant a train movement authority to a station track. See manual()."""
-    return s._action(Authorize(train=a.train, station=a.station, track=a.track), granted="GRANTED")
+    """Grant a train movement authority to a station track, optionally via named stations. See manual()."""
+    return s._action(Authorize(train=a.train, station=a.station, track=a.track, via=a.via), granted="GRANTED")
 
 
 @tool("cancel_authority", TrainArg)
@@ -315,15 +322,6 @@ def _hold(s: Session, a: HoldArgs):
 def _relieve(s: Session, a: TrainArg):
     """Start a crew relief at a crew station. See manual()."""
     return s._action(RelieveCrew(train=a.train))
-
-
-@tool("reverse", TrainArg)
-def _reverse(s: Session, a: TrainArg):
-    """Reverse a gridlocked train. See manual()."""
-    out = s._action(Reverse(train=a.train))
-    if out[1] == "OK":
-        s.counts["reversals"] += 1
-    return out
 
 
 @tool("advance_to_next_event")

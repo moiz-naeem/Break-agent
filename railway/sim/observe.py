@@ -33,12 +33,16 @@ class StopView(LooseModel):
 class TrainState(LooseModel):
     id: str
     type: str
-    direction: str
+    direction: str | None = None
+    origin: str
+    destination: str
     pax: int
     phase: str
     station: str | None = None
     track: str | None = None
     section: str | None = None
+    section_from: str | None = None
+    came_by: str | None = None
     section_enter: int | None = None
     section_exit: int | None = None
     authority: Authority | None = None
@@ -50,6 +54,8 @@ class TrainState(LooseModel):
     arrivals: list[Arrival] = []
     delay: int = 0
     finished_tick: int | None = None
+    outcome: str | None = None  # "arrived" or "wrong_terminal" once finished
+    off_route: bool = False  # a grant made the destination unreachable
     restart_pending: bool = False
     crew_used: int | None = None
     crew_remaining: int | None = None
@@ -59,14 +65,26 @@ class TrainState(LooseModel):
     waits_for: str | None = None
 
 
+class TerminalHold(LooseModel):
+    """A terminal track still held by a train that finished there (turnaround, or waiting for its next
+    service)."""
+
+    resource: str
+    train: str
+    until: int | None = None
+
+
 class State(LooseModel):
     tick: int
     shift_ticks: int
     done: bool
     gridlock: list[str]
+    gridlock_charged: list[str] = []
     trains: list[TrainState]
     restrictions: list[dict] = []
     possessions: list[dict] = []
+    terminal_holds: list[TerminalHold] = []
+    counters: dict[str, int] = {}
     cost: CostBreakdown
     notes: str = ""
     last_decision_tick: int = 0
@@ -78,6 +96,7 @@ class StaticInfo(LooseModel):
     shift_ticks: int
     factors: list[str]
     rules_version: str
+    connections: list[dict] = []
 
     @classmethod
     def from_tool_json(cls, network_json: str, timetable_json: str) -> StaticInfo:
@@ -89,11 +108,12 @@ class StaticInfo(LooseModel):
             for t in table["trains"]
         ]
         return cls(
-            network={k: net[k] for k in ("yards", "stations", "sections")},
+            network={k: net[k] for k in ("yards", "terminals", "stations", "sections") if k in net},
             trains=trains,
             shift_ticks=net["shift_ticks"],
             factors=net["factors"],
             rules_version=net["rules_version"],
+            connections=table.get("connections", []),
         )
 
 

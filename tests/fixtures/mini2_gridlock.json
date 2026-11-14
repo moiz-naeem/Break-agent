@@ -1,5 +1,5 @@
 {
-  "schema_version": 1, "rules_version": "0.2-provisional", "scenario_id": "FIX-mini2_gridlock",
+  "schema_version": 1, "rules_version": "0.3-provisional", "scenario_id": "FIX-mini2_gridlock",
   "seed": 0, "preset": "fixture", "shift_ticks": 60, "factors": ["F1", "F2", "F3", "F4"],
   "network": {"yards": {"west": "YW", "east": "YE"}, "stations": [
     {"id": "S1", "major": false, "crew_station": false, "loops": []},

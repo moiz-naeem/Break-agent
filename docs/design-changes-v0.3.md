@@ -1,59 +1,59 @@
-# Design changes agreed for v0.3 (discussion record, 2026-11-14)
+# v0.3 design changes: reconciled version (2026-11-14)
 
-This records what was discussed and agreed about the network, the reward and the cost
-function, and the reasoning behind each point. Nothing here is implemented yet.
-`DESIGN.md` (v0.2) still describes the code as it is.
+This is the single version to build. It merges the first record in this file (Anh) with
+the scoring section Moiz added to `DESIGN.md` §6.6 (commit `c7cce53`), and settles the
+places where the two disagreed.
 
-Status labels: **Agreed** (decided in the discussion), **Proposed** (my default, not yet
-confirmed), **Open** (needs a decision or a measurement).
+**Short answer for implementers: build `DESIGN.md` §6.6 with one amendment: the
+crew-timeout charge stays (§3.5).**
 
----
+Nothing here is implemented yet. `DESIGN.md` §6.1 and §6.2 still describe the code.
 
-## 1. Summary
-
-| Area | Change | Status |
-|---|---|---|
-| Reward | Top anchor becomes the best known cost (proven optimum where possible) instead of the scripted reference | Agreed |
-| Reward | No clip at the top; scores above 1.0 are reported and flagged | Agreed |
-| Reward | Greedy stays as the bottom anchor | Agreed |
-| Reward | Reference demoted to a baseline row and the training teacher | Agreed |
-| Reward | Real-world KPIs and a clean-shift rate reported beside the score | Agreed |
-| Seed filter | No longer requires the reference to beat greedy by 30% | Agreed |
-| Seed filter | 30% headroom rule measured against the best known cost instead | Proposed |
-| Cost | Terminus multiplier (×2 at the last stop) removed | Agreed |
-| Cost | Reversal removed entirely (tool, cost component, rules) | Agreed |
-| Cost | New service failures (misroute, missed call, wrong terminal) charged heavily, not an automatic zero | Agreed |
-| Cost | Sizes of those new charges | Proposed |
-| Network | Chain replaced by a graph with several origins and destinations | Agreed |
-| Network | Irregular, realistic layouts; traffic scaled to capacity | Agreed |
-| Network | Terminals get a finite number of tracks | Proposed |
-| Harbor oracle | Replays the stored best plan so it scores exactly 1.0 | Proposed |
-| Order of work | Reward anchor and cost changes first, then the network | Proposed |
+Status labels: **Settled** (build it), **Starting value** (build it as a config default,
+calibrate by measurement), **Open** (needs a decision).
 
 ---
 
-## 2. Reward
+## 1. The three conflicts and how they are settled
 
-### 2.1 What it is today
+| # | Situation | Anh's earlier version | Moiz's §6.6 | Settled |
+|---|---|---|---|---|
+| 1 | Train skips a station where it should stop | Passenger-weighted block of 30 minutes plus its lateness | Flat 500 plus the passengers who could not get on or off | **Moiz's, as written** (§3.3). |
+| 2 | Train sent down the wrong branch | One unfinished train: 200 plus lateness | 200 plus a missed-call charge for every stop it never served | **Moiz's, as written.** |
+| 3 | Crew runs out of hours | Keep the 300 charge | No charge; only the delay it causes | **Anh's.** The 300 stays, as a starting value (§3.5). |
+
+Why Moiz's formulas win on 1 and 2: they use passengers getting on and off at each stop,
+which is more precise than one passenger number per train, and they charge both groups
+affected by a skipped stop. The numbers Anh's side gave earlier for missed calls and
+misroutes (the "30 + lateness" block) are **superseded** and should not be built.
+
+---
+
+## 2. Reward (Settled)
 
 ```
-reward = clip( (C_greedy − C_agent) / (C_greedy − C_ref), 0, 1 )
+reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )        → reward.txt
 ```
 
-Implemented in `railway/harbor/verify.py` (`reward_from`). `C_greedy` is the cost of the
-greedy FIFO script, `C_ref` the cost of the scripted reference dispatcher. Both are
-stored per task in `tests/norm.json`.
+- **`C_best`** is the proven optimum where the exact solver can prove one, otherwise the
+  best known cost, labelled as such in `norm.json`.
+- **0** means greedy or worse, including do-nothing and stop-early. **1** means the best
+  known plan.
+- **Above 1** means the agent beat the best known plan. It is flagged and that plan
+  becomes the new `C_best`. Because this changes earlier scores, `norm.json` carries a
+  version and past results are re-scored when it changes.
+- **The reference dispatcher** becomes a baseline row in the table and stays the
+  training teacher.
+- **Reported beside the score:** on-time percentage, weighted passenger delay minutes,
+  freight delivered, gridlocks, crew timeouts, and the clean-shift rate (share of
+  episodes with zero red-flag events).
 
-### 2.2 What is wrong with it
+### 2.1 Why the anchor changed
 
-The concern raised was that the reward looks poor and not trustworthy compared with the
-cost function. The data supports that, for one specific reason: **the top anchor is
-weak**.
+Today's score uses the scripted reference as the top anchor. A full-knowledge search
+beats the reference by a wide margin, so "1.0" meant "matched our script":
 
-The reference is a scripted heuristic. A full-knowledge search beats it by a wide margin
-on four of the five seeds in `docs/strength-check.md`:
-
-| Seed | Do-nothing | Greedy | Reference | Offline search | Current score of the offline plan (unclipped) |
+| Seed | Do-nothing | Greedy | Reference | Offline search | Old score of the offline plan (unclipped) |
 |---|---|---|---|---|---|
 | 0 | 7571.5 | 1746.7 | 296.7 | 176.6 | 1.08 |
 | 5 | 8716.3 | 1408.2 | 208.5 | 208.5 | 1.00 |
@@ -61,282 +61,253 @@ on four of the five seeds in `docs/strength-check.md`:
 | 7 | 9850.1 | 2106.2 | 1219.3 | 213.9 | 2.13 |
 | 10 | 8659.8 | 1026.3 | 447.0 | 22.5 | 1.73 |
 
-Do-nothing, greedy and reference were re-run on 2026-11-14; the offline column is from
-`docs/strength-check.md`.
+The exact solver's proven lower bound on seed 5 is 4.2, far below the 208.5 that both
+the reference and the offline search reach.
 
-Consequences:
+### 2.2 Why greedy stays as the bottom anchor
 
-- **"1.0" means "matched our script", not "dispatched well".** An agent twice as good as
-  the reference gets the same 1.0, because the clip hides everything above it.
-- **Every score depends on the reference's code.** Change the script and every score
-  moves.
-- **The seed filter is biased.** It keeps only seeds where the reference beats greedy by
-  30%, which favours scenarios that suit the script's style.
+An absolute scale, `1 − C_agent / C_do-nothing`, was measured on 10 T1 dev seeds. Greedy
+scored 0.52–0.88 and the reference 0.74–0.99. Everything competent lands near the top
+and the gap between models disappears. Greedy as the zero point is what gives the scale
+its resolution.
 
-A later finding makes this sharper: the exact solver's proven lower bound on seed 5 is
-4.2 (pinned in `tests/optimal/test_optimal.py`), while the reference and the offline
-search both cost 208.5 there. The true optimum is far below what has been called good.
+### 2.3 Seed filter
 
-### 2.3 Why the reward is not simply removed or made absolute
-
-The first idea was to remove the reward or replace it with something closer to real
-life. Two things argue against dropping the normalisation:
-
-- **Harbor needs one float per task**, and raw cost is not comparable across seeds
-  (greedy alone ranges from 1026 to 4809 on the seeds above).
-- **An absolute scale compresses the scores.** The obvious real-life version,
-  `1 − C_agent / C_do-nothing` (share of service delivered), was measured on the first 10
-  T1 dev seeds:
-
-| Seed | Greedy | Reference | Offline search |
-|---|---|---|---|
-| 0 | 0.77 | 0.96 | 0.98 |
-| 5 | 0.84 | 0.98 | 0.98 |
-| 6 | 0.52 | 0.74 | 0.89 |
-| 7 | 0.79 | 0.88 | 0.98 |
-| 10 | 0.88 | 0.95 | 1.00 |
-| 13 | 0.85 | 0.93 | – |
-| 15 | 0.77 | 0.90 | – |
-| 16 | 0.76 | 0.95 | – |
-| 17 | 0.80 | 0.99 | – |
-| 21 | 0.74 | 0.90 | – |
-
-Greedy already scores 0.52–0.88 and the reference 0.74–0.99. Everything competent lands
-in the top part of the scale and the gap between models disappears. Do-nothing is so
-catastrophic (7,500–10,500) that any scale with "nothing delivered" as zero has this
-problem.
-
-So the greedy anchor is the part worth keeping: it is what gives the scale resolution.
-
-### 2.4 The new reward (Agreed)
-
-```
-reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )
-```
-
-- **`C_best`** is the proven optimum where a solver can prove one, otherwise the best
-  known cost (best of the reference, the offline search and any recorded run), labelled
-  as "best known" in `norm.json` and the report.
-- **No top clip.** Against a proven optimum a score above 1.0 is a bug signal. Against a
-  best-known anchor it means the agent found a better plan, which then becomes the new
-  anchor. Either way it is flagged.
-- **Bottom stays at 0.** Do-nothing, stop-early and anything worse than greedy score 0.
-  The unclipped score is still reported so weak models keep their ordering.
-- **The reference** becomes one baseline row in the table and stays the training
-  teacher, because it can label any state.
-
-Expect scores against the optimum to be much lower than against the reference.
-
-### 2.5 Reported beside the score (Agreed)
-
-For human readers, the headline table also shows real operations numbers:
-
-- on-time percentage;
-- weighted passenger delay minutes;
-- freight delivered;
-- gridlocks and crew timeouts;
-- **clean-shift rate:** the share of episodes with zero red-flag events (misroutes,
-  missed calls, gridlocks, crew timeouts).
-
-On-time percentage is not the reward itself, because how it spreads across models has
-not been measured.
-
-### 2.6 Seed filter
-
-- **Agreed:** drop "the reference costs at least 30% less than greedy".
-- **Proposed:** keep a 30% headroom rule, measured against `C_best`, so the denominator
-  of the score stays stable.
+- Settled: drop "the reference costs at least 30% less than greedy".
+- Starting value: `C_best` at least 30% below greedy, so the denominator stays stable.
 - Unchanged: every exploit baseline costs at least as much as greedy; greedy finishes
   every train.
-- **Open:** whether "the reference never gridlocks" stays as a condition now that the
-  reference is only a baseline.
 
-### 2.7 Harbor oracle (Proposed)
+### 2.4 Harbor oracle (Settled)
 
-CI requires the oracle to score exactly 1.0 on every task. The reference will no longer
-do that. Proposal: the oracle replays the stored best plan for the task.
-
-### 2.8 Limits
-
-- The exact solver (`railway/ref/optimal.py`, CP-SAT) covers only event-free scenarios
-  (factors F1–F4, tier T1) on the current chain layout. It needs `ortools`, which is not
-  installed in the project environment.
-- Once trains have route choices, a proven optimum is harder to compute. This was judged
-  not to be a blocker; the solver is to be extended, with "best known" as the fallback on
-  the larger tiers.
+The oracle replays the stored best plan for the task, so it scores exactly 1.0.
 
 ---
 
 ## 3. Cost function
 
-The existing components stay: passenger lateness, freight lateness, crew timeout,
-unfinished trains. Two things are removed and one group is added.
+```
+C = C1 + C2 + C3 + C4 + C5            (1 unit = 100 passenger-minutes late)
+```
 
-### 3.1 Terminus multiplier removed (Agreed)
+Lateness curve, per passenger, used by C1 and C2:
 
-Today passenger lateness is doubled at the last stop (`TERMINUS_MULT = 2`). New rule:
-every timed stop is charged the same.
+```
+f(L) = max(0, L − 2) + 5·[L ≥ 15] + 10·[L ≥ 30] + 20·[L ≥ 60]
+```
 
-Reasoning:
+`v` is 1.5 for an express and 1.0 for a local. `H` is the scheduled wait for the next
+service at that station, fixed in the scenario from the timetable.
 
-- The argument raised was that the last stop matters least, since few passengers are
-  left and only the crew is affected, which is already charged. That is not generally
-  true in reality: the terminus is often the main city station and the busiest stop.
-- The multiplier is still wrong for this simulator. There is one passenger number per
-  train, not per stop, so there is no basis for weighting any stop above another.
-- It double-counts. A late arrival at the terminus already delays the train's next
-  service through the rotation rule, and that lateness is charged there.
+### 3.1 Removed (Settled)
 
-Side effect: the charge for an unfinished passenger train uses the same multiplier, so
-it shrinks. The exploit checks must be re-run to confirm do-nothing and stop-early still
-cannot beat greedy.
+- **Terminus ×2.** Replaced by per-stop alighting counts in C1: each passenger is
+  charged once, at their own stop.
+- **Reversal.** The tool, the cost component and its rules are removed. Gridlock is
+  permanent.
 
-Possible later refinement, not planned: per-stop boarding and alighting counts, which is
-the realistic way to express passenger density.
+### 3.2 C1 Passenger lateness (Settled)
 
-### 3.2 Reversal removed (Agreed)
+At each timed stop: `v × alight/100 × f(late)`.
 
-Today `reverse(train)` sends a gridlocked train back to the previous station for 15
-ticks and 50 points. It is removed: the tool, the `reversal` cost component and its
-rules.
+### 3.3 C2 Missed calls and unfinished trains (Settled)
 
-Reasoning:
+For each scheduled stop not served, whatever the reason (bypassed, misrouted, wrong
+terminal, not reached by shift end, or stuck in a gridlock):
 
-- The argument raised was that reversing on a railway is unrealistic. It is in fact a
-  real move (setting a train back to the previous station), but rare and used only as
-  recovery.
-- It is not a normal move in the simulator either. It is legal only during gridlock,
-  greedy never uses it and the exact solver does not model it. In the three recorded
-  model episodes there was no gridlock and no reversal.
-- It fits the red-flag view: gridlock is something to prevent, not something to undo for
-  50 points.
+```
+500 + v × (alight + board)/100 × (f(H) + 10)
+```
 
-Consequence, accepted: **gridlock becomes permanent.** The trains involved stay stuck
-and are charged as unfinished at shift end. A gridlocked agent almost certainly scores 0
-already, because it ends up worse than greedy. On the graph network, trains outside the
-jam can still run.
+- **Unfinished train:** 200 per train that does not finish, plus the charge above for
+  each unserved stop.
+- **Freight:** an unfinished freight train pays 200 and is charged as arriving at shift
+  end (C3).
+- **Missed connection:** `v × n/100 × (f(H) + 10)` for the `n` transferring passengers.
+- **Grant text:** a grant that loses a stop or the destination still succeeds, but says
+  so, for example `GRANTED (off route: E3 can no longer reach T2)`.
+- **Counting:** a misroute and the wrong terminal it leads to are one red-flag event.
 
-### 3.3 New service failures on the graph network (Agreed in principle)
+**The principle:** a station that gets no service is unacceptable, however few people
+are waiting there. That is why the 500 is flat and applies to every unserved stop.
 
-On the chain there is nowhere wrong to go: wrong direction is refused, scheduled stops
-are enforced, passenger trains cannot use goods loops. A graph adds three failures:
+**An amendment that was considered and dropped.** Anh's side proposed charging the 500
+only when a grant makes the stop unreachable, and not for stops a train simply never
+reached. The reason was this measurement, on the 60 passenger trains of 10 T1 dev seeds
+(assuming passengers get on and off evenly across stops, and a 60-minute headway), of
+what a train that never runs costs:
 
-| Failure | What it is |
-|---|---|
-| Misroute | Train sent down a branch that cannot reach its destination |
-| Missed call | Train bypasses a station where it is scheduled to stop |
-| Wrong terminal | Train ends at an end point that is not its own |
-| Circling | Train routed round a loop in the layout without progressing (shows up as lateness) |
+| Type | Trains | Average stops | Average passengers | Today | §6.6 |
+|---|---|---|---|---|---|
+| Express | 20 | 5.4 | 280 | 2,190 | 3,765 |
+| Local | 40 | 9.0 | 120 | 473 | 4,948 |
 
-Treatment, following how a real railway separates the two kinds:
+Under §6.6 a lost local costs more than a lost express, the reverse of today. That is a
+consequence of the principle, not a defect: a local that never runs leaves nine stations
+without service, an express five. A passenger stranded because the train ran out of
+shift is as stranded as one whose stop was bypassed.
 
-- **Safety failures** (collision, running past the end of an authority) stay impossible.
-  The simulator refuses the command, as an interlocking would.
-- **Service failures** are allowed where the route is physically valid, charged heavily,
-  and counted separately as red flags in the report.
+**Known consequence: a missed stop is in practice a zero.** Under §6.6 greedy's whole
+cost on T1 is 106–488 (10 dev seeds). One unserved stop costs at least 500, so an agent
+that misses a single stop is at or below greedy and its reward is 0. Agents that miss
+one stop and agents that do nothing get the same reward; only the unclipped score
+separates them.
 
-They are **not an automatic zero**, because:
+### 3.4 C3 Freight (Settled)
 
-- one slip in about 60 decisions would erase the whole episode, making the reward nearly
-  binary and putting very different models at the same 0;
-- a missed station call is, in reality, a reported and penalised incident, not the end
-  of the shift;
-- training needs a graded signal.
+`0.5 × late`, plus 50 if `late > 30`. The F13 port cutoff stays at 400.
 
-The strictness is carried by the clean-shift rate (§2.5) instead.
+### 3.5 C4 Crew timeout (Settled, starting value)
 
-The alternative of refusing misroutes outright with a new rule was rejected: it is
-simpler, but it removes routing mistakes as something the benchmark can measure.
+300 per timeout. The section is still blocked for 45 ticks, and the delays that causes
+are charged through C1–C3. A timeout is a red-flag event.
 
-**Proposed charge sizes (not yet confirmed):**
+Why it stays: without it, a timeout that delays nobody costs nothing, and for a freight
+train a timeout costs about 22 against 4 for a relief. Exceeding crew hours is the one
+failure here that is a legal matter on a real railway.
 
-- misrouted or wrong-terminal train: treated as unfinished (the existing 200 plus the
-  lateness charge);
-- missed call: a fixed block of passenger-weighted minutes, calibrated so that skipping
-  a stop never costs less than arriving late at it.
+**The size needs calibrating.** Passenger charges under §6.6 are roughly eight times
+smaller than today, so 300 weighs far more than it used to. Greedy has 4–5 crew timeouts
+per T2 episode; at 300 each that is 1,200–1,500 on top of a §6.6 cost of about
+700–1,650. See open item 1.
+
+### 3.6 C5 Gridlock and operations (Settled)
+
+- **Gridlock:** 1000 per gridlock, charged when it forms. The trains stay stuck; their
+  unserved stops are charged as missed calls (§3.3), on top of the 1000.
+- **Unplanned stop:** freight 4, passenger 1.
+- **Platform change at a hub:** `v × (alight + board)/100 × 2`.
+
+### 3.7 Safety failures
+
+Collisions and running past the end of an authority stay impossible: the simulator
+refuses the command. Service failures are charged and counted, never an automatic zero,
+because one slip in about 60 decisions would otherwise erase the episode and put very
+different models at the same score.
+
+### 3.8 Exploit check on hold-freight (measured)
+
+§6.6 removes the extra unfinished-freight charge that was calibrated to stop the
+"hold all freight" exploit. This was tested by re-scoring real episodes under §6.6:
+
+| Tier | Seeds | Hold-freight beats greedy today | Under §6.6 |
+|---|---|---|---|
+| T1 | 10 | 0 | 0 |
+| T2 | 4 | 0 | 0 |
+
+The exploit does not pay on any tested seed. An earlier claim that it would is
+**withdrawn**. The T2 margin is thin (about 5% on one seed), as it is today, so the full
+exploit checks in `DESIGN.md` §6.5 must be re-run once the rules are implemented.
+
+### 3.9 Scenario data needed
+
+Passengers getting on and off at each stop; connections (feeder, connector, hub,
+passengers, minimum transfer time); headway `H` per station and destination; freight
+window and miss cost; the published platform at hubs.
 
 ---
 
 ## 4. Network
 
-### 4.1 What it is today
+### 4.1 What changes (Settled)
 
-One chain `YW – S1..SN – YE` with two unlimited yards, enforced in
-`railway/sim/model.py` (`Network.ordered_chain`). Every train is `east` or `west`.
+- **A graph replaces the chain.** Nodes are stations and terminals. A train has an
+  origin, a destination and a route, instead of a direction.
+- **A junction is an ordinary station with three neighbours.** No separate node type,
+  maximum degree 3, at least one loop.
+- **Several origin–destination pairs.** Train count was never the gap; trains with
+  different start and end points were.
+- **Irregular layouts** built from a few templates with random perturbation: flat
+  junctions, dead-end branches to a port or depot, uneven branch lengths, a stretch with
+  few loops. Not fully random graphs, which give cycles everywhere and unsolvable seeds.
+- **Traffic scaled to the network.** A bigger map with the same traffic is easier, so
+  the generator keeps the busiest section as loaded as today.
+- **Terminals have a finite number of tracks.**
 
-### 4.2 The goal
+### 4.2 Sizes (Starting values)
 
-A more authentic experience: several places where paths diverge and converge, and many
-trains running at once from several starting points to several destinations.
+| | T1 | T2 | T3 |
+|---|---|---|---|
+| Stations, including junctions, excluding terminals | 10 | 16 | 24 |
+| Terminals | 3 | 4 | 6 |
+| Branches off the trunk | 1 | 2 | 4 |
+| Bypasses | 0 | 1 | 2 |
+| Junction stations | 1 | 4 | 8 |
+| Trains | 10 | 14 | 28 |
+| Directed origin–destination pairs | 4 | 6–8 | 10–12 |
+| Shift (ticks) | 240 | 720 | 720 |
 
-### 4.3 What changes (Agreed)
+- Branch: 2–4 stations, ending in a terminal. Bypass: 2–3 stations, 20–40% longer
+  running time than the stretch it avoids, skipping at least one station where some
+  train is scheduled to call.
+- Sections, speeds and loops per station keep today's generator ranges.
+- At least 70% of trains cross the busiest trunk section.
+- From T2 up, one branch terminal is a port or depot for freight.
 
-- **The network becomes a graph.** Nodes are stations, junctions and terminals. A train
-  has an origin, a destination and a route, instead of a direction.
-- **Several origin–destination pairs.** Train count was not the gap (T1 already runs 8
-  trains, T3 runs 22); what was missing is trains with different start and end points.
-- **Irregular layouts.** Flat junctions where crossing moves conflict, dead-end branches
-  to a port or depot, mixed single and double track, uneven branch lengths, a stretch
-  with few passing loops.
-- **Alternative routes.** At least one bypass, so routing is a real decision and
-  possessions and breakdowns become "go around or wait".
+| Terminal | Tracks |
+|---|---|
+| Trunk end | 3: two 300 m platform, one 700 m goods |
+| Branch end | 2: one 300 m platform, one 700 m goods |
+| Port or depot | 2: both 700 m goods |
 
-### 4.4 Realism versus difficulty
+A finished train holds its track for the 10-tick turnaround, or until its next service
+departs. An entering train takes a track at its entry tick and waits outside if none is
+free. The generator checks that scheduled peak occupancy is at most the track count
+minus one.
 
-My first proposal was a tidy shared trunk with symmetric branches, on the grounds that a
-bigger network can be easier: if trains spread over branches, conflicts thin out.
+**These are config defaults, not a specification.** Do not hard-code them. Three have a
+clear test: train counts (greedy still finishes every train, and `C_best` stays 30%
+below greedy), the 70% trunk load (raise it if seeds are rejected for lack of headroom),
+and the missed-call charges (no stop-skipping exploit beats greedy).
 
-The objection was that a tidy trunk is not realistic, and that real networks diverge and
-converge in messy ways. That objection is correct, and the recommendation changed:
+### 4.3 What a review should focus on
 
-- The point was about difficulty, not tidiness. Adding track without adding traffic
-  makes the task easier.
-- Real railways stay congested because timetables are written to fill the capacity.
-- So the generator should **scale traffic to the network**: it targets a utilisation
-  level on the busiest sections, and the bottleneck sits wherever the layout puts it.
-- Layouts come from a few templates with random perturbation, not fully random graphs.
-  Random graphs produce things real railways do not have (cycles everywhere) and many
-  unsolvable seeds.
+The numbers are cheap to change. These decisions are not:
 
-### 4.5 Terminals (Proposed)
-
-Terminals get a finite number of tracks. Unlimited yards are the least realistic part of
-the current model.
-
-### 4.6 Cost of the change
-
-The chain assumption runs through the engine, the generator, the reference's candidate
-plans, the gridlock check, the exact solver, the greedy and exploit policies, and the
-stringline diagram (which only makes sense along one corridor). All seeds, norms,
-datasets and the frozen prompt have to be regenerated, and the rules version changes.
-
-Context also grows with the map. Greedy through the model loop already uses about 360k
-input tokens on a T1 episode, so `status` has to stay compact, per corridor.
+1. **Authority on a graph.** `authorize(train, station, track)` is ambiguous once two
+   paths reach the same station. Default: one hop per authority, or a multi-hop
+   authority with an explicit list of stations.
+2. **Who owns the route.** Default: the dispatcher chooses it. Misroutes and missed
+   calls only exist in that case.
+3. **Gridlock detection.** Gridlock is permanent and costs 1000, so a false positive or
+   a miss changes scores directly. Needs property tests on graph layouts.
+4. **Misroute detection.** A reachability check at grant time, counted once.
+5. **Terminal capacity and entry.** Must not produce seeds no dispatcher can solve.
+6. **Chain as a special case.** An old chain scenario expressed as a graph should replay
+   to the same trajectory as the old engine.
+7. **Determinism and replay.** No ordering may depend on set or dict iteration.
+8. **What the agent sees.** `status` and `stringline` assume one line; decide the
+   per-corridor format and check the token size on the largest tier.
+9. **Manual coverage.** Every new rule and cost component appears in `manual()`.
+10. **Whether it is harder.** Measure the gap between greedy and `C_best` on the new
+    seeds; do not argue it from the layout.
 
 ---
 
-## 5. Order of work (Proposed)
+## 5. Order of work
 
-1. Reward anchor, terminus multiplier and reversal removal, with `ortools` added as a
-   dev dependency. Regenerate T1 norms and re-run the exploit checks.
-2. Graph network: model, engine, gridlock check, generator with utilisation target,
-   policies, solver, tools and manual.
-3. New service-failure charges and red-flag counts; KPI and clean-shift reporting.
+Per `DESIGN.md` §6.6, the new cost function lands with the graph network. The reward
+anchor, the terminus change and the removal of reversal do not depend on the graph and
+can go in first on the chain, which makes later score changes easier to attribute.
 
-The reward comes first because the network change invalidates every stored `C_greedy`
-and `C_ref` anyway, and new seeds should be normed against the better anchor from the
-start.
+The exact solver (`railway/ref/optimal.py`) covers only event-free scenarios on the
+chain and needs `ortools`, which is not a project dependency. It has to be extended to
+the graph and to every cost term above; where it cannot prove an optimum, `C_best` is
+the best known cost.
 
 ---
 
 ## 6. Open items
 
-1. Sizes of the misroute, wrong-terminal and missed-call charges (§3.3).
-2. Whether the 30% headroom rule against `C_best` is the right filter (§2.6).
-3. Whether "the reference never gridlocks" stays in the seed filter (§2.6).
-4. Oracle replaying the stored best plan (§2.7).
-5. Finite terminal tracks (§4.5).
-6. How on-time percentage spreads across models, before it gets any weight (§2.5).
+1. **Size of the crew-timeout charge** on the new cost scale (§3.5). 300 is today's
+   number.
+2. **Training signal.** §6.6 trains on the clipped reward with the unclipped value as a
+   tie-break. Training on raw cost, as in v0.2, is simpler and equivalent below greedy.
+3. **Whether "the reference never gridlocks" stays in the seed filter**, now that the
+   reference is only a baseline.
+4. **Full exploit checks** under the new rules, on the complete seed sets (§3.8).
+5. **The pitch deck and animation page** follow §6.6 as written and need the one
+   amendment at the top of this file (the crew charge stays).
 
 ---
 

@@ -67,8 +67,11 @@ def build(scenario: Scenario, token: str) -> MCPServer:
         return await call("notes", {"text": text})
 
     @server.tool(description=describe("authorize"))
-    async def authorize(train: str, station: str, track: str) -> str:
-        return await call("authorize", {"train": train, "station": station, "track": track})
+    async def authorize(train: str, station: str, track: str, via: list[str] | None = None) -> str:
+        args = {"train": train, "station": station, "track": track}
+        if via:
+            args["via"] = via
+        return await call("authorize", args)
 
     @server.tool(description=describe("cancel_authority"))
     async def cancel_authority(train: str) -> str:
@@ -81,10 +84,6 @@ def build(scenario: Scenario, token: str) -> MCPServer:
     @server.tool(description=describe("relieve_crew"))
     async def relieve_crew(train: str) -> str:
         return await call("relieve_crew", {"train": train})
-
-    @server.tool(description=describe("reverse"))
-    async def reverse(train: str) -> str:
-        return await call("reverse", {"train": train})
 
     @server.tool(description=describe("advance_to_next_event"))
     async def advance_to_next_event() -> str:
