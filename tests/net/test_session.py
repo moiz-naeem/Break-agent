@@ -151,8 +151,12 @@ def test_notes_and_bulletins_and_kpis_guarded_cost_import(sample_timetable, monk
     shown = json.loads(s.call("bulletins", {}))
     assert len(shown) == 1 and shown[0]["kind"] == "DISRUPTION_START"
 
-    # Without railway.net.cost installed, kpis() works cleanly with cost=None.
-    monkeypatch.delitem(sys.modules, "railway.net.cost", raising=False)
+    # With real railway.net.cost merged (Lane C), kpis() returns a CostBreakdown dict.
+    kpi_real = json.loads(s.call("kpis", {}))
+    assert kpi_real["cost"] is not None and "total" in kpi_real["cost"]
+
+    # Without railway.net.cost importable, kpis() degrades cleanly with cost=None.
+    monkeypatch.setitem(sys.modules, "railway.net.cost", None)
     kpi_without = json.loads(s.call("kpis", {}))
     assert kpi_without["cost"] is None
     assert kpi_without["budget"]["used"] == s.used

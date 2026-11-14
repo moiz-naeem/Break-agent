@@ -18,21 +18,21 @@ Kinds and their fields (`train` is set for every kind except SHIFT_END, GRIDLOCK
 
 | kind | when | element | node | call | booked | detail |
 |---|---|---|---|---|---|---|
-| ENTER | enters through a portal, or starts standing in its first platform | track or platform | portal node or None | 0 if it starts at call 0 | entry tick | |
-| ARRIVE | stops in a platform | platform | its node | booked call or None (unbooked stop) | booked arrive | {"booked_platform": id} if the call was booked at another platform of that node |
-| DEPART | leaves a platform | platform | its node | booked call or None | booked depart | |
-| PASS | runs through a platform without stopping | platform | its node | booked call if it should have stopped there | booked arrive | |
-| SIGNAL_STOP | stops at a signal with no authority ahead (an unplanned stop: restart penalty) | element it stands on | | | | {"restart_min": n} |
-| EXIT | runs out of the area through a portal | track | portal node | | booked exit time, if the trip has one | |
-| CALL_MISSED | a booked call can no longer be made (skip, cancel, short turn, route, or not reached by shift end) | booked platform | its node | call | booked arrive | {"why": "skip"/"cancel"/"short_turn"/"route"/"shift_end"} |
-| CONNECTION | the connector leaves a connection node (made or not) | | node | | | {"feeder": id, "connector": id, "transfers": n, "made": bool} |
-| UNFINISHED | at shift end, its work is not done | | | | | {"freight": bool} |
-| CREW_WARNING | crew within the warning margin of its duty limit | | | | | {"remaining_min": n} |
-| CREW_TIMEOUT | crew reaches its duty limit; the train stops where it is | element | | | | {"blocked_min": n} |
-| CREW_RELIEF | a relief starts | platform | node | | | {"until": tick} |
-| DISRUPTION_START / DISRUPTION_END | a breakdown, possession, speed restriction or signal failure begins or ends | element, if one | node, if one | | | {"id": id, "kind": kind, "train": id or None} |
-| GRIDLOCK | a new set of trains can never move again | | | | | {"trains": [ids]} |
-| ACTION | the agent changed the plan (order, hold, platform, route, skip, short_turn, cancel, single_line, ...) | | | | | {"action": name, "args": {...}} |
+| ENTER | portal entry / start at 1st platform | track/plat | portal/None | 0 if call 0 | entry | |
+| ARRIVE | stops in a platform | platform | its node | call/None | arrive | `{"booked_platform": id}` if changed |
+| DEPART | leaves a platform | platform | its node | call/None | depart | |
+| PASS | runs through platform non-stop | platform | its node | call/None | arrive | |
+| SIGNAL_STOP | unplanned stop at signal | element | | | | `{"restart_min": n}` |
+| EXIT | exits area through portal | track | portal node | | exit | |
+| CALL_MISSED | booked call cannot be made | booked plat | node | call | arrive | `{"why": "skip"/.../"shift_end"}` |
+| CONNECTION | connector leaves connection node | | node | | | `{"feeder", "connector", "transfers", "made"}` |
+| UNFINISHED | at shift end, work not done | | | | | `{"freight": bool}` |
+| CREW_WARNING | within warning margin of limit | | | | | `{"remaining_min": n}` |
+| CREW_TIMEOUT | reaches duty limit; train stops | element | | | | `{"blocked_min": n}` |
+| CREW_RELIEF | a relief starts | platform | node | | | `{"until": tick}` |
+| DISRUPTION_* | disruption begins or ends | elem/None | node/None | | | `{"id", "kind", "train"}` |
+| GRIDLOCK | new set of trains never move again | | | | | `{"trains": [ids]}` |
+| ACTION | agent changed the plan | | | | | `{"action": name, "args": {...}}` |
 | SHIFT_END | the shift is over | | | | | |
 """
 

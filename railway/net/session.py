@@ -154,7 +154,9 @@ def _refused(rule: NetRule | str, detail: str) -> tuple[str, str, str]:
 def _try_lane_c_cost(timetable: Timetable, engine: Engine) -> tuple[BaseModel | None, bool]:
     """Compute cost through `railway.net.cost` (lane C) if present; `(None, False)` otherwise."""
     try:
-        from railway.net import cost as net_cost  # type: ignore[import-not-found]
+        import importlib
+
+        net_cost = importlib.import_module("railway.net.cost")
     except ImportError:
         return None, False
 

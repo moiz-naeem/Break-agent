@@ -199,7 +199,7 @@ restrictions: possession S9-S10 170-200
 
 ## 6. Reward
 
-> The v0.3 reward (§6.6) replaces §6.1 and §6.2 once the graph network is implemented.
+> v0.3 (branch `net`) implements §6.6, which replaces §6.1 and §6.2: the reward is −C, minus the total cost.
 
 ### 6.1 Cost (weighted minutes)
 Charged as events happen (visible in `kpis()`):
@@ -218,7 +218,11 @@ These weights are provisional. **They are frozen at the end of the pilot** and n
 changed in response to held-out results.
 
 ### 6.2 Score
-The official per-task reward anchors on greedy, so the scale measures dispatching
+
+> **Superseded (v0.2 only).** Since v0.3 the reward is −C, minus the total cost (§6.6). The
+> normalised formula below is not used as a reward anywhere.
+
+The v0.2 per-task reward anchored on greedy, so the scale measured dispatching
 quality rather than "did the trains move at all":
 
 ```
@@ -269,23 +273,22 @@ accepts custom agents easily, they also ship as Harbor agents.
 | Tamper with the score | The verifier re-scores by replaying the action log against `tests/scenario.json`, which arrives only after the agent finishes |
 | Malformed commands | Refused with a reason; no state change; counted as invalid calls |
 
-### 6.6 v0.3 reward (agreed 2026-11-14, not yet implemented)
+### 6.6 v0.3 reward (agreed 2026-11-14, implemented on branch `net`)
 
-This replaces §6.1 and §6.2 when the graph network lands. Until then, §6.1 and §6.2
-describe the code. It builds on `docs/design-changes-v0.3.md`, which removes reversal
-and the terminus ×2 and anchors on `C_best`.
+This replaces §6.1 and §6.2 on the v0.3 network track (`docs/decisions.md` #2–#4,
+`railway/net/cost.py`, `docs/net-cost.md`).
 
 ```
-reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )        → reward.txt
-C      = C1 + C2 + C3 + C5            (1 unit = 100 passenger-minutes late)
+reward = −C                            → reward.txt
+C      = C1 + C2 + C3 + C4 + C5        (1 unit = 100 passenger-minutes late)
 ```
 
-- **0** means greedy or worse, which includes do-nothing and stop-early. **1** means the
-  best known plan. A score above 1 happens only when the agent beats the best known
-  plan. It is flagged, and that plan becomes the new `C_best`, so the reward stays in
-  [0, 1].
-- The agent is trained and evaluated on this reward. Rollouts worse than greedy all
-  score 0, so during training their unclipped value breaks ties between them.
+- **The reward is minus the total cost. Nothing else is in it:** no greedy or best-plan
+  normalisation, no clip, and no bonuses or shaping. Both benchmark evaluation and RL
+  post-training (GRPO) use `−C`.
+- **Greedy and best plan are report-only:** `details.json` and benchmark tables report
+  the cost per component, operational KPIs, and `C_greedy` (plus `C_best` where
+  available) as reference rows, never in `reward.txt`.
 
 **Lateness curve**, per passenger, used by C1 and C2:
 
@@ -299,18 +302,14 @@ Delay Repay refunds (25 / 50 / 100 % of the fare at 15 / 30 / 60 min late).
 
 | Term | Charge | Why |
 |---|---|---|
-| **C1 Passenger lateness** | At each timed stop: `v × alight/100 × f(late)`, where `v` = express 1.5, local 1.0 | Each passenger is charged once, at their own stop. This replaces `w_type × pax` and the terminus ×2. `v` reflects that long-distance passengers value time more. |
-| **C2 Missed station call** | **`500 + v × (alight + board)/100 × (f(H) + 10)`** per scheduled stop not served: bypassed, misrouted, wrong terminal, or not reached by shift end | It hits both groups: people who wanted to get off, and people who wanted to get on and lose their journey. `H` = wait for the next service there. 10 = the hassle of being stranded. 500 makes skipping a last resort. |
-| **C2 Missed connection** | `v × n/100 × (f(H) + 10)` for the `n` transferring passengers | The connecting train left before the feeder arrived. |
-| **C2 Unfinished train** | 200 per train that does not finish its run, plus missed calls for its unserved stops. Freight is charged as arriving at shift end. | Stock and crew are left out of position. |
-| **C3 Freight** | `0.5 × late`, plus 50 if `late > 30` (F13 port cutoff: 400) | Customers buy a delivery window, so freight wins conflicts only near its window. |
-| **C5 Gridlock** | **1000 per gridlock**, charged when it forms | A deadlock means the plan failed. Reversal stays removed, so the trains stay stuck and their unserved stops add missed calls on top. The charge is on the deadlock, not on recovery, so staying stuck can never be cheaper. |
-| **C5 Operations** | Unplanned stop: freight 4, passenger 1. Platform change at a hub: `v × (alight + board)/100 × 2` | Energy and wear from stop-start running, which acts as a tie-breaker. Re-platforming is a cheap conflict tool, but not a free one. |
-
-**There is no crew term (C4 is dropped).** A crew timeout still blocks its section for
-45 ticks, and the delays it causes are charged through C1–C3. It is counted as a red
-flag in the clean-shift rate. Known gap: a timeout where the blockage delays nobody
-costs nothing.
+| **C1 Passenger lateness** | At each booked passenger stop: `v × alight/100 × f(late)`, where `v` = express 1.5 (`IC`), local 1.0 (`RE`, `S`) | Each passenger is charged once, at their own stop. This replaces `w_type × pax` and the terminus ×2. `v` reflects that long-distance passengers value time more. |
+| **C2 Missed station call** | **`500 + v × (alight + board)/100 × (f(H) + 10)`** per scheduled passenger stop not served: skipped, cancelled, short-turned, bypassed by re-routing, or not reached by shift end | It hits both groups: people who wanted to get off, and people who wanted to get on and lose their journey. `H` = timetable headway to the next same-way passenger service (capped at 120, default 60). 10 = the hassle of being stranded. 500 makes skipping a last resort. |
+| **C2 Missed connection** | `v × n/100 × (f(H) + 10)` for the `n` transferring passengers (using the connector's `v` and `H`) | The connecting train left before the feeder arrived. |
+| **C2 Unfinished train** | `200` per train (including empty stock and engineering) that does not finish its booked work by shift end, plus missed calls for unserved passenger stops; undelivered freight adds **`1500`** plus freight lateness at shift end | Stock and crew are left out of position, and undelivered freight can never look cheaper than delivering late. |
+| **C3 Freight** | `0.5 × late`, plus `50` past its delivery window (`late > 30` for `FI`, `late > 60` for `FB`); F13 port cutoff miss: `400` | Customers buy a delivery window, so freight wins conflicts only near its window. |
+| **C4 Crew timeout** | **`40` per crew timeout** (down from 300 in v0.2) | Prevents free timeouts when a stranded train happens to block nobody; the 45-minute section blockage still charges knock-on delays naturally through C1–C3. |
+| **C5 Gridlock** | **`1000` per gridlock**, charged when it forms | A deadlock means the plan failed. Reversal stays removed, so the trains stay stuck and their unserved stops add missed calls on top. The charge is on the deadlock, not on recovery, so staying stuck can never be cheaper. |
+| **C5 Operations** | Unplanned signal stop: freight `4`, passenger `1` (`0` for empty stock/engineering). Platform change at a booked passenger stop: `v × (alight + board)/100 × 2` | Energy and wear from stop-start running, which acts as a tie-breaker. Re-platforming is a cheap conflict tool, but not a free one. |
 
 **What the weights imply** (checked by script):
 - Skipping a 300-passenger express stop costs 818. Arriving late there only costs more
@@ -324,9 +323,9 @@ costs nothing.
 (feeder, connector, hub, passengers, minimum transfer time); the headway `H` per
 station and destination; freight window and miss cost; the published platform at hubs.
 
-**Unchanged:** freight 0.5 per minute, the F13 cutoff of 400, F17 special requests, and
-weights frozen after the pilot. Re-run the §6.5 exploit checks once this is
-implemented.
+**Unchanged:** freight 0.5 per minute, the F13 cutoff of 400, and weights frozen after
+the pilot. Re-run the §6.5 exploit checks once the full network engine and policies
+land.
 
 ---
 
