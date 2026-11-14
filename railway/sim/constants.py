@@ -1,4 +1,4 @@
-RULES_VERSION = "0.1-provisional"
+RULES_VERSION = "0.2-provisional"
 TICK_MINUTES = 1
 TOOL_BUDGET = 600  # calibrated (T05-35): greedy needs up to ~370 calls on T2; DESIGN said 400
 TIME_CAP = 60
@@ -9,6 +9,8 @@ W_LOCAL = 1.0
 W_FREIGHT = 0.5
 W_ENGINEERING = 0.0
 UNFINISHED_COST = 200
+UNFINISHED_FREIGHT_EXTRA = 1000  # per UNFINISHED_FREIGHT_SHIFT ticks of shift; calibrated (T06-19) so holding
+UNFINISHED_FREIGHT_SHIFT = 240  # freight costs more than greedy loses: T1 (240) +1000, T2 (720) +3000
 RESTART_TICKS = {"express": 1, "local": 1, "freight": 4, "engineering": 1}
 TURNAROUND = 10
 CREW_LIMIT = 240

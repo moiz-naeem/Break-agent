@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from railway.policies.baselines import EpisodeOver, Guard
+from railway.policies.baselines import EpisodeOver, Guard, ToolCall
 from railway.sim.constants import W_EXPRESS, W_FREIGHT, W_LOCAL
 from railway.sim.engine import Simulator
 from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse
@@ -13,12 +11,6 @@ from railway.tools.observe import Observer
 
 from .candidates import WAIT, candidates
 from .rollout import rollout
-
-
-@dataclass(frozen=True)
-class ToolCall:
-    tool: str
-    args: dict
 
 
 class Reference:

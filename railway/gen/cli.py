@@ -29,11 +29,20 @@ def _parser():
     accept.add_argument("--config", required=True)
     accept.add_argument("--set", required=True, choices=("dev", "train", "heldout"))
     accept.add_argument("--count", required=True, type=int)
+    # T07: its options are parsed by railway.harbor.export (`gen export -h`)
+    commands.add_parser("export", help="export accepted scenarios as Harbor tasks", add_help=False)
     return parser
 
 
 def main(argv=None):
-    args = _parser().parse_args(argv)
+    parser = _parser()
+    args, extra = parser.parse_known_args(argv)
+    if args.command == "export":
+        from railway.harbor.export import main as export_main
+
+        return export_main(extra)
+    if extra:
+        parser.error(f"unrecognized arguments: {' '.join(extra)}")
     if args.command == "sample":
         if args.config not in PRESETS:
             valid = ", ".join(sorted(PRESETS))

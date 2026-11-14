@@ -51,4 +51,4 @@ def test_T03_04_no_penalty_at_timed_stop_or_origin():
     assert s.advance().tick == 11
     assert s.apply(Authorize(train="E1", station="YE", track="main")).ok
     s.end_shift()
-    assert s.cost().total == 519.0
+    assert s.cost().total == 769.0

@@ -107,7 +107,8 @@ def harbor_run(task_path, agent: str, model: str | None = None, extra_args=()) -
     for host in os.environ.get("SPIKE_ALLOW_HOSTS", "").split():
         cmd += ["--allow-environment-host", host]
     # Harbor is a separate uv tool; PYTHONPATH lets it import custom agents from this repo.
-    env = {**os.environ, "PYTHONPATH": str(REPO)}
+    # UTF-8: Harbor prints Unicode tables; on a Windows cp1252 pipe it crashes before any trial starts.
+    env = {**os.environ, "PYTHONPATH": str(REPO), "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     subprocess.run(cmd, check=False, env=env)
     results = []
     for trial in sorted(p.parent for p in jobs.glob("*/*/result.json")):  # <jobs>/<job>/<trial>/

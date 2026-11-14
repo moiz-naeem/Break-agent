@@ -68,6 +68,14 @@ Handler = Callable[["Session", BaseModel], tuple[str, str, str | None]]
 TOOLS: dict[str, tuple[type[Args], Handler]] = {}
 
 
+def describe(name: str) -> str:
+    """A tool's one-line description, shared by the MCP server and the loop's tool schemas (T08 §2.2)."""
+    return TOOLS[name][1].__doc__
+
+
+PEEKABLE = frozenset({"status", "bulletins", "kpis", "manual"})
+
+
 def tool(name: str, args: type[Args] = NoArgs):
     def register(fn: Handler) -> Handler:
         TOOLS[name] = (args, fn)
@@ -85,11 +93,19 @@ def _refused(rule: RuleId, detail: str) -> tuple[str, str, str]:
 
 
 class Session:
-    def __init__(self, scenario: Scenario, *, budget: int = TOOL_BUDGET, diagnostics: bool = False):
+    def __init__(
+        self,
+        scenario: Scenario,
+        *,
+        budget: int = TOOL_BUDGET,
+        diagnostics: bool = False,
+        disabled: tuple[str, ...] = (),
+    ):
         self.scenario = scenario
         self.sim = Simulator.load(scenario)
         self.budget = budget
         self.diagnostics = diagnostics  # conflicts / what_if arrive in T09
+        self.disabled = frozenset(disabled)  # ablations (T08): refused like an unknown tool, and billed
         self.used = 0
         self.notes = ""
         self.log: list[dict] = []
@@ -126,6 +142,13 @@ class Session:
             out += f"\nBUDGET EXHAUSTED (R-BUDGET): shift ended. Final cost {final.cost.total}"
         return out
 
+    def peek(self, tool_name: str, args: dict) -> str:
+        """Read-only output for our own loop's CURRENT block (T08 §2.3): no budget, no log entry."""
+        if tool_name not in PEEKABLE:
+            raise ValueError(f"peek is read-only; {tool_name!r} is not allowed")
+        model, handler = TOOLS[tool_name]
+        return handler(self, model.model_validate(args))[0]
+
     def close(self) -> FinalResult:
         if self.final is None:
             if not self.sim.done:
@@ -138,6 +161,8 @@ class Session:
     def _dispatch(self, tool_name: str, args: dict) -> tuple[str, str, str | None]:
         if tool_name not in TOOLS:
             return _refused(RuleId.BAD_ARGS, f"unknown tool {tool_name!r}")
+        if tool_name in self.disabled:
+            return _refused(RuleId.BAD_ARGS, "tool disabled")
         model, handler = TOOLS[tool_name]
         try:
             parsed = model.model_validate(args if isinstance(args, dict) else {})
@@ -208,16 +233,19 @@ class Session:
 # -- read-only tools ---------------------------------------------------------------
 @tool("manual")
 def _manual(s: Session, a):
+    """The dispatcher manual: rules, costs, tools. See manual()."""
     return render_manual(), "INFO", None
 
 
 @tool("network")
 def _network(s: Session, a):
+    """Static network as JSON. See manual()."""
     return formats.network(s.scenario), "INFO", None
 
 
 @tool("timetable", TimetableArgs)
 def _timetable(s: Session, a: TimetableArgs):
+    """Timetable as JSON, for all trains or one. See manual()."""
     trains = s.scenario.trains
     if a.train is not None:
         trains = [t for t in trains if t.id == a.train]
@@ -228,17 +256,20 @@ def _timetable(s: Session, a: TimetableArgs):
 
 @tool("status", StatusArgs)
 def _status(s: Session, a: StatusArgs):
+    """Current state, as JSON or as compact text. See manual()."""
     state = s.state()
     return (formats.compact_status(state, s.scenario) if a.compact else formats.full_status(state)), "INFO", None
 
 
 @tool("bulletins")
 def _bulletins(s: Session, a):
+    """Revealed events as JSON. See manual()."""
     return canonical_json(s.revealed_events()), "INFO", None
 
 
 @tool("kpis")
 def _kpis(s: Session, a):
+    """Cost so far, counters and budget as JSON. See manual()."""
     cost = s.sim.cost().model_dump(mode="json")
     budget = {"used": s.used, "left": s.budget - s.used, "total": s.budget}
     return canonical_json({"tick": s.sim.tick, "cost": cost, "counts": s.counts, "budget": budget}), "INFO", None
@@ -246,6 +277,7 @@ def _kpis(s: Session, a):
 
 @tool("stringline", StringlineArgs)
 def _stringline(s: Session, a: StringlineArgs):
+    """ASCII time-distance diagram for a tick window. See manual()."""
     from railway.tools.stringline import render
 
     return render(s, a.from_tick, a.to_tick)
@@ -253,6 +285,7 @@ def _stringline(s: Session, a: StringlineArgs):
 
 @tool("notes", NotesArgs)
 def _notes(s: Session, a: NotesArgs):
+    """Replace your notes scratchpad. See manual()."""
     if len(a.text) > NOTES_MAX:
         return _refused(RuleId.NOTES_TOO_LONG, f"{len(a.text)} characters, max {NOTES_MAX}")
     s.notes = a.text
@@ -262,26 +295,31 @@ def _notes(s: Session, a: NotesArgs):
 # -- actions -------------------------------------------------------------------------
 @tool("authorize", AuthorizeArgs)
 def _authorize(s: Session, a: AuthorizeArgs):
+    """Grant a train movement authority to a station track. See manual()."""
     return s._action(Authorize(train=a.train, station=a.station, track=a.track), granted="GRANTED")
 
 
 @tool("cancel_authority", TrainArg)
 def _cancel(s: Session, a: TrainArg):
+    """Cancel or truncate a train's authority. See manual()."""
     return s._action(CancelAuthority(train=a.train))
 
 
 @tool("hold", HoldArgs)
 def _hold(s: Session, a: HoldArgs):
+    """Hold a train at its station until a tick. See manual()."""
     return s._action(Hold(train=a.train, until_tick=a.until_tick))
 
 
 @tool("relieve_crew", TrainArg)
 def _relieve(s: Session, a: TrainArg):
+    """Start a crew relief at a crew station. See manual()."""
     return s._action(RelieveCrew(train=a.train))
 
 
 @tool("reverse", TrainArg)
 def _reverse(s: Session, a: TrainArg):
+    """Reverse a gridlocked train. See manual()."""
     out = s._action(Reverse(train=a.train))
     if out[1] == "OK":
         s.counts["reversals"] += 1
@@ -290,6 +328,7 @@ def _reverse(s: Session, a: TrainArg):
 
 @tool("advance_to_next_event")
 def _advance(s: Session, a):
+    """Advance time to the next decision point. See manual()."""
     since = s._last_advance
     result = s._record(s.sim.advance())
     s.counts["decision_points"] += 1
@@ -303,5 +342,6 @@ def _advance(s: Session, a):
 
 @tool("end_shift")
 def _end_shift(s: Session, a):
+    """Run to the end of the shift and report the final cost. See manual()."""
     final = s.close()
     return formats.final_line(final.tick, final.cost), "INFO", None

@@ -239,7 +239,7 @@ a test pins every value.
 
 | Name | Value | Meaning |
 |---|---|---|
-| `RULES_VERSION` | `"0.1-provisional"` | Written into every scenario; verifier refuses a mismatch |
+| `RULES_VERSION` | `"0.2-provisional"` | Written into every scenario; verifier refuses a mismatch |
 | `TICK_MINUTES` | 1 | 1 tick = 1 minute |
 | `TOOL_BUDGET` | 600 (calibrated in T05; was 400) | Tool calls per episode, all tools counted |
 | `TIME_CAP` | 60 | Max ticks between decision points |
@@ -249,6 +249,8 @@ a test pins every value.
 | `W_FREIGHT` | 0.5 | Per late tick at destination |
 | `W_ENGINEERING` | 0.0 | |
 | `UNFINISHED_COST` | 200 | Per train not finished at shift end |
+| `UNFINISHED_FREIGHT_EXTRA` | 1000 | Per unfinished freight train, × `shift_ticks` / `UNFINISHED_FREIGHT_SHIFT` (calibrated at T06: without it, holding all freight beat greedy on 24/30 T1 seeds; a flat 1000 still lost on T2) |
+| `UNFINISHED_FREIGHT_SHIFT` | 240 | Shift length at which the freight extra is exactly `UNFINISHED_FREIGHT_EXTRA` |
 | `RESTART_TICKS` | express 1, local 1, freight 4, engineering 1 | F5 |
 | `TURNAROUND` | 10 | F6: min ticks between arrival and the next service's entry |
 | `CREW_LIMIT` | 240 | F10: duty ticks before timeout |
@@ -520,7 +522,7 @@ reported rounded to 6 decimals.
 | `freight_lateness` | On arrival at the destination (freight) | `W_FREIGHT × max(0, late)` |
 | `crew_timeout` | When the timeout happens | `TIMEOUT_COST` (the 45-tick blockage shows up in lateness naturally) |
 | `reversal` | When `reverse` is granted | `REVERSE_COST` (time lost shows up in lateness naturally) |
-| `unfinished` | At shift end, per unfinished train (including never-entered trains) | `UNFINISHED_COST` + the destination-arrival lateness formula above, as if arriving at `shift_ticks` |
+| `unfinished` | At shift end, per unfinished train (including never-entered trains) | `UNFINISHED_COST` (+ `UNFINISHED_FREIGHT_EXTRA` × `shift_ticks` / `UNFINISHED_FREIGHT_SHIFT` for freight) + the destination-arrival lateness formula above, as if arriving at `shift_ticks` |
 
 `late = actual_arrival − scheduled_arr`.
 
@@ -596,7 +598,7 @@ restrictions: possession S9-S10 170-200; speed S3-S4 40km/h 150-210
               "args": {"train": "E1", "station": "S2", "track": "L1"},
               "status": "GRANTED", "rule": null}],
  "closed": true, "final_tick": 360,
- "final_cost": 519.0, "final_cost_by_component": {"pax_lateness": 24.0, "...": 0.0}}
+ "final_cost": 769.0, "final_cost_by_component": {"pax_lateness": 24.0, "...": 0.0}}
 ```
 
 - `status` is one of `GRANTED | REFUSED | OK | INVALID | INFO`.
@@ -624,7 +626,7 @@ Ticket tests compute exact numbers on this fixture. Variants are built in tests 
 
 ```json
 {
-  "schema_version": 1, "rules_version": "0.1-provisional",
+  "schema_version": 1, "rules_version": "0.2-provisional",
   "scenario_id": "FIX-mini3", "seed": 0, "preset": "fixture",
   "shift_ticks": 60, "factors": ["F1", "F2", "F3", "F4"],
   "network": {

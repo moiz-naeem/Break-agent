@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
-from .constants import PAX_GRACE, TERMINUS_MULT, UNFINISHED_COST, W_EXPRESS, W_FREIGHT, W_LOCAL
+from .constants import (
+    PAX_GRACE,
+    TERMINUS_MULT,
+    UNFINISHED_COST,
+    UNFINISHED_FREIGHT_EXTRA,
+    UNFINISHED_FREIGHT_SHIFT,
+    W_EXPRESS,
+    W_FREIGHT,
+    W_LOCAL,
+)
 
 
 class CostBreakdown(BaseModel):
@@ -30,7 +39,8 @@ def unfinished_cost(train, shift_ticks: int) -> float:
     if train.type in {"express", "local"}:
         return round(UNFINISHED_COST + pax_cost(train.type, train.pax, late, True), 6)
     if train.type == "freight":
-        return round(UNFINISHED_COST + freight_cost(late), 6)
+        extra = UNFINISHED_FREIGHT_EXTRA * shift_ticks / UNFINISHED_FREIGHT_SHIFT
+        return round(UNFINISHED_COST + extra + freight_cost(late), 6)
     return float(UNFINISHED_COST)
 
 

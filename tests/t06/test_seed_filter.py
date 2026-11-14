@@ -1,6 +1,7 @@
 """T06-18..21: the seed filter's four conditions, acceptance rates and the accepted-list file."""
 
 import concurrent.futures
+import functools
 import json
 import os
 import subprocess
@@ -97,3 +98,31 @@ def test_T06_21_cache_invalidation(tmp_path, monkeypatch):
     monkeypatch.setattr(seed_filter, "generator_version", lambda: "changed")
     assert seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path, workers=1) == first
     assert len(calls) == 6  # recomputed
+
+
+def test_T06_21b_batch_paths_agree(tmp_path, monkeypatch):
+    """Serial, pooled (threads stand in for processes, so the fake applies) and `mapper` give one list."""
+    accept = {0, 2, 3, 5}
+
+    def fake(scenario, runner=None):
+        ok = scenario.seed in accept
+        return {"accepted": ok, "c_greedy": 2.0, "c_ref": 1.0, "reasons": [] if ok else ["ref_gridlock"]}
+
+    monkeypatch.setattr(seed_filter, "evaluate_scenario", fake)
+    monkeypatch.setattr(seed_filter, "candidate_seeds", lambda _set: iter(range(100)), raising=False)
+    monkeypatch.setattr("railway.gen.seeds.candidate_seeds", lambda _set: iter(range(100)))
+    monkeypatch.setattr(seed_filter.concurrent.futures, "ProcessPoolExecutor", concurrent.futures.ThreadPoolExecutor)
+    runs = [
+        seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path / "serial", workers=1),
+        seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path / "pool", workers=2),
+        seed_filter.accepted_seeds(
+            "T1",
+            "dev",
+            3,
+            output_dir=tmp_path / "mapper",
+            workers=4,
+            mapper=functools.partial(map, seed_filter._evaluate_seed),
+        ),
+    ]
+    assert [e["seed"] for e in runs[0]] == [0, 2, 3]
+    assert runs[1] == runs[0] and runs[2] == runs[0]

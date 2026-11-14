@@ -107,14 +107,14 @@ def test_T02_26_episode_A_exact():
     assert s.apply(Authorize(train="E1", station="YE", track="main")).ok
     s.end_shift()
     assert s.cost().pax_lateness == 24.0
-    assert s.cost().unfinished == 495.0
-    assert s.cost().total == 519.0
+    assert s.cost().unfinished == 745.0  # F21 freight: 200 + 1000 x 60/240 + 295
+    assert s.cost().total == 769.0
 
 
 def test_T02_32_do_nothing_cost():
     s = sim()
     s.end_shift()
-    assert s.tick == 60 and s.cost().total == 1235.0
+    assert s.tick == 60 and s.cost().total == 1485.0
 
 
 def test_T02_29_time_cap_and_shift_end():
@@ -175,7 +175,7 @@ def test_T02_07_public_schema_excludes_hidden_scenario_data():
     static = sim().static_info().model_dump(mode="json")
     assert not {"events", "seed", "scenario_id"}.intersection(state)
     assert not {"events", "seed", "scenario_id"}.intersection(static)
-    assert RULES_VERSION == "0.1-provisional"
+    assert RULES_VERSION == "0.2-provisional"
 
 
 def test_T02_17_section_reserved_refusal_and_resource_release():

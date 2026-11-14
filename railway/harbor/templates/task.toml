@@ -1,0 +1,22 @@
+schema_version = "1.4"
+
+[metadata]
+difficulty = "hard"
+category = "planning"
+tags = ["railway", "dispatching", "long-horizon", "mcp", "deterministic"]
+
+[agent]
+timeout_sec = {{AGENT_TIMEOUT}}
+{{AGENT_USER}}
+[verifier]
+timeout_sec = {{VERIFIER_TIMEOUT}}
+
+[environment]
+build_timeout_sec = 900
+network_mode = "allowlist"
+allowed_hosts = {{ALLOWED_HOSTS}}
+
+[[environment.mcp_servers]]
+name = "railway"
+transport = "streamable-http"
+url = "http://sim:8000/mcp"

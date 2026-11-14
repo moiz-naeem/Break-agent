@@ -1,5 +1,5 @@
 {
-  "schema_version": 1, "rules_version": "0.1-provisional", "scenario_id": "FIX-mini3_noloops",
+  "schema_version": 1, "rules_version": "0.2-provisional", "scenario_id": "FIX-mini3_noloops",
   "seed": 0, "preset": "fixture", "shift_ticks": 60, "factors": ["F1", "F2", "F3", "F4"],
   "network": {"yards": {"west": "YW", "east": "YE"}, "stations": [
     {"id": "S1", "major": false, "crew_station": false, "loops": []},

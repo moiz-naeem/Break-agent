@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from dataclasses import dataclass
 
 from railway.sim.engine import Simulator
 from railway.sim.model import Authorize
@@ -10,6 +11,12 @@ from railway.tools.observe import Observer
 
 YARDS = ("YW", "YE")
 ENDED = ("SHIFT ENDED", "BUDGET EXHAUSTED", "R-SHIFT-ENDED")
+
+
+@dataclass(frozen=True)
+class ToolCall:
+    tool: str
+    args: dict
 
 
 class EpisodeOver(Exception):
@@ -74,13 +81,19 @@ class Greedy(Policy):
     def play(self, client) -> None:
         observer = Observer(client)
         while True:
-            static, state = observer.observe()
-            if self.stop(state):
-                client.call("end_shift", {})
-            belief = Simulator.from_observation(static, state)
-            for a in self.choose(static, state, belief):  # choose() already applied each grant to the belief
-                client.call("authorize", {"train": a.train, "station": a.station, "track": a.track})
-            client.call("advance_to_next_event", {})
+            for call in self.decide(*observer.observe()):
+                client.call(call.tool, call.args)
+
+    def decide(self, static, state) -> list[ToolCall]:
+        """Pure (static, state) -> this decision point's calls (T08 §2.5): grants, then advance."""
+        if self.stop(state):
+            return [ToolCall("end_shift", {})]
+        belief = Simulator.from_observation(static, state)
+        grants = [  # choose() applies each grant to the belief, so later trains see it
+            ToolCall("authorize", {"train": a.train, "station": a.station, "track": a.track})
+            for a in self.choose(static, state, belief)
+        ]
+        return [*grants, ToolCall("advance_to_next_event", {})]
 
     def stop(self, state) -> bool:
         return False

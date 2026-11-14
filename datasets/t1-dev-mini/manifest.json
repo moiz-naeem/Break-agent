@@ -1,0 +1,32 @@
+{
+  "count": 3,
+  "preset": "T1",
+  "rules_version": "0.2-provisional",
+  "set": "dev",
+  "tasks": [
+    {
+      "c_greedy": 1746.7,
+      "c_ref": 296.7,
+      "scenario_hash": "e24182c8745fca40b9703600856c9fdb44dab2741cbf5780f3b334d8b74cae28",
+      "scenario_id": "T1-77d6ddc9d9b0",
+      "seed": 0,
+      "task": "T1-77d6ddc9d9b0"
+    },
+    {
+      "c_greedy": 1408.2,
+      "c_ref": 208.5,
+      "scenario_hash": "89d67021715fa619c41c039f36dc4a51f45e631818a89ce4d442b93ab1f2ca85",
+      "scenario_id": "T1-2f06dfb68904",
+      "seed": 5,
+      "task": "T1-2f06dfb68904"
+    },
+    {
+      "c_greedy": 4809.3,
+      "c_ref": 2620.7,
+      "scenario_hash": "d0140e09724374f12f98f51d651361815a5a8968db74cdec828d2d68b48a8f07",
+      "scenario_id": "T1-e251f6f3e20a",
+      "seed": 6,
+      "task": "T1-e251f6f3e20a"
+    }
+  ]
+}

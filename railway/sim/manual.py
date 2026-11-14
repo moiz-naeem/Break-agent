@@ -45,7 +45,8 @@ def render_manual() -> str:
         f"| `crew_timeout` | Crew timeout | {constants.TIMEOUT_COST} |\n"
         f"| `reversal` | Reverse granted | {constants.REVERSE_COST} |\n"
         f"| `unfinished` | Train unfinished at shift end | {constants.UNFINISHED_COST} plus "
-        "destination lateness at shift end |"
+        f"destination lateness at shift end; freight adds {constants.UNFINISHED_FREIGHT_EXTRA} × shift_ticks / "
+        f"{constants.UNFINISHED_FREIGHT_SHIFT} |"
     )
     possession_row = (
         f"| Possession | Blocks entry to a section for its half-open time window; conflicting authorities are cut back "

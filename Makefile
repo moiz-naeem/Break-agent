@@ -1,12 +1,16 @@
-.PHONY: test lint ci spike-variants
+.PHONY: test lint ci oracle spike-variants
 
 test:
 	uv run pytest -m "not harbor and not model and not gpu"
 
 lint:
-	uv run ruff check railway tests spike
+	uv run ruff check railway tests spike scripts
 
 spike-variants:
 	uv run python spike/make_variants.py
 
-ci: lint test
+# T07 section 2.10: unit gate, then the oracle on datasets/t1-dev-mini; T07-H1 asserts 3 trials, every reward exactly 1.0.
+oracle:
+	uv run pytest tests/t07/test_harbor_runs.py::test_T07_H1_oracle_all_tasks -m harbor
+
+ci: lint test oracle

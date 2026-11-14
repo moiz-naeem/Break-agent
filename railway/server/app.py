@@ -16,7 +16,7 @@ from starlette.responses import PlainTextResponse, Response
 
 from railway.sim.constants import RULES_VERSION
 from railway.sim.model import Scenario
-from railway.tools.session import Session
+from railway.tools.session import Session, describe
 from railway.util import canonical_json
 
 
@@ -34,79 +34,64 @@ def build(scenario: Scenario, token: str) -> MCPServer:
 
     # Only arguments that differ from their default are forwarded, so the log matches an in-process
     # call that omits them. Calls the MCP schema rejects never get here: no budget, no log entry.
-    @server.tool()
+    @server.tool(description=describe("manual"))
     async def manual() -> str:
-        """The dispatcher manual: rules, costs, tools. See manual()."""
         return await call("manual", {})
 
-    @server.tool()
+    @server.tool(description=describe("network"))
     async def network() -> str:
-        """Static network as JSON. See manual()."""
         return await call("network", {})
 
-    @server.tool()
+    @server.tool(description=describe("timetable"))
     async def timetable(train: str | None = None) -> str:
-        """Timetable as JSON, for all trains or one. See manual()."""
         return await call("timetable", {} if train is None else {"train": train})
 
-    @server.tool()
+    @server.tool(description=describe("status"))
     async def status(compact: bool = False) -> str:
-        """Current state, as JSON or as compact text. See manual()."""
         return await call("status", {"compact": True} if compact else {})
 
-    @server.tool()
+    @server.tool(description=describe("bulletins"))
     async def bulletins() -> str:
-        """Revealed events as JSON. See manual()."""
         return await call("bulletins", {})
 
-    @server.tool()
+    @server.tool(description=describe("kpis"))
     async def kpis() -> str:
-        """Cost so far, counters and budget as JSON. See manual()."""
         return await call("kpis", {})
 
-    @server.tool()
+    @server.tool(description=describe("stringline"))
     async def stringline(from_tick: int, to_tick: int) -> str:
-        """ASCII time-distance diagram for a tick window. See manual()."""
         return await call("stringline", {"from_tick": from_tick, "to_tick": to_tick})
 
-    @server.tool()
+    @server.tool(description=describe("notes"))
     async def notes(text: str) -> str:
-        """Replace your notes scratchpad. See manual()."""
         return await call("notes", {"text": text})
 
-    @server.tool()
+    @server.tool(description=describe("authorize"))
     async def authorize(train: str, station: str, track: str) -> str:
-        """Grant a train movement authority to a station track. See manual()."""
         return await call("authorize", {"train": train, "station": station, "track": track})
 
-    @server.tool()
+    @server.tool(description=describe("cancel_authority"))
     async def cancel_authority(train: str) -> str:
-        """Cancel or truncate a train's authority. See manual()."""
         return await call("cancel_authority", {"train": train})
 
-    @server.tool()
+    @server.tool(description=describe("hold"))
     async def hold(train: str, until_tick: int) -> str:
-        """Hold a train at its station until a tick. See manual()."""
         return await call("hold", {"train": train, "until_tick": until_tick})
 
-    @server.tool()
+    @server.tool(description=describe("relieve_crew"))
     async def relieve_crew(train: str) -> str:
-        """Start a crew relief at a crew station. See manual()."""
         return await call("relieve_crew", {"train": train})
 
-    @server.tool()
+    @server.tool(description=describe("reverse"))
     async def reverse(train: str) -> str:
-        """Reverse a gridlocked train. See manual()."""
         return await call("reverse", {"train": train})
 
-    @server.tool()
+    @server.tool(description=describe("advance_to_next_event"))
     async def advance_to_next_event() -> str:
-        """Advance time to the next decision point. See manual()."""
         return await call("advance_to_next_event", {})
 
-    @server.tool()
+    @server.tool(description=describe("end_shift"))
     async def end_shift() -> str:
-        """Run to the end of the shift and report the final cost. See manual()."""
         return await call("end_shift", {})
 
     @server.custom_route("/health", methods=["GET"])

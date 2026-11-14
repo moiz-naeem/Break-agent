@@ -15,6 +15,7 @@ dependencies = [
 [project.scripts]
 gen = "railway.gen.cli:main"
 railway-sim = "railway.server.app:main"
+railway-eval = "railway.eval.run:main"
 
 [dependency-groups]
 dev = [
