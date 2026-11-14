@@ -27,7 +27,7 @@ call = st.one_of(
     ),
     st.builds(lambda t, u: ("hold", {"train": t, "until_tick": u}), train, st.integers(0, 90)),
     st.builds(
-        lambda tool, t: (tool, {"train": t}), st.sampled_from(["cancel_authority", "relieve_crew", "reverse"]), train
+        lambda tool, t: (tool, {"train": t}), st.sampled_from(["cancel_authority", "relieve_crew"]), train
     ),
     st.builds(lambda n: ("notes", {"text": "n" * n}), st.sampled_from([0, 5, 1500, 1501])),
 )
@@ -67,4 +67,4 @@ def test_T05_24_replay_detects_tamper():
 def test_T05_25_replay_empty_log():
     s = session()
     log = s.episode_log() | {"entries": []}
-    assert replay(s.scenario, log).cost.total == 1485.0
+    assert replay(s.scenario, log).cost.total == 4310.75

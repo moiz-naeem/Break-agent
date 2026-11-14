@@ -48,7 +48,7 @@ RESULT_FIELDS = [
     "status",
     "error",
 ]
-DO_NOTHING_MINI3 = 1485.0  # F21 freight unfinished: UNFINISHED_FREIGHT_EXTRA x 60/240 (T06 calibration)
+DO_NOTHING_MINI3 = 4310.75  # v0.3: every train unfinished, every passenger stop a missed call
 
 
 def _entry(e) -> dict:
@@ -99,7 +99,7 @@ def test_T08_10_fake_greedy_equals_greedy(mini3):
         Greedy().run(InProcClient(direct))
         assert rec.status == "ok"
         assert rec.cost_total == direct.close().cost.total
-    assert _play_policy(mini3, session_cls(mini3), Greedy().decide).cost_total == 26.0
+    assert _play_policy(mini3, session_cls(mini3), Greedy().decide).cost_total == 6.5
 
 
 def test_T08_11_fake_reference_equals_reference():

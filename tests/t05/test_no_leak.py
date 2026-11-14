@@ -34,7 +34,7 @@ calls = st.lists(
         st.builds(lambda t, u: ("hold", {"train": t, "until_tick": u}), train, st.integers(0, 60)),
         st.builds(
             lambda tool, t: (tool, {"train": t}),
-            st.sampled_from(["cancel_authority", "relieve_crew", "reverse"]),
+            st.sampled_from(["cancel_authority", "relieve_crew"]),
             train,
         ),
     ),

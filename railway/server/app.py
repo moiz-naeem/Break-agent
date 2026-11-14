@@ -59,8 +59,11 @@ def build(scenario: Scenario, token: str) -> MCPServer:
         return await call("kpis", {})
 
     @server.tool(description=describe("stringline"))
-    async def stringline(from_tick: int, to_tick: int) -> str:
-        return await call("stringline", {"from_tick": from_tick, "to_tick": to_tick})
+    async def stringline(from_tick: int, to_tick: int, train: str | None = None) -> str:
+        args = {"from_tick": from_tick, "to_tick": to_tick}
+        if train is not None:
+            args["train"] = train
+        return await call("stringline", args)
 
     @server.tool(description=describe("notes"))
     async def notes(text: str) -> str:

@@ -8,9 +8,6 @@ from railway.sim.model import Scenario
 from railway.sim.observe import AdvanceResult, State
 from railway.util import canonical_json
 
-YARD = {"east": "YW", "west": "YE"}  # origin yard by direction
-
-
 def network(scenario: Scenario) -> str:
     net = scenario.network.model_dump(mode="json")
     return canonical_json(
@@ -34,7 +31,13 @@ def timetable_entry(scenario: Scenario, train) -> dict:
 
 
 def timetable(scenario: Scenario, trains) -> str:
-    return canonical_json({"trains": [timetable_entry(scenario, t) for t in trains]})
+    out = {"trains": [timetable_entry(scenario, t) for t in trains]}
+    if scenario.connections:
+        ids = {t.id for t in trains}
+        out["connections"] = [
+            c.model_dump(mode="json") for c in scenario.connections if c.feeder in ids or c.connector in ids
+        ]
+    return canonical_json(out)
 
 
 def full_status(state: State) -> str:
@@ -43,21 +46,23 @@ def full_status(state: State) -> str:
 
 def _position(t, loop_kinds: dict[tuple[str, str], str]) -> str:
     if t.phase == "at_station":
-        if t.station in {"YW", "YE"}:
+        if t.track == "main" and t.station in {"YW", "YE"}:
             return f"at {t.station}"
         if t.track == "main":
             return f"at {t.station}/main"
         return f"at {t.station}/{t.track}-{loop_kinds[(t.station, t.track)]}"
     if t.phase == "in_section":
-        return f"{t.section} {'eastbound' if t.direction == 'east' else 'westbound'}"
-    if t.phase == "reversing":
-        return f"{t.section} reversing"
-    yard = YARD[t.direction]
-    return f"waiting {yard} after {t.waits_for}" if t.waits_for else f"waiting {yard} entry@{t.entry_tick}"
+        if t.direction is not None:
+            return f"{t.section} {'eastbound' if t.direction == 'east' else 'westbound'}"
+        west, east = t.section.split("-", 1)
+        return f"{t.section} to {east if t.section_from == west else west}"
+    origin = t.origin
+    return f"waiting {origin} after {t.waits_for}" if t.waits_for else f"waiting {origin} entry@{t.entry_tick}"
 
 
 def compact_status(state: State, scenario: Scenario) -> str:
     loop_kinds = {(s.id, loop.id): loop.kind for s in scenario.network.stations for loop in s.loops}
+    loop_kinds |= {(t.id, track.id): track.kind for t in scenario.network.terminals for track in t.tracks}
     lines = [f't={state.tick} | gridlock: {",".join(state.gridlock) or "none"} | notes: "{state.notes}"']
     for t in sorted(state.trains, key=lambda x: x.id):
         if t.phase == "finished":
@@ -70,6 +75,8 @@ def compact_status(state: State, scenario: Scenario) -> str:
                 line += f" crew:{t.crew_remaining}"
             if t.next_stop is not None:
                 line += f" next:{t.next_stop.station}@{t.next_stop.arr}"
+            if t.off_route:
+                line += f" OFF-ROUTE(cannot reach {t.destination})"
         lines.append(line)
     parts = [f"possession {p['section']} {p['start']}-{p['end']}" for p in state.possessions]
     parts += [
@@ -81,8 +88,9 @@ def compact_status(state: State, scenario: Scenario) -> str:
 
 def final_line(tick: int, cost: CostBreakdown) -> str:
     return (
-        f"SHIFT ENDED at t={tick}. Final cost {cost.total} (pax {cost.pax_lateness}, freight "
-        f"{cost.freight_lateness}, crew {cost.crew_timeout}, reversal {cost.reversal}, unfinished {cost.unfinished})"
+        f"SHIFT ENDED at t={tick}. Final cost {cost.total} (pax {cost.pax_lateness}, missed calls "
+        f"{cost.missed_calls}, unfinished {cost.unfinished}, freight {cost.freight_lateness}, crew "
+        f"{cost.crew_timeout}, gridlock {cost.gridlock}, operations {cost.operations})"
     )
 
 

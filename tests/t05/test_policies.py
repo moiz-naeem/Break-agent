@@ -23,7 +23,7 @@ def t2_dev(n):
 
 def test_T05_26_greedy_mini3_exact():
     result = run_policy(Greedy(), mini3())
-    assert result.final.cost.total == 26.0
+    assert result.final.cost.total == 6.5  # L5 8 late at S2, S1, YW: 3 x 0.25 x f(8); F21 4 late: 2
     assert result.final.cost.unfinished == 0
     assert result.final.counts["refusals"] == result.final.counts["invalid_calls"] == 0
 
@@ -31,7 +31,7 @@ def test_T05_26_greedy_mini3_exact():
 def test_T05_27_do_nothing():
     result = run_policy(DoNothing(), mini3())
     assert result.tool_calls == 0 and result.log == []
-    assert result.final.cost.total == 1485.0
+    assert result.final.cost.total == 4310.75
 
 
 def test_T05_28_stop_early():

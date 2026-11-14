@@ -188,7 +188,7 @@ Every tool name below is also its MCP name. Every call uses one budget unit.
 | `status` | `compact=false` | Full visible state; compact mode prints one line per train |
 | `bulletins` | none | Revealed events and reveal ticks |
 | `kpis` | none | Cost by component, counters (gridlocks, timeouts, misroutes, ...) and budget |
-| `stringline` | `from_tick`, `to_tick` | ASCII time-distance diagram along each timetabled route; at most {c.STRINGLINE_WINDOW} ticks and {c.STRINGLINE_MAX_CHARS} characters |
+| `stringline` | `from_tick`, `to_tick`, optional `train` | ASCII time-distance diagram along that train's timetabled route (default: the longest); at most {c.STRINGLINE_WINDOW} ticks and {c.STRINGLINE_MAX_CHARS} characters |
 | `notes` | `text` | Replaces notes; maximum {c.NOTES_MAX} characters |
 | `authorize` | `train`, `station`, `track`, optional `via` | Granted authority (with any `R-OFF-ROUTE` warning) or a rule refusal |
 | `cancel_authority` | `train` | Cancels or truncates authority, or a refusal |

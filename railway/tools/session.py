@@ -53,6 +53,7 @@ class TimetableArgs(Args):
 class StringlineArgs(Args):
     from_tick: int
     to_tick: int
+    train: str | None = None
 
 
 class NotesArgs(Args):
@@ -284,10 +285,10 @@ def _kpis(s: Session, a):
 
 @tool("stringline", StringlineArgs)
 def _stringline(s: Session, a: StringlineArgs):
-    """ASCII time-distance diagram for a tick window. See manual()."""
+    """ASCII time-distance diagram for a tick window, along a train's timetabled route. See manual()."""
     from railway.tools.stringline import render
 
-    return render(s, a.from_tick, a.to_tick)
+    return render(s, a.from_tick, a.to_tick, a.train)
 
 
 @tool("notes", NotesArgs)
