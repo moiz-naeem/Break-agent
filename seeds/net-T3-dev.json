@@ -1,0 +1,85 @@
+{
+  "accepted": [
+    {
+      "decision_points": 172,
+      "disruptions": 31,
+      "freight_trains": 5,
+      "passenger_trains": 108,
+      "scenario_hash": "3016d47cc48dab8561d4fef89b1cbc72006710442a7aad29f479886d6e9605dd",
+      "scenario_id": "T3-1",
+      "seed": 1,
+      "shift_min": 360,
+      "split": "dev",
+      "trains": 113
+    },
+    {
+      "decision_points": 178,
+      "disruptions": 35,
+      "freight_trains": 3,
+      "passenger_trains": 113,
+      "scenario_hash": "810f25fd25c639cba3842b248909f70258370c05337b407e54e521a29a1fdfa8",
+      "scenario_id": "T3-2",
+      "seed": 2,
+      "shift_min": 360,
+      "split": "dev",
+      "trains": 116
+    },
+    {
+      "decision_points": 167,
+      "disruptions": 36,
+      "freight_trains": 5,
+      "passenger_trains": 106,
+      "scenario_hash": "2f134db36ce9bd24d9b0e4955987411a7a5dd5dbcf029d60986184412bea1ba3",
+      "scenario_id": "T3-3",
+      "seed": 3,
+      "shift_min": 360,
+      "split": "dev",
+      "trains": 111
+    },
+    {
+      "decision_points": 185,
+      "disruptions": 34,
+      "freight_trains": 4,
+      "passenger_trains": 114,
+      "scenario_hash": "7df0aa7bcbeadea060f7a9a89324ae6ecc60ac7ccf5252cc08594f10ac4ac06a",
+      "scenario_id": "T3-5",
+      "seed": 5,
+      "shift_min": 360,
+      "split": "dev",
+      "trains": 118
+    },
+    {
+      "decision_points": 157,
+      "disruptions": 33,
+      "freight_trains": 3,
+      "passenger_trains": 105,
+      "scenario_hash": "dd5fde7e5bf41c76f2709e315342000053a025f4986e885948b79a10695959d7",
+      "scenario_id": "T3-6",
+      "seed": 6,
+      "shift_min": 360,
+      "split": "dev",
+      "trains": 108
+    }
+  ],
+  "header": {
+    "accepted": 5,
+    "checks": [
+      "decision_points>=min_decisions",
+      "exploits_strictly_worse_than_booked_order"
+    ],
+    "disruption_density": 1.0,
+    "git_head": "771f51645c88f43c2b630b6e4ce1a4ea7d535a1a",
+    "min_decisions": 10,
+    "rejected": {
+      "exploit_hold_all_freight_not_worse": 2
+    },
+    "requested": 5,
+    "scenario_cache": "railway-scenarios:/net/T3/<seed>.json",
+    "seed_range": [
+      1,
+      10000
+    ],
+    "split": "dev",
+    "tier": "T3"
+  }
+}
