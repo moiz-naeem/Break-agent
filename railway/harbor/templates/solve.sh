@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
-# Oracle: the reference dispatcher, playing through the MCP server exactly like an agent.
+# Oracle: replays the best known plan for this task through the MCP server, exactly like an agent would.
 set -euo pipefail
-PYTHONPATH="$(dirname "$0")" python3 -m railway.ref.oracle --url http://sim:8000/mcp
+HERE="$(dirname "$0")"
+PYTHONPATH="$HERE" python3 -m railway.ref.oracle --url http://sim:8000/mcp --plan "$HERE/plan.json"

@@ -6,10 +6,21 @@ import random
 from dataclasses import dataclass
 
 from railway.sim.engine import Simulator
-from railway.sim.model import Authorize
 from railway.tools.observe import Observer
 
-YARDS = ("YW", "YE")
+from .routes import (
+    YARDS,
+    ahead,
+    authorize,
+    call_args,
+    is_graph_static,
+    is_terminal,
+    route_of,
+    static_tracks,
+    via,
+)
+
+__all__ = ["YARDS"]
 ENDED = ("SHIFT ENDED", "BUDGET EXHAUSTED", "R-SHIFT-ENDED")
 
 
@@ -37,17 +48,18 @@ class Guard:
 
 
 def stations_ahead(static, train) -> list[str]:
-    """Stations after the train's current one, in its direction, up to and including its destination."""
-    places = ["YW", *[s["id"] for s in static.network["stations"]], "YE"]
-    if train.direction == "west":
-        places.reverse()
-    destination = next(t for t in static.trains if t["id"] == train.id)["stops"][-1]["station"]
-    here = places.index(train.station)
-    return places[here + 1 : places.index(destination) + 1]
+    """Stations after the train's current one along its timetabled route, up to and including its destination."""
+    return ahead(route_of(static, train.id), train.station)
 
 
 def loops(static, station: str) -> list[str]:
     return sorted(loop["id"] for s in static.network["stations"] if s["id"] == station for loop in s["loops"])
+
+
+def grant(static, train, station: str, track: str):
+    """An authorize along the train's timetabled route (`via` on a graph)."""
+    route = route_of(static, train.id)
+    return authorize(train.id, station, track, via(route, train.station, station, is_graph_static(static)))
 
 
 def waiting_trains(state):
@@ -90,7 +102,7 @@ class Greedy(Policy):
             return [ToolCall("end_shift", {})]
         belief = Simulator.from_observation(static, state)
         grants = [  # choose() applies each grant to the belief, so later trains see it
-            ToolCall("authorize", {"train": a.train, "station": a.station, "track": a.track})
+            ToolCall("authorize", call_args(a))
             for a in self.choose(static, state, belief)
         ]
         return [*grants, ToolCall("advance_to_next_event", {})]
@@ -108,8 +120,9 @@ class Greedy(Policy):
     @staticmethod
     def _first_granted(static, belief, train):
         for station in stations_ahead(static, train):
-            for track in ["main"] if station in YARDS else loops(static, station):  # never a station's main
-                action = Authorize(train=train.id, station=station, track=track)
+            terminal = is_terminal(static, station)
+            for track in static_tracks(static, station, loops_only=not terminal):  # never a station's main
+                action = grant(static, train, station, track)
                 if belief.check(action).ok:
                     return action
         return None
@@ -128,13 +141,13 @@ class RandomLegal(Greedy):
         for train in sorted(waiting_trains(state), key=lambda t: t.id):
             if self.rng.random() < 0.3:
                 continue
-            ahead = stations_ahead(static, train)
-            stations = dict.fromkeys([*ahead[:3], *[s for s in ahead[-1:] if s in YARDS]])
+            nodes = stations_ahead(static, train)
+            stations = dict.fromkeys([*nodes[:3], *[s for s in nodes[-1:] if is_terminal(static, s)]])
             options = [
                 a
                 for station in stations
-                for k in ["main", *loops(static, station)]
-                if belief.check(a := Authorize(train=train.id, station=station, track=k)).ok
+                for k in static_tracks(static, station)
+                if belief.check(a := grant(static, train, station, k)).ok
             ]
             if options:
                 choice = self.rng.choice(options)

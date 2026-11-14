@@ -1,11 +1,11 @@
-"""Legal, useful authority candidates for scripted dispatch policies."""
+"""Legal, useful authority candidates for scripted dispatch policies, along each train's timetabled route."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
+from railway.policies.routes import ahead, authorize, is_terminal, sim_route, sim_tracks, via
 from railway.sim.constants import TRAIN_TYPES
-from railway.sim.model import Authorize
 
 
 @dataclass(frozen=True)
@@ -16,34 +16,35 @@ class _Wait:
 WAIT = _Wait()
 
 
-def _route_stations(sim, start: str, direction: str) -> list[str]:
-    stations = ["YW", *[s.id for s in sim._scenario.network.stations], "YE"]
-    if direction == "west":
-        stations.reverse()
-    try:
-        return stations[stations.index(start) + 1 :]
-    except ValueError:
-        return []
+def _graph(sim) -> bool:
+    return not sim._graph.chain
+
+
+def _section_between(sim, a: str, b: str) -> str | None:
+    return next((section for section, nxt in sim._graph.adj.get(a, []) if nxt == b), None)
 
 
 def _allowed_tracks(sim, train, station: str) -> list[str]:
-    if station in {"YW", "YE"}:
-        return ["main"]
-    definition = sim._stations[station]
-    tracks = [loop.id for loop in definition.loops]
+    if is_terminal(sim, station):
+        return sim_tracks(sim, station)
+    tracks = sim_tracks(sim, station, loops_only=True)
     if any(stop.station == station for stop in sim._train_defs[train["id"]].stops):
-        tracks.append("main")
+        tracks = [*tracks, "main"]
     return sorted(set(tracks))
+
+
+def _grant(sim, train_id: str, start: str, station: str, track: str):
+    return authorize(train_id, station, track, via(sim_route(sim, train_id), start, station, _graph(sim)))
 
 
 def _deadlock_safe(sim, train_id: str, destination: str) -> bool:
     """Reject a destination from which opposing traffic has no safe place to clear."""
-    if destination in {"YW", "YE"}:
+    if is_terminal(sim, destination):
         return True
     train = sim._trains[train_id]
-    forward = _route_stations(sim, destination, train["direction"])
+    forward = ahead(sim_route(sim, train_id), destination)
     for station in forward[:3]:
-        if station in {"YW", "YE"}:
+        if is_terminal(sim, station):
             if not _opposing_resource_on_path(sim, train_id, destination, station):
                 return True
             continue
@@ -59,23 +60,25 @@ def _deadlock_safe(sim, train_id: str, destination: str) -> bool:
     return False
 
 
+def _opposes(sim, holder: str, a: str, b: str) -> bool:
+    """Whether `holder` runs from b towards a (the other way) on its own timetabled route."""
+    route = sim_route(sim, holder)
+    return a in route and b in route and route.index(b) < route.index(a)
+
+
 def _opposing_resource_on_path(sim, train_id: str, start: str, end: str) -> bool:
-    train = sim._trains[train_id]
-    stations = ["YW", *[s.id for s in sim._scenario.network.stations], "YE"]
-    first, last = stations.index(start), stations.index(end)
-    step = 1 if last > first else -1
-    path = []
-    for i in range(first, last, step):
-        a, b = stations[i], stations[i + step]
-        section = sim._section_by_pair.get((a, b)) or sim._section_by_pair.get((b, a))
-        if section:
-            path.append(section.id)
-        if b not in {start, end, "YW", "YE"}:
-            path.append(f"{b}/main")
-    for resource in path:
-        holder = sim._holders.get(resource)
-        if holder and holder != train_id and sim._trains[holder]["direction"] != train["direction"]:
-            return True
+    route = sim_route(sim, train_id)
+    if start not in route or end not in route:
+        return False
+    nodes = route[route.index(start) : route.index(end) + 1]
+    for a, b in zip(nodes, nodes[1:], strict=False):
+        resources = [_section_between(sim, a, b)]
+        if b not in {start, end} and not is_terminal(sim, b):
+            resources.append(f"{b}/main")
+        for resource in resources:
+            holder = sim._holders.get(resource)
+            if holder and holder != train_id and _opposes(sim, holder, a, b):
+                return True
     return False
 
 
@@ -91,23 +94,22 @@ def candidates(sim, train_id: str, *, lookahead_stations: int = 4, max_candidate
     if train["phase"] == "finished" or train["phase"] == "not_entered":
         return [WAIT]
     start = train["auth"]["dest_station"] if train["auth"] else train["station"]
-    if start not in sim._station_idx:
+    if not sim._is_place(start):
         return [WAIT]
-    ahead = _route_stations(sim, start, train["direction"])
-    if not ahead:
+    nodes = ahead(sim_route(sim, train_id), start)
+    if not nodes:
         return [WAIT]
-    destination = sim._train_defs[train_id].stops[-1].station
-    reachable = ahead[:lookahead_stations]
-    if destination in ahead and destination not in reachable:
+    destination = sim._train_defs[train_id].end
+    reachable = nodes[:lookahead_stations]
+    if destination in nodes and destination not in reachable:
         reachable.append(destination)
     options = []
-    start_index = sim._station_idx[start]
     for station in reachable:
-        distance = abs(sim._station_idx[station] - start_index)
+        distance = nodes.index(station) + 1
         if deadlock_safe and not _deadlock_safe(sim, train_id, station):
             continue
         for track in _allowed_tracks(sim, train, station):
-            action = Authorize(train=train_id, station=station, track=track)
+            action = _grant(sim, train_id, start, station, track)
             if sim.check(action).ok:
                 options.append((distance, track, action))
     options.sort(key=lambda item: (-item[0], item[1]))
@@ -121,17 +123,15 @@ def candidates(sim, train_id: str, *, lookahead_stations: int = 4, max_candidate
 
 
 def greedy_choice(sim, train_id: str):
-    """T05 greedy's move for a waiting train: the nearest station ahead (to its destination) with a grantable
-    loop, lowest loop id first; the destination yard counts; never a station's main. None if nothing is granted."""
+    """T05 greedy's move for a waiting train: the nearest station ahead on its route with a grantable loop,
+    lowest loop id first; the destination terminal counts; never a station's main. None if nothing is granted."""
     train = sim._trains[train_id]
     if train["phase"] != "at_station" or train["auth"]:
         return None
-    ahead = _route_stations(sim, train["station"], train["direction"])
-    destination = sim._train_defs[train_id].stops[-1].station
-    for station in ahead[: ahead.index(destination) + 1] if destination in ahead else ahead:
-        tracks = ["main"] if station in {"YW", "YE"} else sorted(loop.id for loop in sim._stations[station].loops)
-        for track in tracks:
-            action = Authorize(train=train_id, station=station, track=track)
+    for station in ahead(sim_route(sim, train_id), train["station"]):
+        terminal = is_terminal(sim, station)
+        for track in sim_tracks(sim, station, loops_only=not terminal):
+            action = _grant(sim, train_id, train["station"], station, track)
             if sim.check(action).ok:
                 return action
     return None

@@ -99,7 +99,8 @@ def test_T06_07_terminal_estimate():
     assert terminal_estimate(sim) == 0.0
     assert sim.advance(max_tick=20).tick == 2
     assert sim.advance(max_tick=20).tick == 20
-    assert terminal_estimate(sim) == 423.0  # E1 324 + L5 90 + F21 9 (ticket T06-07)
+    # v0.3: E1 20 late at S2 and YE: 2 x 1.5 x 100/100 x f(20); L5 20 late at 4 stops: 4 x 0.25 x 23; F21 18 late: 9
+    assert terminal_estimate(sim) == 69 + 23 + 9
 
 
 def test_T06_08_evaluate_deterministic_and_ordered():

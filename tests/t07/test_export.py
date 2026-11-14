@@ -100,7 +100,7 @@ def test_T07_01_layout(exported):
     assert len(m["tasks"]) == 2
     assert m["rules_version"] == RULES_VERSION
     for t in m["tasks"]:
-        assert {"scenario_id", "scenario_hash", "c_greedy", "c_ref"} <= set(t)
+        assert {"scenario_id", "scenario_hash", "c_greedy", "c_best", "best_source"} <= set(t)
     assert (exported / "README.md").is_file()
     for task in task_dirs(exported):
         assert task.name == json.loads((task / "tests" / "scenario.json").read_text(encoding="utf-8"))["scenario_id"]
@@ -122,7 +122,10 @@ def test_T07_02_norm_values(exporter, exported):
             "scenario_hash": entry["scenario_hash"],
             "rules_version": RULES_VERSION,
             "c_greedy": entry["c_greedy"],
-            "c_ref": entry["c_ref"],
+            "c_best": entry["c_best"],
+            "best_source": entry["best_source"],
+            "best_proven": norm["best_proven"],
+            "norm_version": 1,
         }
         scenario = json.loads((task / "tests" / "scenario.json").read_text(encoding="utf-8"))
         assert content_hash(scenario) == norm["scenario_hash"]
@@ -150,14 +153,14 @@ def test_T07_02_norm_values_recomputed(tmp_path):
     for task in task_dirs(out):
         norm = json.loads((task / "tests" / "norm.json").read_text(encoding="utf-8"))
         entry = accepted[norm["scenario_id"]]
-        assert (norm["c_greedy"], norm["c_ref"]) == (field(entry, "c_greedy"), field(entry, "c_ref"))
+        assert (norm["c_greedy"], norm["c_best"]) == (field(entry, "c_greedy"), field(entry, "c_best"))
         scenario = Scenario.model_validate_json((task / "tests" / "scenario.json").read_text(encoding="utf-8"))
         costs = []
         for policy in (Greedy(), Reference()):
             session = Session(scenario)
             policy.run(InProcClient(session))
             costs.append(session.close().cost.total)
-        assert costs == [norm["c_greedy"], norm["c_ref"]]
+        assert costs == [norm["c_greedy"], field(entry, "c_ref")] and norm["c_best"] <= costs[1]
 
 
 def test_T07_03_main_context_clean(exported):

@@ -1,4 +1,8 @@
-"""Harbor verifier for one railway task (ticket T07 §2.6; DESIGN.md §6.2, §8.3).
+"""Harbor verifier for one railway task (ticket T07 §2.6; DESIGN.md §8.3; v0.3 reward, docs/design-changes-v0.3.md §2).
+
+Reward = max(0, (C_greedy − C_agent) / (C_greedy − C_best)): 0 is greedy or worse, 1 the best plan known for
+the task (`tests/norm.json`). There is no clip at the top: a score above 1 means the agent beat the best known
+plan, and is flagged in details.json so the anchor can be updated (with a new norm_version).
 
 Vendored as `<task>/tests/verify.py` next to `tests/railway/` (util, sim, tools), `scenario.json`, `norm.json`
 and `token`; Harbor runs it from `tests/test.sh` in the main container after the agent has finished.
@@ -32,11 +36,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from railway.sim.constants import RULES_VERSION
+from railway.sim.cost import COMPONENTS
 from railway.util import canonical_json, content_hash
 
 STATUSES = {"GRANTED", "REFUSED", "OK", "INVALID", "INFO"}
-COMPONENTS = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
-COUNT_KEYS = ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points")
+COUNT_KEYS = (
+    "gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points",
+    "misroutes", "wrong_terminals", "missed_calls", "missed_connections", "unfinished_trains",
+)  # fmt: skip
+NORM_SOURCES = {"reference", "offline", "solver"}
 TOLERANCE = 1e-6
 SHIFT_ENDED = "R-SHIFT-ENDED"  # calls after the shift ended are logged but use no budget (T05 §2.1)
 
@@ -64,16 +72,16 @@ class Mismatch(VerifyError):
 class Score:
     reward: float
     score_unclipped: float
-    above_reference: bool
+    above_best: bool
 
 
-def reward_from(c_greedy: float, c_ref: float, c_agent: float) -> Score:
-    """u = (C_greedy − C_agent) / (C_greedy − C_ref); reward = clip(u, 0, 1)."""
-    gap = c_greedy - c_ref
+def reward_from(c_greedy: float, c_best: float, c_agent: float) -> Score:
+    """u = (C_greedy − C_agent) / (C_greedy − C_best); reward = max(0, u). Above 1 is kept and flagged."""
+    gap = c_greedy - c_best
     if not (gap > 0 and math.isfinite(gap)):
-        raise ValueError(f"need c_greedy > c_ref, got {c_greedy} and {c_ref}")
+        raise ValueError(f"need c_greedy > c_best, got {c_greedy} and {c_best}")
     u = (c_greedy - c_agent) / gap
-    return Score(reward=min(1.0, max(0.0, u)), score_unclipped=u, above_reference=u > 1.0)
+    return Score(reward=max(0.0, u), score_unclipped=u, above_best=u > 1.0 + TOLERANCE)
 
 
 # ---------------------------------------------------------------- fetch
@@ -144,8 +152,14 @@ def _valid_entry(e) -> bool:
 def load_norm(path: Path, scenario: dict) -> dict:
     try:
         norm = json.loads(path.read_text(encoding="utf-8"))
-        reward_from(norm["c_greedy"], norm["c_ref"], norm["c_ref"])
-        ok = norm["scenario_hash"] == content_hash(scenario) and norm["rules_version"] == RULES_VERSION
+        reward_from(norm["c_greedy"], norm["c_best"], norm["c_best"])
+        ok = (
+            norm["scenario_hash"] == content_hash(scenario)
+            and norm["rules_version"] == RULES_VERSION
+            and norm["best_source"] in NORM_SOURCES
+            and isinstance(norm["best_proven"], bool)
+            and isinstance(norm["norm_version"], int)
+        )
     except (OSError, ValueError, KeyError, TypeError):
         ok = False
     if not ok:
@@ -272,7 +286,7 @@ def verify(args: argparse.Namespace) -> Score:
 
     final = replay_log(scenario, log)
     cost, total = compare(final, log)
-    score = reward_from(norm["c_greedy"], norm["c_ref"], total)
+    score = reward_from(norm["c_greedy"], norm["c_best"], total)
     counts = _as_dict(_field(final, "counts"))
     details = {
         "scenario_id": scenario["scenario_id"],
@@ -280,11 +294,15 @@ def verify(args: argparse.Namespace) -> Score:
         "cost_total": total,
         "cost_by_component": cost,
         "c_greedy": norm["c_greedy"],
-        "c_ref": norm["c_ref"],
+        "c_best": norm["c_best"],
+        "best_source": norm["best_source"],
+        "best_proven": norm["best_proven"],
+        "norm_version": norm["norm_version"],
         "score_unclipped": score.score_unclipped,
         "reward": score.reward,
-        "above_reference": score.above_reference,
+        "above_best": score.above_best,
         "counts": {k: counts[k] for k in COUNT_KEYS},
+        "kpis": dict(_field(final, "kpis")),
         "tool_calls": calls,
         "final_tick": log["final_tick"],
     }

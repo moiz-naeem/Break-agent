@@ -223,15 +223,29 @@ def norm_for(scenario: dict, entry: dict) -> dict:
         raise ValueError(f"stale accepted entry for {entry['scenario_id']}: scenario_hash does not match")
     if scenario["rules_version"] != RULES_VERSION:
         raise ValueError(f"{entry['scenario_id']}: rules_version {scenario['rules_version']} != {RULES_VERSION}")
-    if not entry["c_greedy"] > entry["c_ref"]:
-        raise ValueError(f"{entry['scenario_id']}: needs c_greedy > c_ref")
+    if not entry["c_greedy"] > entry["c_best"]:
+        raise ValueError(f"{entry['scenario_id']}: needs c_greedy > c_best")
     return {
         "scenario_id": scenario["scenario_id"],
         "scenario_hash": scenario_hash,
         "rules_version": RULES_VERSION,
         "c_greedy": entry["c_greedy"],
-        "c_ref": entry["c_ref"],
+        "c_best": entry["c_best"],
+        "best_source": entry["best_source"],
+        "best_proven": entry["best_proven"],
+        "norm_version": entry.get("norm_version", 1),
     }
+
+
+def best_plan_for(scenario: dict, entry: dict) -> list[dict]:
+    """The plan the oracle replays: recomputed (deterministic) and checked against the accepted C_best."""
+    from railway.ref.best import best_plan
+    from railway.sim.model import Scenario
+
+    best = best_plan(Scenario.model_validate(scenario))
+    if abs(best.cost - entry["c_best"]) > 1e-6:
+        raise ValueError(f"{entry['scenario_id']}: best plan costs {best.cost}, accepted c_best {entry['c_best']}")
+    return best.plan
 
 
 def export_task(
@@ -242,6 +256,7 @@ def export_task(
     *,
     probe: bool = False,
     pins: list[str] | None = None,
+    plan: list[dict] | None = None,
 ) -> None:
     """Write one task directory (ticket §2.3). A fresh token per task, per export; never printed."""
     norm = norm_for(scenario, entry)
@@ -273,6 +288,15 @@ def export_task(
 
     solution = task_dir / "solution"
     _write(solution / "solve.sh", _template("solve_probe.sh" if probe else "solve.sh"), executable=True)
+    if plan is None:
+        plan = best_plan_for(scenario, entry)
+    else:
+        from railway.ref.best import replay_plan
+        from railway.sim.model import Scenario
+
+        if abs(replay_plan(Scenario.model_validate(scenario), plan) - entry["c_best"]) > 1e-6:
+            raise ValueError(f"{entry['scenario_id']}: the given plan does not reach c_best")
+    _write(solution / "plan.json", canonical_json(plan))
     vendor(solution / "railway", SOLUTION_PACKAGES)
 
 
@@ -285,12 +309,12 @@ def export_scenarios(items: list[tuple[dict, dict]], out: Path, opts: ExportOpti
     out.mkdir(parents=True, exist_ok=True)
     pins = pinned_requirements()
     for scenario, entry in items:
-        export_task(scenario, entry, out / scenario["scenario_id"], opts, pins=pins)
+        export_task(scenario, entry, out / scenario["scenario_id"], opts, pins=pins, plan=entry.get("plan"))
         tasks.append(_manifest_row(scenario, entry, scenario["scenario_id"]))
     if opts.probe and items:
         scenario, entry = items[0]
         name = f"{scenario['scenario_id']}-probe"
-        export_task(scenario, entry, out / name, opts, probe=True, pins=pins)
+        export_task(scenario, entry, out / name, opts, probe=True, pins=pins, plan=entry.get("plan"))
         tasks.append({**_manifest_row(scenario, entry, name), "probe": True})
     manifest = {"rules_version": RULES_VERSION, **meta, "count": len(items), "tasks": tasks}
     _write(out / "manifest.json", json.dumps(manifest, indent=2, sort_keys=True) + "\n")
@@ -316,7 +340,8 @@ def _manifest_row(scenario: dict, entry: dict, task: str) -> dict:
         "scenario_hash": content_hash(scenario),
         "seed": scenario["seed"],
         "c_greedy": entry["c_greedy"],
-        "c_ref": entry["c_ref"],
+        "c_best": entry["c_best"],
+        "best_source": entry["best_source"],
     }
 
 
@@ -329,7 +354,7 @@ def fresh_dir(out: Path) -> Path:
 
 
 def _entry_dict(entry) -> dict:
-    keys = ("seed", "scenario_id", "scenario_hash", "c_greedy", "c_ref")
+    keys = ("seed", "scenario_id", "scenario_hash", "c_greedy", "c_ref", "c_best", "best_source", "best_proven")
     return {k: entry[k] if isinstance(entry, dict) else getattr(entry, k) for k in keys}
 
 
@@ -366,15 +391,14 @@ def fresh_items(preset: str, count: int) -> list[tuple[dict, dict]]:
         accepted = report["accepted"] if isinstance(report, dict) else report.accepted
         if not accepted:
             continue
-        c_greedy = report["c_greedy"] if isinstance(report, dict) else report.c_greedy
-        c_ref = report["c_ref"] if isinstance(report, dict) else report.c_ref
+        fields = {k: report[k] if isinstance(report, dict) else getattr(report, k)
+                  for k in ("c_greedy", "c_ref", "c_best", "best_source", "best_proven")}  # fmt: skip
         data = _scenario_dict(scenario)
         entry = {
             "seed": seed,
             "scenario_id": data["scenario_id"],
             "scenario_hash": content_hash(data),
-            "c_greedy": c_greedy,
-            "c_ref": c_ref,
+            **fields,
         }
         items.append((data, entry))
     return items

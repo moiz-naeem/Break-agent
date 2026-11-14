@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from railway.policies.baselines import EpisodeOver, Guard, ToolCall
-from railway.sim.constants import W_EXPRESS, W_FREIGHT, W_LOCAL
+from railway.policies.routes import call_args
+from railway.sim.constants import VALUE, W_FREIGHT
 from railway.sim.engine import Simulator
-from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew
 from railway.sim.observe import State, StaticInfo
 from railway.tools.observe import Observer
 
 from .candidates import WAIT, candidates
-from .rollout import rollout
+from .rollout import crew_target_arrival, rollout
 
 
 class Reference:
@@ -21,8 +22,7 @@ class Reference:
 
     def _priority(self, train):
         if train.type in {"express", "local"}:
-            weight = W_EXPRESS if train.type == "express" else W_LOCAL
-            return (0, -(weight * train.pax / 100), train.id)
+            return (0, -(VALUE[train.type] * train.pax / 100), train.id)
         if train.type == "freight":
             return (1, -W_FREIGHT, train.id)
         return (2, 0, train.id)
@@ -45,16 +45,8 @@ class Reference:
                     or (relieving_until is not None and state.tick < relieving_until)
                 ):
                     continue
-                ahead = ["YW", *[station.id for station in belief._scenario.network.stations], "YE"]
-                if observed.direction == "west":
-                    ahead.reverse()
-                crew_ahead = [
-                    station for station in ahead[ahead.index(observed.station) + 1 :] if station in crew_stations
-                ]
-                target = crew_ahead[0] if crew_ahead else belief._train_defs[observed.id].stops[-1].station
-                path = belief._route(observed.station, target, "main")
-                arrival = belief._project_arrival(observed.id, path)
-                if state.tick + remaining < arrival + 10:
+                arrival = crew_target_arrival(belief, observed.id, observed.station)
+                if arrival is not None and state.tick + remaining < arrival + 10:
                     action = RelieveCrew(train=observed.id)
                     if belief.apply(action).ok:
                         calls.append(ToolCall("relieve_crew", {"train": observed.id}))
@@ -94,16 +86,7 @@ class Reference:
             _, winner = min(values, key=lambda pair: pair[0])
             if winner is not WAIT:
                 belief.apply(winner)
-                calls.append(
-                    ToolCall(
-                        "authorize",
-                        {
-                            "train": winner.train,
-                            "station": winner.station,
-                            "track": winner.track,
-                        },
-                    )
-                )
+                calls.append(ToolCall("authorize", call_args(winner)))
         calls.append(ToolCall("advance_to_next_event", {}))
         return calls
 
@@ -117,7 +100,6 @@ class Reference:
                 "hold": Hold,
                 "cancel_authority": CancelAuthority,
                 "relieve_crew": RelieveCrew,
-                "reverse": Reverse,
             }
             action_type = action_types.get(call.tool)
             if action_type is not None:

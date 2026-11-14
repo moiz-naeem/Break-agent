@@ -21,11 +21,16 @@ class FilterReport(TypedDict):
     accepted: bool
     c_greedy: float
     c_ref: float
+    c_best: float
+    best_source: str
+    best_proven: bool
     ref_gridlocks: int
     greedy_unfinished: int
     exploit_costs: dict[str, float]
     reasons: list[str]
 
+
+FILTER_VERSION = 3  # bump when the acceptance rules or the entry fields change: cached seed lists are recomputed
 
 POLICY_NAMES = (
     "greedy", "reference", "DoNothing", "StopEarly", "SpamAdvance", "HoldFreight", "MainLineHold", "Malformed",
@@ -43,20 +48,34 @@ def run_named(name: str, scenario):
     return run_policy(policy, scenario, transport="inproc")
 
 
-def evaluate_scenario(scenario, runner=run_named) -> FilterReport:
-    """Run greedy, the reference and every exploit, then apply DESIGN §6.3's four fixed conditions.
+def best_for(scenario, reference_run):
+    """(c_best, source, proven): the reference, or the exact solver where it applies and does better."""
+    from railway.ref.best import best_plan
 
-    ``runner(name, scenario) -> EpisodeResult`` is injectable so unit tests can stub the runs.
+    try:
+        best = best_plan(scenario, reference_run=reference_run)
+    except RuntimeError:  # a plan that does not replay: fall back to the reference, which always does
+        return reference_run.final.cost.total, "reference", False
+    return best.cost, best.source, best.proven
+
+
+def evaluate_scenario(scenario, runner=run_named, best=None) -> FilterReport:
+    """Run greedy, the reference and every exploit, then apply the v0.3 conditions (DESIGN §6.3 with the
+    headroom rule on C_best, docs/design-changes-v0.3.md §2.3).
+
+    ``runner(name, scenario) -> EpisodeResult`` and ``best(scenario, reference_run)`` are injectable so unit
+    tests can stub the runs.
     """
     results = {name: runner(name, scenario) for name in POLICY_NAMES}
     c_greedy = results["greedy"].final.cost.total
     c_ref = results["reference"].final.cost.total
+    c_best, best_source, best_proven = (best or best_for)(scenario, results["reference"])
     gridlocks = results["reference"].final.counts["gridlocks"]
     unfinished = results["greedy"].unfinished
     exploit_costs = {name: r.final.cost.total for name, r in results.items() if name not in {"greedy", "reference"}}
     reasons = []
-    if c_ref > 0.70 * c_greedy:
-        reasons.append("ref_not_30pct_better")
+    if c_best > 0.70 * c_greedy:
+        reasons.append("best_not_30pct_better")
     if gridlocks:
         reasons.append("ref_gridlock")
     if min(exploit_costs.values()) < c_greedy:
@@ -67,6 +86,9 @@ def evaluate_scenario(scenario, runner=run_named) -> FilterReport:
         "accepted": not reasons,
         "c_greedy": c_greedy,
         "c_ref": c_ref,
+        "c_best": c_best,
+        "best_source": best_source,
+        "best_proven": best_proven,
         "ref_gridlocks": gridlocks,
         "greedy_unfinished": unfinished,
         "exploit_costs": exploit_costs,
@@ -109,7 +131,7 @@ def accepted_seeds(
     from railway.gen.seeds import candidate_seeds
 
     path = Path(output_dir) / f"{preset}-{set_name}.json"
-    header = {"rules_version": RULES_VERSION, "generator_version": generator_version()}
+    header = {"rules_version": RULES_VERSION, "generator_version": generator_version(), "filter_version": FILTER_VERSION}
     if path.exists():
         cached = json.loads(path.read_text(encoding="utf-8"))
         if {k: cached["header"].get(k) for k in header} == header and len(cached["accepted"]) >= count:
@@ -129,7 +151,10 @@ def accepted_seeds(
                 if len(accepted) == count:
                     break
                 if report["accepted"]:
-                    accepted.append(entry | {"c_greedy": report["c_greedy"], "c_ref": report["c_ref"]})
+                    accepted.append(
+                        entry
+                        | {k: report[k] for k in ("c_greedy", "c_ref", "c_best", "best_source", "best_proven")}
+                    )
                 else:
                     rejected.update(report["reasons"])
     payload = {"header": header | {"rejected_by_reason": dict(sorted(rejected.items()))}, "accepted": accepted}

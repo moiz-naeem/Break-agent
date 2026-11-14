@@ -46,8 +46,9 @@ def do_nothing_cost(scenario: dict) -> float:
 
 def fixture_anchors(scenario: dict) -> dict:
     """Test anchors: C_greedy = do-nothing cost, C_ref = cost of `scripted_plan` (via the fake log)."""
-    c_ref = play(scenario, scripted_plan(scenario))["final_cost"]
-    return norm_entry(scenario, c_greedy=do_nothing_cost(scenario), c_ref=c_ref)
+    plan = scripted_plan(scenario)
+    c_ref = play(scenario, plan)["final_cost"]
+    return norm_entry(scenario, c_greedy=do_nothing_cost(scenario), c_ref=c_ref, plan=plan)
 
 
 @pytest.fixture(scope="session")

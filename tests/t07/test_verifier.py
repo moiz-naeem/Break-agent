@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from railway.sim.constants import RULES_VERSION
+from railway.sim.cost import COMPONENTS
 from tests.helpers import free_port, load_fixture, start_server
 from tests.t07.conftest import REAL_EXPORT_MODULES, fixture_anchors, require_modules, run_verify, task_dirs
 from tests.t07.fake_replay import play
@@ -27,15 +28,22 @@ DETAIL_KEYS = {
     "cost_total",
     "cost_by_component",
     "c_greedy",
-    "c_ref",
+    "c_best",
+    "best_source",
+    "best_proven",
+    "norm_version",
     "score_unclipped",
     "reward",
-    "above_reference",
+    "above_best",
     "counts",
+    "kpis",
     "tool_calls",
     "final_tick",
 }
-COUNT_KEYS = {"gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"}
+COUNT_KEYS = {
+    "gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points",
+    "misroutes", "wrong_terminals", "missed_calls", "missed_connections", "unfinished_trains",
+}  # fmt: skip
 OPENCODE_LOG = Path("opencode/xdg-data/opencode/log/2026-11-14T120000.log")
 
 
@@ -103,14 +111,14 @@ def plan_log() -> dict:
 def test_T07_11f_anchor_plan_scores_one_fake_sim(task, plan_log):
     d = task.expect_reward(task.verify(plan_log), "1.000000\n")
     assert d["score_unclipped"] == 1.0 and d["reward"] == 1.0
-    assert d["above_reference"] is False
+    assert d["above_best"] is False
 
 
 def test_T07_12f_partial_plan_scores_between_fake_sim(task, plan_log):
     calls = [(e["tool"], e["args"]) for e in plan_log["entries"]]
     log = play(task.scenario, [*calls[:2], ("end_shift", {})])
-    c_greedy, c_ref, c_agent = task.norm["c_greedy"], task.norm["c_ref"], log["final_cost"]
-    u = (c_greedy - c_agent) / (c_greedy - c_ref)
+    c_greedy, c_best, c_agent = task.norm["c_greedy"], task.norm["c_best"], log["final_cost"]
+    u = (c_greedy - c_agent) / (c_greedy - c_best)
     assert 0.0 < u < 1.0, "fixture plan prefix should land strictly between the anchors"
     d = task.expect_reward(task.verify(log), f"{u:.6f}\n")
     assert d["score_unclipped"] == pytest.approx(u, abs=1e-12)
@@ -128,9 +136,10 @@ def test_T07_14f_details_shape_fake_sim(task, plan_log):
     d = task.expect_reward(task.verify(plan_log), "1.000000\n")
     assert set(d) == DETAIL_KEYS
     assert set(d["counts"]) == COUNT_KEYS
-    assert set(d["cost_by_component"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished"}
+    assert set(d["cost_by_component"]) == set(COMPONENTS)
+    assert set(d["kpis"]) == {"on_time_pct", "passenger_delay_minutes", "freight_delivered_pct", "red_flags", "clean_shift"}
     assert d["scenario_id"] == task.scenario["scenario_id"] and d["rules_version"] == RULES_VERSION
-    assert (d["c_greedy"], d["c_ref"]) == (task.norm["c_greedy"], task.norm["c_ref"])
+    assert (d["c_greedy"], d["c_best"]) == (task.norm["c_greedy"], task.norm["c_best"])
     assert d["cost_total"] == plan_log["final_cost"] and d["final_tick"] == plan_log["final_tick"]
     assert d["tool_calls"] == len(plan_log["entries"])
     assert json.loads((task.logs / "action_log.json").read_text(encoding="utf-8")) == plan_log
@@ -148,13 +157,13 @@ def test_T07_14g_calls_after_shift_end_do_not_count(task, plan_log):
 def test_T07_15_reward_math():
     from railway.harbor.verify import reward_from
 
-    s = reward_from(1000, 500, 400)
-    assert s.reward == 1.0 and s.above_reference is True and s.score_unclipped == pytest.approx(1.2)
+    s = reward_from(1000, 500, 400)  # v0.3: no clip at the top; beating the best known plan is flagged
+    assert s.reward == pytest.approx(1.2) and s.above_best is True and s.score_unclipped == pytest.approx(1.2)
     s = reward_from(1000, 500, 1200)
-    assert s.reward == 0.0 and s.score_unclipped == pytest.approx(-0.4) and s.above_reference is False
+    assert s.reward == 0.0 and s.score_unclipped == pytest.approx(-0.4) and s.above_best is False
     s = reward_from(1000, 500, 750)
     assert s.reward == 0.5 and s.score_unclipped == 0.5
-    assert reward_from(1000, 500, 500).reward == 1.0 and reward_from(1000, 500, 500).above_reference is False
+    assert reward_from(1000, 500, 500).reward == 1.0 and reward_from(1000, 500, 500).above_best is False
     assert reward_from(1000, 500, 1000).reward == 0.0
     for bad in ((500, 500, 1), (400, 500, 1)):
         with pytest.raises(ValueError):
@@ -231,7 +240,7 @@ def test_T07_21_stale_reward_files_removed(task, plan_log):
     task.expect_reward(task.verify(play(task.scenario, [])), "0.000000\n")
 
 
-@pytest.mark.parametrize("patch", [{"scenario_hash": "0" * 64}, {"rules_version": "9.9"}, {"c_ref": 1e9}])
+@pytest.mark.parametrize("patch", [{"scenario_hash": "0" * 64}, {"rules_version": "9.9"}, {"c_best": 1e9}, {"best_source": "x"}])
 def test_T07_22_bad_norm_is_infra(tmp_path, mini3_export, plan_log, patch):
     import shutil
 

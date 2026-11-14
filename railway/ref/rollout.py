@@ -2,59 +2,66 @@
 
 from __future__ import annotations
 
-from railway.sim.constants import CREW_LIMIT, TRAIN_TYPES, TURNAROUND
-from railway.sim.cost import freight_cost, pax_cost
+from railway.policies.routes import ahead, sim_route, via
+from railway.sim.constants import CREW_LIMIT, TRAIN_TYPES, TURNAROUND, UNFINISHED_COST
+from railway.sim.cost import freight_cost, missed_call_cost, pax_cost, unfinished_cost
 from railway.sim.model import RelieveCrew
 from railway.sim.timing import travel_ticks
 
-from .candidates import greedy_choice
+from .candidates import _section_between, greedy_choice
+
+
+def _missed(definition, index: int) -> float:
+    alight, board = definition.flow(index)
+    return missed_call_cost(definition.type, alight, board, definition.stops[index].headway)
 
 
 def terminal_estimate(sim) -> float:
-    """Estimate lateness at all remaining scheduled stops under free running."""
+    """What the rest of the shift will still cost under free running: lateness at the remaining stops, stops
+    that fall after the shift end (missed calls), trains that won't finish, and stops already skipped."""
     estimate = 0.0
-    stations = sim._station_ids
+    shift = sim._scenario.shift_ticks
     for tid, train in sim._trains.items():
+        definition = sim._train_defs[tid]
+        pax = definition.type in {"express", "local"}
+        if pax:
+            estimate += sum(_missed(definition, i) for i in range(train["stop_idx"]) if i not in train["served"])
         if train["phase"] == "finished":
             continue
-        definition = sim._train_defs[tid]
-        tick = max(sim.tick, definition.entry_tick)
+        tick = max(sim.tick, train["entry_tick"])
         if train["phase"] == "in_section":
             tick = max(tick, train["section_exit"] or tick)
-            current = stations[sim._station_idx[train["position"]] + (1 if train["direction"] == "east" else -1)]
-        elif train["phase"] == "reversing" and train.get("reversing_to"):
-            tick = max(tick, train["section_exit"] or tick)
-            current = train["reversing_to"][0]
+            current = sim._graph.other_end(train["section"], train["section_from"])
+        elif train["phase"] == "not_entered":
+            current = definition.start
         else:
             current = train["station"] or train["position"]
             tick = max(tick, train.get("dwell_until") or 0, train.get("ready_tick") or 0)
-
-        remaining_stops = definition.stops[train["stop_idx"] :]
-        if current not in sim._station_idx:
+        remaining = list(range(train["stop_idx"], len(definition.stops)))
+        route = sim_route(sim, tid)
+        if current not in route:  # off its route: assume what is left is lost
+            if pax:
+                estimate += sum(_missed(definition, i) for i in remaining)
+            estimate += unfinished_cost(definition, shift)
             continue
-        cursor = sim._station_idx[current]
-        for stop in remaining_stops:
-            target = sim._station_idx[stop.station]
-            step = 1 if target > cursor else -1
-            while cursor != target:
-                a, b = stations[cursor], stations[cursor + step]
-                section = sim._section_by_pair.get((a, b)) or sim._section_by_pair.get((b, a))
-                if section:
-                    tick += travel_ticks(
-                        section.length_m,
-                        section.line_speed_kmh,
-                        TRAIN_TYPES[definition.type]["max_speed_kmh"],
-                    )
-                cursor += step
-                station = stations[cursor]
-                if station != stop.station:
-                    timed = next((x for x in remaining_stops if x.station == station), None)
-                    if timed:
-                        tick = max(tick + timed.min_dwell, timed.dep or tick)
-            if definition.type in {"express", "local"}:
-                estimate += pax_cost(definition.type, definition.pax, tick - stop.arr, stop.station in {"YW", "YE"})
-            elif definition.type == "freight" and stop.station in {"YW", "YE"}:
-                estimate += freight_cost(tick - stop.arr)
+        cursor = route.index(current)
+        for i in remaining:
+            stop = definition.stops[i]
+            target = route.index(stop.station) if stop.station in route else cursor
+            while cursor < target:
+                a, b = route[cursor], route[cursor + 1]
+                section = sim._section_by_id[_section_between(sim, a, b)]
+                tick += travel_ticks(section.length_m, section.line_speed_kmh, TRAIN_TYPES[definition.type]["max_speed_kmh"])
+                cursor += 1
+            late = tick - stop.arr
+            final = i == len(definition.stops) - 1
+            if pax:
+                alight, _ = definition.flow(i)
+                estimate += _missed(definition, i) if tick > shift else pax_cost(definition.type, alight, late)
+            elif definition.type == "freight" and final:
+                estimate += unfinished_cost(definition, shift) if tick > shift else freight_cost(late)
+            if final and tick > shift and definition.type != "freight":
+                estimate += UNFINISHED_COST
             if stop.dep is not None:
                 tick = max(tick + stop.min_dwell, stop.dep)
     return round(estimate, 6)
@@ -78,11 +85,25 @@ def _base_policy_step(sim) -> None:
             sim.apply(action)
 
 
+def crew_target_arrival(sim, train_id: str, station: str) -> int | None:
+    """Projected arrival at the next crew station on the route (or the destination), from `station`."""
+    crew_stations = {s.id for s in sim._scenario.network.stations if s.crew_station}
+    route = sim_route(sim, train_id)
+    nodes = ahead(route, station)
+    if not nodes:
+        return None
+    target = next((s for s in nodes if s in crew_stations), nodes[-1])
+    train = sim._trains[train_id]
+    path = sim._route(station, train["came_by"], target, "main", via(route, station, target, not sim._graph.chain), strict=False)
+    if not path or isinstance(path, str):
+        return None
+    return sim._project_arrival(train_id, path)
+
+
 def _apply_crew_rule(sim) -> None:
     if "F10" not in sim._scenario.factors:
         return
     crew_stations = {station.id for station in sim._scenario.network.stations if station.crew_station}
-    route = sim._station_ids
     for train in sim._trains.values():
         if train["phase"] != "at_station" or train["station"] not in crew_stations:
             continue
@@ -92,15 +113,8 @@ def _apply_crew_rule(sim) -> None:
         if used is None:
             continue
         remaining = max(0, CREW_LIMIT - used)
-        direction = 1 if train["direction"] == "east" else -1
-        index = sim._station_idx[train["station"]]
-        ahead = route[index + direction :: direction]
-        target = next((station for station in ahead if station in crew_stations), None)
-        if target is None:
-            target = sim._train_defs[train["id"]].stops[-1].station
-        path = sim._route(train["station"], target, "main")
-        arrival = sim._project_arrival(train["id"], path)
-        if sim.tick + remaining < arrival + TURNAROUND:
+        arrival = crew_target_arrival(sim, train["id"], train["station"])
+        if arrival is not None and sim.tick + remaining < arrival + TURNAROUND:
             sim.apply(RelieveCrew(train=train["id"]))
 
 

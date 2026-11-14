@@ -103,14 +103,21 @@ def scripted_plan(scenario: dict) -> list[tuple[str, dict]]:
     return calls
 
 
-def norm_entry(scenario: dict, c_greedy: float, c_ref: float) -> dict:
-    return {
+def norm_entry(scenario: dict, c_greedy: float, c_ref: float, plan: list | None = None) -> dict:
+    """A test anchor: the scripted plan plays the part of the best known plan (C_best = C_ref)."""
+    entry = {
         "seed": scenario["seed"],
         "scenario_id": scenario["scenario_id"],
         "scenario_hash": content_hash(scenario),
         "c_greedy": c_greedy,
         "c_ref": c_ref,
+        "c_best": c_ref,
+        "best_source": "reference",
+        "best_proven": False,
     }
+    if plan is not None:
+        entry["plan"] = [{"tool": tool, "args": args} for tool, args in plan]
+    return entry
 
 
 def real_replay_available() -> bool:

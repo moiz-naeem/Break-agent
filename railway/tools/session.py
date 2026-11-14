@@ -11,6 +11,7 @@ from railway.sim.cost import CostBreakdown
 from railway.sim.engine import Simulator
 from railway.sim.manual import render_manual
 from railway.sim.engine import COUNTERS
+from railway.sim.kpis import kpis
 from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Scenario
 from railway.sim.observe import Change
 from railway.sim.rules import RuleId
@@ -64,6 +65,7 @@ class FinalResult(BaseModel):
     tick: int
     cost: CostBreakdown
     counts: dict[str, int]
+    kpis: dict = {}  # operations KPIs beside the score (railway/sim/kpis.py)
 
 
 # Each handler returns (output, status, rule); status is GRANTED | OK | REFUSED | INVALID | INFO.
@@ -158,8 +160,9 @@ class Session:
         if self.final is None:
             if not self.sim.done:
                 self._record(self.sim.end_shift())
+            counts = dict(self.counts) | dict(self.sim.counters)
             self.final = FinalResult(
-                tick=self.sim.tick, cost=self.sim.cost(), counts=dict(self.counts) | dict(self.sim.counters)
+                tick=self.sim.tick, cost=self.sim.cost(), counts=counts, kpis=kpis(self.sim, counts)
             )
         self.closed = True
         return self.final
