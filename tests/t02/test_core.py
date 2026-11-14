@@ -42,10 +42,6 @@ def test_T02_02_rules_and_factors():
     d["rules_version"] = "old"
     with pytest.raises(ValidationError, match="rules_version"):
         Scenario.model_validate(d)
-    d = load_fixture("mini3")
-    d["factors"].append("F5")
-    with pytest.raises(NotImplementedError):
-        Simulator.load(Scenario.model_validate(d))
 
 
 def test_T02_07_next_service_reference_and_direction():

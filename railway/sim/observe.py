@@ -48,6 +48,13 @@ class TrainState(LooseModel):
     arrivals: list[Arrival] = []
     delay: int = 0
     finished_tick: int | None = None
+    restart_pending: bool = False
+    crew_used: int | None = None
+    crew_remaining: int | None = None
+    relief_until: int | None = None
+    breakdown_until: int | None = None
+    blocked_until: int | None = None
+    waits_for: str | None = None
 
 
 class State(LooseModel):
@@ -60,6 +67,7 @@ class State(LooseModel):
     possessions: list[dict] = []
     cost: CostBreakdown
     notes: str = ""
+    last_decision_tick: int = 0
 
 
 class StaticInfo(LooseModel):

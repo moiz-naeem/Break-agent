@@ -104,11 +104,43 @@ class Train(StrictModel):
         return self
 
 
-class Event(StrictModel):
+class EventBase(StrictModel):
     id: str
-    kind: str
     reveal_tick: int
-    model_config = ConfigDict(extra="allow")
+
+
+class PossessionEvent(EventBase):
+    kind: Literal["possession"]
+    section: str
+    start: int
+    end: int
+
+
+class SpeedRestrictionEvent(EventBase):
+    kind: Literal["speed_restriction"]
+    sections: list[str]
+    speed_kmh: int
+    start: int
+    end: int
+
+
+class LateEntryEvent(EventBase):
+    kind: Literal["late_entry"]
+    train: str
+    new_entry_tick: int
+
+
+class BreakdownEvent(EventBase):
+    kind: Literal["breakdown"]
+    train: str
+    tick: int
+    duration: int
+
+
+Event = Annotated[
+    PossessionEvent | SpeedRestrictionEvent | LateEntryEvent | BreakdownEvent,
+    Field(discriminator="kind"),
+]
 
 
 class Scenario(StrictModel):
@@ -121,7 +153,7 @@ class Scenario(StrictModel):
     factors: list[str]
     network: Network
     trains: list[Train]
-    events: list[dict]
+    events: list[Event]
 
     @model_validator(mode="after")
     def valid_scenario(self):
@@ -129,6 +161,9 @@ class Scenario(StrictModel):
             raise ValueError("rules_version mismatch")
         if self.factors != sorted(set(self.factors)):
             raise ValueError("factors must be unique and sorted")
+        supported = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F10", "F15", "F16"}
+        if not set(self.factors) <= supported:
+            raise ValueError("unsupported factor")
         if [t.id for t in self.trains] != sorted(t.id for t in self.trains):
             raise ValueError("trains must be sorted by id")
         ids = {t.id for t in self.trains}
@@ -145,6 +180,39 @@ class Scenario(StrictModel):
                 raise ValueError("train stops must be in route order")
             if t.next_service and next(x for x in self.trains if x.id == t.next_service).direction == t.direction:
                 raise ValueError("next_service must be opposite direction")
+        event_ids = [event.id for event in self.events]
+        if len(event_ids) != len(set(event_ids)):
+            raise ValueError("duplicate event id")
+        if [(e.reveal_tick, e.id) for e in self.events] != sorted((e.reveal_tick, e.id) for e in self.events):
+            raise ValueError("events must be sorted by reveal_tick and id")
+        section_ids = {section.id for section in self.network.sections}
+        factor_for = {"possession": "F7", "speed_restriction": "F8", "late_entry": "F16", "breakdown": "F15"}
+        for event in self.events:
+            if factor_for[event.kind] not in self.factors:
+                raise ValueError(f"event {event.id} requires {factor_for[event.kind]}")
+            if isinstance(event, PossessionEvent):
+                if event.section not in section_ids:
+                    raise ValueError("possession section does not exist")
+                if not event.reveal_tick <= event.start < event.end <= self.shift_ticks:
+                    raise ValueError("invalid possession window")
+            elif isinstance(event, SpeedRestrictionEvent):
+                if not event.reveal_tick <= event.start < event.end:
+                    raise ValueError("invalid restriction window")
+                if not 0 < event.speed_kmh < 140:
+                    raise ValueError("invalid restriction speed")
+                if not event.sections or len(event.sections) != len(set(event.sections)):
+                    raise ValueError("restriction sections must be nonempty and distinct")
+                if not set(event.sections) <= section_ids:
+                    raise ValueError("restriction section does not exist")
+            elif isinstance(event, LateEntryEvent):
+                train = next((x for x in self.trains if x.id == event.train), None)
+                if train is None:
+                    raise ValueError("late entry train does not exist")
+                if event.new_entry_tick <= train.entry_tick or event.reveal_tick >= train.entry_tick:
+                    raise ValueError("invalid late entry timing")
+            elif isinstance(event, BreakdownEvent):
+                if event.reveal_tick != event.tick or event.duration < 1:
+                    raise ValueError("invalid breakdown timing")
         return self
 
 
