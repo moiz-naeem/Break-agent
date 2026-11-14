@@ -106,12 +106,15 @@ def _load_dotenv() -> None:
 
 
 def _secrets() -> list:
+    # Always exactly two secrets: the container rebuilds this list and must see the same number of
+    # dependencies as the local definition (otherwise "Function has N dependencies but got N+1 ids").
+    # In the container the second entry is a placeholder that Modal hydrates from the local one.
     out = [modal.Secret.from_name("vllm-key")]
     if modal.is_local():
         _load_dotenv()
-        present = [k for k in LOCAL_KEY_ENVS if os.environ.get(k)]
-        if present:
-            out.append(modal.Secret.from_local_environ(present))
+        out.append(modal.Secret.from_dict({k: os.environ[k] for k in LOCAL_KEY_ENVS if os.environ.get(k)}))
+    else:
+        out.append(modal.Secret.from_dict({}))
     return out
 
 
