@@ -283,12 +283,12 @@ reward = −C                            → reward.txt
 C      = C1 + C2 + C3 + C4 + C5        (1 unit = 100 passenger-minutes late)
 ```
 
-- **The reward is minus the total cost. Nothing else is in it:** no greedy or best-plan
-  normalisation, no clip, and no bonuses or shaping. Both benchmark evaluation and RL
-  post-training (GRPO) use `−C`.
-- **Greedy and best plan are report-only:** `details.json` and benchmark tables report
-  the cost per component, operational KPIs, and `C_greedy` (plus `C_best` where
-  available) as reference rows, never in `reward.txt`.
+- **The reward is minus the total cost. Nothing else is in it:** no greedy or reference
+  normalisation, no clip, and no bonuses or shaping. Both benchmark evaluation and
+  post-training use `−C`.
+- **Greedy and reference are removed:** there is no `norm.json`, `C_greedy`, `C_ref`, or
+  `C_best`. `details.json` and benchmark reports carry the cost per component (C1–C5),
+  operational KPIs, and event/action counts directly alongside `reward = −C`.
 
 **Lateness curve**, per passenger, used by C1 and C2:
 
