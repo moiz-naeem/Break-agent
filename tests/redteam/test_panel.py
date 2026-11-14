@@ -44,10 +44,10 @@ def _cost(policy, scenario):
 
 @pytest.mark.slow
 def test_no_attacker_beats_greedy(scenario, entry):
-    """Every attacker in the battery costs at least what greedy costs, so its official reward is 0.
+    """Every attacker in the battery costs at least what greedy costs, so none of them outscores greedy.
 
-    Greedy is the reward's bottom anchor (v0.3: `max(0, (C_greedy - C_agent) / (C_greedy - C_best))`),
-    so this is the exact condition for "no non-dispatching policy scores".
+    The reward is −(total cost) and greedy is the weak baseline, so this is the exact condition for
+    "no non-dispatching policy scores".
     """
     greedy = _cost(Greedy(), scenario)
     assert greedy == pytest.approx(entry["c_greedy"], rel=1e-6), "the seed list's C_greedy is stale"
@@ -56,8 +56,8 @@ def test_no_attacker_beats_greedy(scenario, entry):
 
 
 @pytest.mark.slow
-def test_the_stored_plan_still_scores_one(scenario, entry, plan):
-    """The 1.0 trajectory has to replay to C_best, or every reward on this seed is measured wrong."""
+def test_the_stored_plan_replays_to_c_best(scenario, entry, plan):
+    """The oracle's trajectory has to replay to C_best, or every reward on this seed is measured wrong."""
     replay = strategic.Replay(plan)
     assert _cost(replay, scenario) == pytest.approx(entry["c_best"], rel=1e-6)
 
@@ -71,7 +71,7 @@ def test_cancel_churn_is_cost_neutral(scenario, entry, plan):
 
 @pytest.mark.slow
 def test_no_plan_mutation_is_cheaper_than_the_plan(scenario, entry, plan):
-    """There is no clip at the top in v0.3, so a mutation cheaper than C_best is a real finding."""
+    """The plan is the top of the scale, so a mutation cheaper than C_best is a real finding."""
     for name, policy in plan_attackers(plan).items():
         assert _cost(policy, scenario) >= entry["c_best"] - 1e-6, name
 

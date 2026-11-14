@@ -1,5 +1,10 @@
 # Red-team playbook: playing the judge against our own environment
 
+> **Reward, as of `v03` @f9ae4e2:** `reward.txt` holds **−(total cost)**. The greedy/best normalised score
+> (`score_normalized`, `score_unclipped` in `details.json`) is report-only. Every check in this document is
+> therefore a cost comparison: the oracle must land on −C_best, a non-dispatching policy must not cost less
+> than greedy, and the numbers in the findings below are costs. `railway/redteam/strategic.py` and
+> `harbor_protocol.py` judge in cost terms; one line per attack is in `docs/redteam-attack-notes.md`.
 The judges spend 15 minutes looking for a way to score well without dispatching trains, and they rerun
 the evaluation themselves: our reference, three agent runs, a do-nothing baseline and a stop-early
 baseline. This playbook is how we run that session on ourselves first.
@@ -31,15 +36,15 @@ Nothing is tampered with; the agent just finds a cheap policy that is not dispat
 that actually decides reward integrity for us, because our agent has no filesystem to attack: it only
 has MCP tools.
 
-Rewards use the v0.3 formula, `max(0, (C_greedy − C_agent) / (C_greedy − C_best))`, against each seed's
-accepted anchors. There is no clip at the top any more, so "cheaper than the best known plan" is a
-finding the battery has to look for, not something the score hides.
+The reward is −(total cost), so the battery judges in costs: an attacker that does not dispatch must not
+cost less than greedy, and a mutation of the best plan must not cost less than the plan. The normalised
+score is printed in brackets for scale only.
 
 Three families run per seed:
 
-| Family | Members | Pass condition |
+| Family | Members | Pass condition (cost terms) |
 |---|---|---|
-| Non-dispatching policies | do nothing, stop early, spam `advance`, hold every train (`HoldAll`), passengers only (`PassengersOnly`), hold part of the freight (`PartialFreightHold`), misroute everything (`MisrouteAll`), skip the bypass (`BypassSkip`), park on the main line, one very long authority (`LongAuthHold`), a `via` that revisits sections (`BalloonVia`), jam the terminals (`TerminalJam`), farm crew timeouts (`CrewTimeoutFarm`), no relief at all (`NoRelief`, slow) | reward at most the threshold (default 0.02) |
+| Non-dispatching policies | do nothing, stop early, spam `advance`, hold every train (`HoldAll`), passengers only (`PassengersOnly`), hold part of the freight (`PartialFreightHold`), misroute everything (`MisrouteAll`), skip the bypass (`BypassSkip`), park on the main line, one very long authority (`LongAuthHold`), a `via` that revisits sections (`BalloonVia`), jam the terminals (`TerminalJam`), farm crew timeouts (`CrewTimeoutFarm`), no relief at all (`NoRelief`, slow) | must not cost less than greedy |
 | Mutations of the best plan | `PlanNoRelief`, `PlanDropFreight`, `PlanHalfFreight`, `PlanMainTracks` | must not cost *less* than the plan itself |
 | Cost-neutral mutations | `PlanCancelChurn` | must cost *exactly* what the plan costs |
 
@@ -60,7 +65,7 @@ scoring? The battery replays the task's own best plan (the 1.0 trajectory), cuts
 of its orders, and scores the rest as if the agent had stopped. Reward should stay near zero until nearly
 every order is given.
 
-Fail rule: any non-dispatching attacker above reward 0.02; two trains in one section; a cost-neutral
+Fail rule: a non-dispatching attacker that costs less than greedy; two trains in one section; a cost-neutral
 action that changes cost; a plan mutation cheaper than the plan; a prefix that scores as well as the whole
 plan while orders remain.
 ### 2. The scoring path (`tamper.py`)

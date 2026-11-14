@@ -1,13 +1,16 @@
 """Strategic red-team battery (v0.3): policies that try to earn reward without dispatching well.
 
 Every attacker plays through the same tool API as an agent (a Client on a Session), never the scenario.
-Rewards use the official v0.3 formula, `max(0, (C_greedy − C_agent) / (C_greedy − C_best))`, against each
-seed's accepted anchors. The battery fails when:
+The official reward is **minus the episode's total cost** (`reward.txt` = −C), so every judgement here is a
+cost comparison against the two anchors in the seed list: greedy (`c_greedy`) and the stored best plan
+(`c_best`). The normalised score is reported beside it, as the verifier reports it, but nothing fails on it.
 
-- a non-dispatching attacker earns reward above the threshold;
+The battery fails when:
+
+- an attacker that does not dispatch costs *less* than greedy (it would outscore the greedy baseline);
 - two trains occupy one section at the same time (a safety invariant, not a cost question);
 - a mutation that should cost nothing (cancel and re-grant the best plan's own authorities) makes it cheaper;
-- replaying only a prefix of the best plan and then stopping scores as well as playing all of it.
+- replaying only a prefix of the best plan and then stopping costs no more than playing all of it.
 
 It also reports, as warnings, episodes that end with trains permanently stood under an authority while no
 gridlock was charged: that is what an attacker on the deadlock check would produce.
@@ -151,18 +154,25 @@ class SeedReport:
 
 
 def _score(entry: dict, cost: float) -> dict:
+    """What the verifier would write for this episode: reward = −cost, with the report-only score beside it."""
     s = reward_from(entry["c_greedy"], entry["c_best"], cost)
-    return {"cost": cost, "reward": round(s.reward, 6), "unclipped": round(s.score_unclipped, 6)}
+    return {
+        "cost": cost,
+        "reward": round(s.reward, 6),
+        "normalized": round(s.score_normalized, 6),
+        "unclipped": round(s.score_unclipped, 6),
+    }
 
 
 def _run_one(
-    name: str, scenario, entry, policy, rep: SeedReport, threshold: float, *, neutral_to=None, floor=None
+    name: str, scenario, entry, policy, rep: SeedReport, margin: float, *, neutral_to=None, floor=None
 ) -> dict:
-    """Run one attacker and judge it by its family.
+    """Run one attacker and judge it by its family, in cost terms (reward = −cost).
 
-    - plain attacker: it must not earn reward (it does not dispatch well), so reward > threshold fails;
-    - `floor` (a mutation of the best plan): the plan already scores 1.0, so the only question is whether
-      removing or rewriting those calls makes it *cheaper* than the plan;
+    - plain attacker: it does not dispatch, so it must not cost less than greedy; `margin` is the cost
+      slack allowed before that is called a failure;
+    - `floor` (a mutation of the best plan): the plan is the top of the scale, so the only question is
+      whether removing or rewriting those calls makes it *cheaper* than the plan;
     - `neutral_to`: the mutation must change nothing at all.
     """
     result, monitor = play(scenario, policy)
@@ -194,8 +204,12 @@ def _run_one(
             rep.failures.append(
                 f"{name} costs {row['cost']} < the best plan's {floor}: the calls it drops are mispriced"
             )
-    elif row["reward"] > threshold:
-        rep.failures.append(f"{name} earned reward {row['reward']:.3f} without dispatching")
+    elif row["cost"] < entry["c_greedy"] - margin:
+        rep.failures.append(
+            f"{name} costs {row['cost']:.2f} < greedy {entry['c_greedy']:.2f} without dispatching "
+            f"(reward {row['reward']:.2f} vs greedy's {-entry['c_greedy']:.2f}, "
+            f"best plan {-entry['c_best']:.2f}; normalised {row['normalized']:.3f})"
+        )
     if stalled and result["gridlock_charge"] == 0:
         rep.warnings.append(
             f"{name} ended with {len(stalled)} train(s) stood under an authority ({', '.join(stalled[:4])}) "
@@ -204,7 +218,7 @@ def _run_one(
     return row
 
 
-def run_seed(preset: str, entry: dict, threshold: float, slow: bool = False) -> SeedReport:
+def run_seed(preset: str, entry: dict, margin: float, slow: bool = False) -> SeedReport:
     scenario = generate(PRESETS[preset], entry["seed"])
     rep = SeedReport(
         entry["seed"], scenario.scenario_id, entry["c_greedy"], entry["c_best"], entry.get("best_source", "?")
@@ -213,7 +227,7 @@ def run_seed(preset: str, entry: dict, threshold: float, slow: bool = False) -> 
     if slow:
         attackers.update(SLOW_ATTACKERS)
     for name, make in attackers.items():
-        rep.attackers[name] = _run_one(name, scenario, entry, make(), rep, threshold)
+        rep.attackers[name] = _run_one(name, scenario, entry, make(), rep, margin)
 
     plan = best_plan(preset, entry)
     if plan is None:
@@ -226,25 +240,28 @@ def run_seed(preset: str, entry: dict, threshold: float, slow: bool = False) -> 
     if abs(honest["cost"] - entry["c_best"]) > 1e-3:
         rep.warnings.append(f"the stored plan costs {honest['cost']}, accepted c_best {entry['c_best']}")
     for name, policy in plan_attackers(plan).items():
-        rep.attackers[name] = _run_one(name, scenario, entry, policy, rep, threshold, floor=honest["cost"])
+        rep.attackers[name] = _run_one(name, scenario, entry, policy, rep, margin, floor=honest["cost"])
     for name, policy in plan_neutral(plan).items():
-        rep.neutral[name] = _run_one(name, scenario, entry, policy, rep, threshold, neutral_to=honest["cost"])
+        rep.neutral[name] = _run_one(name, scenario, entry, policy, rep, margin, neutral_to=honest["cost"])
 
-    full = _score(entry, honest["cost"])["reward"]
+    full = honest["cost"]
     for k, tick, share, cost in prefix_costs(scenario, plan):
         rep.prefix.append({"k": k, "tick": tick, "orders": round(share, 4), **_score(entry, cost)})
     # Stopping once every order is given is the same as finishing; only stops with orders left count.
-    early = [p for p in rep.prefix if p["orders"] < 1 - EPS and p["reward"] >= full - EPS]
-    if early and full > 0:
+    early = [p for p in rep.prefix if p["orders"] < 1 - EPS and p["cost"] <= full + EPS]
+    if early:
         p = early[0]
         rep.failures.append(
-            f"stopping after {p['k']} decisions (t={p['tick']}, {p['orders']:.0%} of the orders) "
-            f"scores {p['reward']:.3f} >= full {full:.3f}"
+            f"stopping after {p['k']} decisions (t={p['tick']}, {p['orders']:.0%} of the orders) costs "
+            f"{p['cost']:.2f}, no more than the whole plan's {full:.2f}"
         )
     for frac in (0.25, 0.5):
         p = _at_fraction(rep.prefix, frac)
-        if p and p["reward"] > 0.5:
-            rep.warnings.append(f"stopping with {p['orders']:.0%} of the orders given keeps reward {p['reward']:.3f}")
+        if p and p["cost"] < entry["c_greedy"]:
+            rep.warnings.append(
+                f"stopping with {p['orders']:.0%} of the orders given already costs {p['cost']:.2f}, "
+                f"less than greedy's {entry['c_greedy']:.2f}"
+            )
     return rep
 
 
@@ -273,46 +290,53 @@ def accepted(preset: str, set_name: str) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))["accepted"]
 
 
-def render_markdown(preset: str, reports: list[SeedReport], threshold: float) -> str:
+def render_markdown(preset: str, reports: list[SeedReport], margin: float) -> str:
     names = sorted({n for r in reports for n in r.attackers} | {n for r in reports for n in r.neutral})
     lines = [
         f"# Strategic red-team battery ({preset}, {len(reports)} seeds)",
         "",
-        f"Reward = max(0, (C_greedy − C_agent) / (C_greedy − C_best)); 1.0 is the stored best plan, 0 is greedy "
-        f"or worse. Fail rule: any attacker reward > {threshold}; two trains in one section; a cost-neutral "
-        "mutation that lowers cost; a plan prefix that scores as well as the whole plan.",
+        "Reward = −(total cost), as the verifier writes it. The two anchors are reported for scale: greedy "
+        "(the bottom baseline) and the stored best plan (the top). Fail rule: an attacker that does not "
+        f"dispatch costs less than greedy (slack {margin}); two trains in one section; a cost-neutral "
+        "mutation that changes cost; a plan prefix that costs no more than the whole plan.",
         "",
-        "## Reward per attacker (official reward; unclipped in brackets)",
+        "## Reward per attacker (reward = −cost; normalised score in brackets, report only)",
         "",
-        "| Seed | " + " | ".join(names) + " |",
-        "|---|" + "---|" * len(names),
+        "| Seed | −C_greedy | −C_best | " + " | ".join(names) + " |",
+        "|---|---|---|" + "---|" * len(names),
     ]
     for r in reports:
         cells = {**r.attackers, **r.neutral}
         row = " | ".join(
-            f"{cells[n]['reward']:.2f} ({cells[n]['unclipped']:.2f})" if n in cells else "-" for n in names
+            f"{cells[n]['reward']:.1f} ({cells[n]['normalized']:.2f})" if n in cells else "-" for n in names
         )
-        lines.append(f"| {r.seed} | {row} |")
+        lines.append(f"| {r.seed} | {-r.c_greedy:.1f} | {-r.c_best:.1f} | {row} |")
     lines += ["", "## What each attacker produced on the first seed", "",
               "| Attacker | Cost | Reward | gridlocks | crew timeouts | misroutes | wrong terminals |"
               " missed calls | unfinished |",
               "|---|---|---|---|---|---|---|---|---|"]
     first = reports[0]
+    lines.append(
+        f"| _greedy (anchor)_ | {first.c_greedy:.1f} | {-first.c_greedy:.1f} | - | - | - | - | - | - |"
+    )
+    lines.append(f"| _best plan (anchor)_ | {first.c_best:.1f} | {-first.c_best:.1f} | - | - | - | - | - | - |")
     for name, row in {**first.attackers, **first.neutral}.items():
         c = row["counters"]
         lines.append(
-            f"| {name} | {row['cost']:.1f} | {row['reward']:.2f} | {c['gridlocks']} | {c['crew_timeouts']} | "
+            f"| {name} | {row['cost']:.1f} | {row['reward']:.1f} | {c['gridlocks']} | {c['crew_timeouts']} | "
             f"{c['misroutes']} | {c['wrong_terminals']} | {c['missed_calls']} | {c['unfinished_trains']} |"
         )
     lines += ["", "## Stop-early curve: reward when the best plan stops after giving a share of its orders", "",
-              "| Seed | 10% | 25% | 50% | 75% | 90% | full |", "|---|---|---|---|---|---|---|"]
+              "| Seed | −C_greedy | 10% | 25% | 50% | 75% | 90% | full |", "|---|---|---|---|---|---|---|---|"]
     for r in reports:
         if not r.prefix:
-            lines.append(f"| {r.seed} | " + " | ".join(["-"] * 6) + " |")
+            lines.append(f"| {r.seed} | {-r.c_greedy:.1f} | " + " | ".join(["-"] * 6) + " |")
             continue
         row = [_at_fraction(r.prefix, f) for f in (0.1, 0.25, 0.5, 0.75, 0.9)]
-        cells = [f"{p['reward']:.2f} (t={p['tick']})" if p else "-" for p in row]
-        lines.append(f"| {r.seed} | " + " | ".join(cells) + f" | {r.prefix[-1]['reward']:.2f} |")
+        cells = [f"{p['reward']:.1f} (t={p['tick']})" if p else "-" for p in row]
+        lines.append(
+            f"| {r.seed} | {-r.c_greedy:.1f} | " + " | ".join(cells) + f" | {r.prefix[-1]['reward']:.1f} |"
+        )
     lines += ["", "## Findings", ""]
     for r in reports:
         for f in r.failures:
@@ -330,7 +354,12 @@ def main(argv=None) -> int:
     p.add_argument("--set", default="dev", dest="set_name")
     p.add_argument("--seeds", type=int, default=5, help="first N accepted seeds")
     p.add_argument("--seed", type=int, action="append", help="run only these seeds (repeatable)")
-    p.add_argument("--threshold", type=float, default=0.02, help="max reward a non-dispatching attacker may get")
+    p.add_argument(
+        "--margin",
+        type=float,
+        default=0.0,
+        help="cost slack: an attacker fails only if it costs more than this below greedy",
+    )
     p.add_argument("--slow", action="store_true", help="also run the reference-based attackers (minutes per T2 seed)")
     p.add_argument("--out", default=str(ROOT / "results" / "redteam"))
     p.add_argument("--jobs", type=int, default=os.cpu_count() or 1)
@@ -342,7 +371,7 @@ def main(argv=None) -> int:
         print("no matching seeds", file=sys.stderr)
         return 2
     jobs = max(1, min(a.jobs, len(entries)))
-    args = ([a.preset] * len(entries), entries, [a.threshold] * len(entries), [a.slow] * len(entries))
+    args = ([a.preset] * len(entries), entries, [a.margin] * len(entries), [a.slow] * len(entries))
     if jobs == 1:
         reports = [run_seed(*row) for row in zip(*args, strict=True)]
     else:
@@ -353,7 +382,7 @@ def main(argv=None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     stem = f"strategic-{a.preset}-{a.set_name}"
     (out / f"{stem}.json").write_text(json.dumps([asdict(r) for r in reports], indent=2), encoding="utf-8")
-    md = render_markdown(a.preset, reports, a.threshold)
+    md = render_markdown(a.preset, reports, a.margin)
     (out / f"{stem}.md").write_text(md, encoding="utf-8")
     sys.stdout.write(md)
     failed = sum(len(r.failures) for r in reports)
