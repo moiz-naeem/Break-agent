@@ -43,7 +43,7 @@ def test_T05_19_episode_log_token():
             "scenario_id", "scenario_hash", "rules_version", "entries", "closed",
             "final_tick", "final_cost", "final_cost_by_component",
         }  # fmt: skip
-        assert log["closed"] is True and log["final_cost"] == 1547.25
+        assert log["closed"] is True and log["final_cost"] == 3047.25
         assert [e["status"] for e in log["entries"]] == [status for *_, status in EPISODE_A]
         assert set(log["entries"][0]) == {"seq", "tick", "tool", "args", "status", "rule"}
         assert client.call("status", {}).startswith("REFUSED R-SHIFT-ENDED")
@@ -53,7 +53,7 @@ def test_T05_19b_episode_log_closes_open_session():
     with spawn(session().scenario) as srv, McpClient(srv.url) as client:
         client.call("kpis", {})
         log = httpx.get(srv.base + "/episode_log", headers={"Authorization": f"Bearer {srv.token}"}).json()
-        assert log["closed"] is True and log["final_cost"] == 4310.75  # do-nothing cost on mini3
+        assert log["closed"] is True and log["final_cost"] == 5810.75  # do-nothing cost on mini3
         assert client.call("kpis", {}).startswith("REFUSED R-SHIFT-ENDED")
 
 

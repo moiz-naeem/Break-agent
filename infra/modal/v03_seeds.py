@@ -152,3 +152,33 @@ def exploits(preset: str = "T2", seeds: int = 30):
         g = r["c_greedy"]
         beats = {k: round(v, 1) for k, v in r["exploit_costs"].items() if v < g}
         print(f"{preset}-{r['seed']} greedy {g:.1f} ref {r['c_ref']:.1f} reasons {r['reasons']} beats-greedy {beats}")
+
+
+@app.function(cpu=2, memory=4096, timeout=4 * 3600, max_containers=300)
+def policy_cost(preset: str, seed: int, name: str) -> tuple[int, str, float, int]:
+    _setup()
+    from railway.gen.generator import generate
+    from railway.gen.presets import PRESETS
+    from railway.ref.seed_filter import run_named
+
+    r = run_named(name, generate(PRESETS[preset], seed))
+    return seed, name, r.final.cost.total, r.final.counts.get("gridlocks", 0)
+
+
+@app.local_entrypoint()
+def exploits_split(preset: str = "T3", seeds: int = 10):
+    """Like `exploits`, one container per (seed, policy): for tiers where one seed's full filter is too slow."""
+    import sys
+
+    sys.path.insert(0, str(REPO))
+    from railway.ref.seed_filter import POLICY_NAMES
+
+    jobs = [(preset, s, n) for s in range(1000, 1000 + seeds) for n in POLICY_NAMES]
+    rows: dict[int, dict[str, float]] = {}
+    for seed, name, cost, _ in policy_cost.starmap(jobs):
+        rows.setdefault(seed, {})[name] = cost
+    for seed in sorted(rows):
+        r = rows[seed]
+        g = r["greedy"]
+        beats = {k: round(v, 1) for k, v in r.items() if k not in ("greedy", "reference") and v < g}
+        print(f"{preset}-{seed} greedy {g:.1f} ref {r['reference']:.1f} beats-greedy {beats}")

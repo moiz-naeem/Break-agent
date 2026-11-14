@@ -67,4 +67,4 @@ def test_T05_24_replay_detects_tamper():
 def test_T05_25_replay_empty_log():
     s = session()
     log = s.episode_log() | {"entries": []}
-    assert replay(s.scenario, log).cost.total == 4310.75
+    assert replay(s.scenario, log).cost.total == 5810.75

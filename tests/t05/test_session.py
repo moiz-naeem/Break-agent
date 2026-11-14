@@ -40,18 +40,18 @@ def test_T05_03_status_classification():
     counts = kpis(s)["counts"]
     assert (counts["refusals"], counts["invalid_calls"]) == (1, 0)
     s.call("end_shift", {})
-    assert s.final.cost.total == 1547.25
+    assert s.final.cost.total == 3047.25
 
 
 def test_T05_04_budget_exhaustion():
     s = session(budget=5)
     outs = [s.call("kpis", {}) for _ in range(4)] + [s.call("advance_to_next_event", {})]
-    assert "BUDGET EXHAUSTED (R-BUDGET)" in outs[-1] and "Final cost 4310.75" in outs[-1]
+    assert "BUDGET EXHAUSTED (R-BUDGET)" in outs[-1] and "Final cost 5810.75" in outs[-1]
     assert s.closed
     sixth = s.call("status", {})
     assert sixth.startswith("REFUSED R-SHIFT-ENDED") and s.used == 5
     assert s.log[-1]["status"] == "REFUSED"
-    assert s.final.cost.total == 4310.75
+    assert s.final.cost.total == 5810.75
 
 
 def test_T05_05_close_equals_end_shift():

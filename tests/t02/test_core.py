@@ -111,8 +111,8 @@ def test_T02_26_episode_A_exact():
     # L5 never serves S1 or YW: 500 + 1.0 x (25 + 25)/100 x (f(60) + 10), and 500 + 1.0 x 25/100 x 103.
     assert s.cost().missed_calls == 1000 + 0.5 * 103 + 0.25 * 103 == 1077.25
     # L5 200; F21 freight 200 + 0.5 x 34 + 50 (more than 30 late at shift end).
-    assert s.cost().unfinished == 200 + 200 + 17 + 50
-    assert s.cost().total == 1547.25
+    assert s.cost().unfinished == 200 + 200 + 1500 + 17 + 50  # F21: undelivered freight +1500
+    assert s.cost().total == 3047.25
 
 
 def test_T02_32_do_nothing_cost():
@@ -120,8 +120,8 @@ def test_T02_32_do_nothing_cost():
     s.end_shift()
     # Every train unfinished (3 x 200, freight +67), every passenger stop missed:
     # E1 S2 500 + 1.5 x 2 x 103, YE 500 + 1.5 x 1 x 103; L5 S3/S2/S1 500 + 0.5 x 103 each, YW 500 + 0.25 x 103.
-    expected = 600 + 67 + (809 + 654.5) + (3 * 551.5 + 525.75)
-    assert s.tick == 60 and s.cost().total == expected == 4310.75
+    expected = 600 + 1500 + 67 + (809 + 654.5) + (3 * 551.5 + 525.75)
+    assert s.tick == 60 and s.cost().total == expected == 5810.75
 
 
 def test_T02_29_time_cap_and_shift_end():

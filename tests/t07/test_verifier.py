@@ -385,11 +385,22 @@ def _run_real(real_task: Path, tmp_path: Path, policy) -> Task:
     return t
 
 
-def test_T07_11_oracle_scores_one(real_task, tmp_path):
-    require_modules("railway.ref.reference")
-    from railway.ref.reference import Reference
+class _ReplayPlan:
+    """The Harbor oracle's behaviour: replay the task's stored best plan (solution/plan.json)."""
 
-    t = _run_real(real_task, tmp_path, Reference())
+    def __init__(self, task_root: Path):
+        self.plan = json.loads((task_root / "solution" / "plan.json").read_text(encoding="utf-8"))
+
+    def run(self, client) -> None:
+        for call in self.plan:
+            out = client.call(call["tool"], call["args"])
+            if "SHIFT ENDED" in out or "R-SHIFT-ENDED" in out:
+                return
+        client.call("end_shift", {})
+
+
+def test_T07_11_oracle_scores_one(real_task, tmp_path):
+    t = _run_real(real_task, tmp_path, _ReplayPlan(real_task))
     d = t.expect_reward(t.last, "1.000000\n")
     assert d["score_unclipped"] == 1.0
 
@@ -400,7 +411,7 @@ def test_T07_12_greedy_scores_zero(real_task, tmp_path):
 
     t = _run_real(real_task, tmp_path, Greedy())
     d = t.expect_reward(t.last, "0.000000\n")
-    assert d["score_unclipped"] < 0.0  # far worse than greedy
+    assert d["score_unclipped"] == 0.0  # greedy is the zero point
 
 
 def test_T07_13_do_nothing_and_stop_early_zero(real_task, tmp_path):

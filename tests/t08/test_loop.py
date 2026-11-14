@@ -48,7 +48,7 @@ RESULT_FIELDS = [
     "status",
     "error",
 ]
-DO_NOTHING_MINI3 = 4310.75  # v0.3: every train unfinished, every passenger stop a missed call
+DO_NOTHING_MINI3 = 5810.75  # v0.3: every train unfinished, every passenger stop a missed call
 
 
 def _entry(e) -> dict:
@@ -108,7 +108,10 @@ def test_T08_11_fake_reference_equals_reference():
     for ep in _t1_dev(2):
         rec = _play_policy(ep.scenario, session_cls(ep.scenario), ref.Reference().decide)
         assert rec.status == "ok"
-        assert rec.cost_total == ep.c_best
+        from railway.policies.runner import run_policy
+
+        assert rec.cost_total == run_policy(ref.Reference(), ep.scenario).final.cost.total  # same moves, same cost
+        assert rec.cost_total >= ep.c_best - 1e-6  # the anchor is at least as good as the reference
 
 
 def test_T08_12_prose_three_strikes(session_cls, mini3):

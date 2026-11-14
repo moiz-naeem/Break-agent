@@ -31,7 +31,7 @@ def test_T05_26_greedy_mini3_exact():
 def test_T05_27_do_nothing():
     result = run_policy(DoNothing(), mini3())
     assert result.tool_calls == 0 and result.log == []
-    assert result.final.cost.total == 4310.75
+    assert result.final.cost.total == 5810.75
 
 
 def test_T05_28_stop_early():
