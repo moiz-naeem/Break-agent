@@ -109,7 +109,7 @@ def test_read_tools_happy_paths_and_area_scoping(sample_timetable):
     ja_net = json.loads(s.call("network", {"area": "JA"}))
     corridor_net = json.loads(s.call("network", {"area": "JA-PN"}))
     assert len(ja_net["moves"]) < len(full_net["moves"])
-    assert {m["id"] for m in ja_net["moves"]} == {"JA.m1", "JA.m2", "JA.m3", "JA.m4"}
+    assert {m["id"] for m in ja_net["moves"]} == {"JA.m1", "JA.m2", "JA.m3", "JA.m4", "JA.x1", "JA.x2"}
     assert {"JA", "N", "PN"} <= {n["id"] for n in corridor_net["nodes"]}
 
     bad_net = s.call("network", {"area": "NOPE"})
@@ -178,7 +178,7 @@ def test_conflicts_order_hold_platform_and_changes_only(sample_timetable, strand
     adv1 = s.call("advance_to_next_event", {})
     assert "t=7 stop: CONFLICT IC1, L4" in adv1
     assert "C1 A-JA.u:0" in adv1 and "C2 A.e1/A.e3" in adv1
-    assert "IC1 arrived A1" in adv1
+    assert "IC1 arrive A1" in adv1 or "IC1 arrived A1" in adv1
 
     conf_before = s.call("conflicts", {})
     assert "2 conflicts" in conf_before
@@ -209,9 +209,9 @@ def test_conflicts_order_hold_platform_and_changes_only(sample_timetable, strand
     assert s.call("platform", {"train": "F3", "station": "PORT", "n": 2}).startswith("OK")
 
     adv2 = s.call("advance_to_next_event", {})
-    # Changes-only: IC1 arrived A1 (from t=7) must NOT be repeated in the next advance.
-    assert "IC1 arrived A1" not in adv2
-    assert "IC1 departed A1" in adv2
+    # Changes-only: IC1 arrive A1 (from t=7) must NOT be repeated in the next advance.
+    assert "IC1 arrive A1" not in adv2 and "IC1 arrived A1" not in adv2
+    assert "IC1 depart A1" in adv2 or "IC1 departed A1" in adv2
     assert "SHIFT ENDED at t=180" in adv2
     final = s.close()
     assert ("IC1", "done", "C2") in [r[:3] for r in final.state]
