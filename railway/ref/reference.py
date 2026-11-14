@@ -20,6 +20,10 @@ class Reference:
         self.max_candidates = max_candidates
         self.lookahead_stations = lookahead_stations
 
+    def belief(self, static: StaticInfo, state: State) -> Simulator:
+        """What the reference plans on: what an agent could see. The anchor search overrides this."""
+        return Simulator.from_observation(static, state)
+
     def _priority(self, train):
         if train.type in {"express", "local"}:
             return (0, -(VALUE[train.type] * train.pax / 100), train.id)
@@ -28,7 +32,7 @@ class Reference:
         return (2, 0, train.id)
 
     def decide(self, static: StaticInfo, state: State) -> list[ToolCall]:
-        belief = Simulator.from_observation(static, state)
+        belief = self.belief(static, state)
         calls: list[ToolCall] = []
 
         if "F10" in static.factors:

@@ -156,7 +156,7 @@ def load_norm(path: Path, scenario: dict) -> dict:
         ok = (
             norm["scenario_hash"] == content_hash(scenario)
             and norm["rules_version"] == RULES_VERSION
-            and norm["best_source"] in NORM_SOURCES
+            and (norm["best_source"] in NORM_SOURCES or norm["best_source"].startswith("search:"))
             and isinstance(norm["best_proven"], bool)
             and isinstance(norm["norm_version"], int)
         )

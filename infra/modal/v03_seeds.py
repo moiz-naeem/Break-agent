@@ -4,7 +4,7 @@ Each call evaluates one scenario exactly as `railway.ref.seed_filter.evaluate_sc
 reference, every exploit, and the exact solver where it applies). The local `accepted_seeds` keeps the order
 and the cache file; Modal only does the work, so the result is identical to a local run.
 
-    modal run infra/modal/v03_seeds.py --presets T1,T2 --set-name dev --count 20
+    modal run infra/modal/v03_seeds.py::main --presets T1,T2 --set-name dev --count 20
     modal run infra/modal/v03_seeds.py::compare --preset T2 --seeds 40      (greedy vs reference only)
 
 The code sent is the committed HEAD of this checkout (`git archive`), so commit before running.
@@ -93,3 +93,44 @@ def compare(preset: str = "T2", seeds: int = 40):
         better += ref < g
         print(f"{preset}-{r['seed']:3d} greedy {g:9.1f}  reference {ref:9.1f}  {r['reference_counts']}")
     print(f"reference beats greedy on {better}/{len(rows)}")
+
+
+@app.function(cpu=2, memory=2048, timeout=3600, max_containers=300)
+def run_variant(preset: str, seed: int, variant: str) -> tuple[int, str, float]:
+    _setup()
+    from railway.gen.generator import generate
+    from railway.gen.presets import PRESETS
+    from railway.ref.search import play_variant, variant_from_name
+
+    cost, _ = play_variant(generate(PRESETS[preset], seed), variant_from_name(variant))
+    return seed, variant, cost
+
+
+@app.local_entrypoint()
+def improve(preset: str = "T2", set_name: str = "dev"):
+    """Run the anchor-search portfolio on every accepted seed; lower C_best where a variant does better."""
+    import json
+    import sys
+
+    sys.path.insert(0, str(REPO))
+    from railway.ref.search import PORTFOLIO, improve_entry
+
+    path = REPO / "seeds" / f"{preset}-{set_name}.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    jobs = [(preset, e["seed"], v.name) for e in data["accepted"] for v in PORTFOLIO]
+    results: dict[int, dict[str, float]] = {}
+    for seed, variant, cost in run_variant.starmap(jobs, return_exceptions=False):
+        results.setdefault(seed, {})[variant] = cost
+    improved = []
+    for i, entry in enumerate(data["accepted"]):
+        new = improve_entry(entry, results[entry["seed"]])
+        if new is not entry:
+            improved.append((entry["seed"], entry["c_best"], new["c_best"], new["best_source"]))
+        data["accepted"][i] = new
+    data["header"]["anchor_search"] = {"variants": len(PORTFOLIO)}
+    path.write_text(json.dumps(data, sort_keys=True, indent=2) + "
+", encoding="utf-8", newline="
+")
+    for seed, old, new, source in improved:
+        print(f"{preset}-{seed}: c_best {old:.1f} -> {new:.1f} ({source})")
+    print(f"{len(improved)}/{len(data['accepted'])} anchors improved; wrote {path}")

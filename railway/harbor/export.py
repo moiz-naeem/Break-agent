@@ -242,10 +242,17 @@ def best_plan_for(scenario: dict, entry: dict) -> list[dict]:
     from railway.ref.best import best_plan
     from railway.sim.model import Scenario
 
-    best = best_plan(Scenario.model_validate(scenario))
-    if abs(best.cost - entry["c_best"]) > 1e-6:
-        raise ValueError(f"{entry['scenario_id']}: best plan costs {best.cost}, accepted c_best {entry['c_best']}")
-    return best.plan
+    sc = Scenario.model_validate(scenario)
+    if entry["best_source"].startswith("search:"):  # found by the anchor search (railway/ref/search.py)
+        from railway.ref.search import play_variant, variant_from_name
+
+        cost, plan = play_variant(sc, variant_from_name(entry["best_source"].split(":", 1)[1]))
+    else:
+        best = best_plan(sc)
+        cost, plan = best.cost, best.plan
+    if abs(cost - entry["c_best"]) > 1e-6:
+        raise ValueError(f"{entry['scenario_id']}: best plan costs {cost}, accepted c_best {entry['c_best']}")
+    return plan
 
 
 def export_task(
