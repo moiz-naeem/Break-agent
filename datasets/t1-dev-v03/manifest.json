@@ -1,0 +1,53 @@
+{
+  "count": 5,
+  "preset": "T1",
+  "rules_version": "0.3-provisional",
+  "set": "dev",
+  "tasks": [
+    {
+      "best_source": "solver",
+      "c_best": 1.755,
+      "c_greedy": 59.725,
+      "scenario_hash": "8ac20d332d49dcc8b4b6784dcab11ac96280f2e0ca5fc0bf6e31114f94311968",
+      "scenario_id": "T1-9ebf2853f0d9",
+      "seed": 0,
+      "task": "T1-9ebf2853f0d9"
+    },
+    {
+      "best_source": "solver",
+      "c_best": 2.08,
+      "c_greedy": 54.895,
+      "scenario_hash": "f486e99b2b4e4b168ded14095ecf35dc274c1d2081fa2e611893871fb05854c9",
+      "scenario_id": "T1-733d665b3c40",
+      "seed": 1,
+      "task": "T1-733d665b3c40"
+    },
+    {
+      "best_source": "solver",
+      "c_best": 12.14,
+      "c_greedy": 138.97,
+      "scenario_hash": "2b425e8dad634ed2d00e266b238f1d3cff1f571672c10bb616ccecc914b31071",
+      "scenario_id": "T1-7e032cce8799",
+      "seed": 2,
+      "task": "T1-7e032cce8799"
+    },
+    {
+      "best_source": "solver",
+      "c_best": 1.0,
+      "c_greedy": 286.24,
+      "scenario_hash": "af4991483e602d1c658e60ad683c54396563ec369ca4463809b71408173c1ee1",
+      "scenario_id": "T1-932c950af50d",
+      "seed": 3,
+      "task": "T1-932c950af50d"
+    },
+    {
+      "best_source": "solver",
+      "c_best": 0.5,
+      "c_greedy": 26.21,
+      "scenario_hash": "56a180672741069e6ba79aea2390f7dbbf2479ff9e7f0cc7f1acc68f69650b4b",
+      "scenario_id": "T1-fcd385fee51f",
+      "seed": 4,
+      "task": "T1-fcd385fee51f"
+    }
+  ]
+}
