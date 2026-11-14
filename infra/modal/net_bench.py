@@ -44,7 +44,8 @@ TRANSCRIPTS_MOUNT = "/transcripts"
 RESULTS_DIR = "results/net_bench"
 MODE = "windowed"
 
-DEFAULT_MODELS = ("fable-high", "qwen38-think", "gemini-carbon-high", "nemotron-super")
+# First runs: Carbon + Qwen only (no Fable credits). Add "fable-high", "nemotron-super" via --models.
+DEFAULT_MODELS = ("gemini-carbon-high", "qwen38-think")
 # Provider key names forwarded from the local environment (the vLLM key comes from the `vllm-key` secret).
 LOCAL_KEY_ENVS = ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY", "VERDA_INFERENCE_KEY")
 
