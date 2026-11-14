@@ -72,12 +72,13 @@ ROW_FIELDS = tuple(k for k in EpisodeRecord.__dataclass_fields__ if k != "transc
 
 
 def scenario_meta(scenario) -> dict:
+    preset = getattr(scenario, "preset", None) or getattr(scenario, "tier", None)
     return {
-        "scenario_id": scenario.scenario_id,
+        "scenario_id": getattr(scenario, "scenario_id", f"{preset}-{scenario.seed}"),
         "scenario_hash": content_hash(scenario.model_dump(mode="json")),
         "seed": scenario.seed,
-        "preset": scenario.preset,
-        "rules_version": scenario.rules_version,
+        "preset": preset,
+        "rules_version": getattr(scenario, "rules_version", "0.3-net"),
     }
 
 
