@@ -20,6 +20,7 @@ railway-eval = "railway.eval.run:main"
 [dependency-groups]
 dev = [
     "hypothesis>=6.170.15",
+    "ortools>=9.15.6755",
     "pytest>=9.2.0",
     "ruff>=0.17.5",
 ]

@@ -1,6 +1,6 @@
 """Proven-optimal dispatching for scenarios without events (factors F1-F4, i.e. T1), by CP-SAT.
 
-Needs `ortools` (not a project dependency: `pip install ortools`); the tests skip without it.
+Needs `ortools` (a dev dependency: `uv sync` installs it); the tests skip without it.
 
 Model:
   - a train runs hop by hop; from the grant of a hop it holds the section until it arrives and the
@@ -14,7 +14,7 @@ Model:
 
 `solve(bound_only=True)` is a lower bound on any legal play; `solve()` gives a plan that `dispatch`
 plays through the real tool session. When the three costs are equal the plan is proven optimal.
-`cancel_authority`, `hold` (other than as an alarm clock) and `reverse` are not modelled.
+`cancel_authority` and `hold` (other than as an alarm clock) are not modelled.
 
 Run:  python -m railway.ref.optimal --config T1 --set dev
 """
