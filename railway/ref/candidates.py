@@ -27,8 +27,10 @@ def _section_between(sim, a: str, b: str) -> str | None:
 def _allowed_tracks(sim, train, station: str) -> list[str]:
     if is_terminal(sim, station):
         return sim_tracks(sim, station)
+    # Main is always a candidate on a graph: where no loop fits (goods loops, short loops), stopping on main is
+    # the only way to let another train clear. Rollouts reject the mains that lead into a gridlock.
     tracks = sim_tracks(sim, station, loops_only=True)
-    if any(stop.station == station for stop in sim._train_defs[train["id"]].stops):
+    if not sim._graph.chain or any(stop.station == station for stop in sim._train_defs[train["id"]].stops):
         tracks = [*tracks, "main"]
     return sorted(set(tracks))
 

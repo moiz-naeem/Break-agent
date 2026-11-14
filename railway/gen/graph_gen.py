@@ -123,6 +123,11 @@ def _network(config: GenConfig, seed: int):
         terminals[f"T{letter}"] = "branch"
     if config.port and branches:
         terminals[f"T{BRANCH_LETTERS[len(branches) - 1]}"] = "port"
+    for b in range(len(branches)):  # a passenger branch needs passing places: a platform loop at every station
+        letter = BRANCH_LETTERS[b]
+        if terminals[f"T{letter}"] != "port":
+            for sid in sorted(s for s in stations if s[0] == letter):
+                _ensure_loop(stations[sid], 300, "platform")
     bypass_routes = []
     for k, (a, b, length) in enumerate(bypasses):
         letter = BYPASS_LETTERS[k]
@@ -192,7 +197,8 @@ def _network(config: GenConfig, seed: int):
 
     tracks = {
         "trunk": [PLATFORM, {"id": "P2", "length_m": 300, "kind": "platform"}, {"id": "P3", "length_m": 700, "kind": "goods"}],
-        "branch": [PLATFORM, {"id": "P2", "length_m": 700, "kind": "goods"}],
+        # two platforms: with one, a train waiting to leave and one arriving can trap each other on the branch
+        "branch": [PLATFORM, {"id": "P2", "length_m": 300, "kind": "platform"}, {"id": "P3", "length_m": 700, "kind": "goods"}],
         "port": [{"id": "P1", "length_m": 700, "kind": "goods"}, {"id": "P2", "length_m": 700, "kind": "goods"}],
     }  # fmt: skip
     network = {
@@ -330,9 +336,12 @@ def _schedule(config, network, kind, route, majors, rng):
     return stops
 
 
-def _terminal_peak(trains, terminal: str) -> int:
+def _terminal_peak(trains, terminal: str, kind: str | None = None) -> int:
+    """Most trains (of a track kind: `platform` for passenger trains, `goods` for freight) at a terminal."""
     events = []
     for t in trains:
+        if kind is not None and (t["type"] == "freight") != (kind == "goods"):
+            continue
         if t["origin"] == terminal:
             events += [(t["entry_tick"], 1), (t["entry_tick"] + 1, -1)]
         if t["destination"] == terminal:
@@ -371,7 +380,10 @@ def _trains(config: GenConfig, network: dict, terminals: dict, trunk_ids: list[s
                        "route": route, "pax": pax, "stops": stops, "next_service": None,
                        "crew_used_at_entry": 0})  # fmt: skip
     # Entry ticks: uniform in the shift, resampled until every terminal has a spare track at its peak.
-    capacity = {t["id"]: len(t["tracks"]) for t in network["terminals"]}
+    capacity = {}  # (terminal, kind) -> tracks; a spare one is kept wherever there are two or more
+    for term in network["terminals"]:
+        for track in term["tracks"]:
+            capacity[(term["id"], track["kind"])] = capacity.get((term["id"], track["kind"]), 0) + 1
     relative = {t["id"]: [dict(s) for s in t["stops"]] for t in output}
     for _ in range(500):
         for t in output:
@@ -385,7 +397,7 @@ def _trains(config: GenConfig, network: dict, terminals: dict, trunk_ids: list[s
                 {**s, "arr": s["arr"] + entry, "dep": None if s["dep"] is None else s["dep"] + entry}
                 for s in relative[t["id"]]
             ]
-        if all(_terminal_peak(output, term) <= capacity[term] - 1 for term in capacity):
+        if all(_terminal_peak(output, term, kind) <= max(1, n - 1) for (term, kind), n in capacity.items()):
             break
     else:
         raise ValueError(f"{config.preset}: no timetable fits the terminal tracks")

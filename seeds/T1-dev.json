@@ -1,32 +1,30 @@
 {
   "accepted": [
     {
-      "best_proven": false,
+      "best_proven": true,
       "best_source": "solver",
-      "c_best": 14.25,
-      "c_greedy": 231.745,
-      "c_ref": 105.8,
-      "scenario_hash": "f66d5ffc34cc6a609bed3f4038762000d5ea2eea29b35745558dcf569595530b",
-      "scenario_id": "T1-6dcf13304cf6",
+      "c_best": 1.755,
+      "c_greedy": 74.125,
+      "c_ref": 31.69,
+      "scenario_hash": "62e773996486d412083640474f1f1458a88bdb4bb76a95557d256a244511ffe0",
+      "scenario_id": "T1-4cfd1dfe79ee",
       "seed": 0
     },
     {
-      "best_proven": false,
+      "best_proven": true,
       "best_source": "solver",
-      "c_best": 67.02,
-      "c_greedy": 604.24,
-      "c_ref": 165.83,
-      "scenario_hash": "ad2ea482d44021d8064b3776865f7a7446bb87b225800844276ecc620863be90",
-      "scenario_id": "T1-7c81a7ddd545",
-      "seed": 2
+      "c_best": 2.08,
+      "c_greedy": 54.895,
+      "c_ref": 13.28,
+      "scenario_hash": "d1d23b262c713bbaf3bb02ec495eef9d3bcee6d916269746b935e83202569d2a",
+      "scenario_id": "T1-34da997bb325",
+      "seed": 1
     }
   ],
   "header": {
     "filter_version": 3,
-    "generator_version": "51dff3d464c1eaa4b4d3796bb1e7444a87ad82ba7379b3660a7c83e08382bcb5",
-    "rejected_by_reason": {
-      "exploit_beats_greedy": 1
-    },
+    "generator_version": "91ba061c762d0703db6c2e69c5913ad6a455ef9b8c21e05ace6fce806fd02090",
+    "rejected_by_reason": {},
     "rules_version": "0.3-provisional"
   }
 }

@@ -14,7 +14,7 @@ def test_T03_18_timeout_mid_section():
     assert s.advance().tick == 2
     a = s.advance()
     assert a.tick == 5 and ("CREW_TIMEOUT", "E1") in kinds(a)
-    assert s.cost().crew_timeout == 300.0
+    assert s.cost().crew_timeout == 40.0  # v0.3: TIMEOUT_COST
     e1 = tr(s, "E1")
     assert (e1.phase, e1.section, e1.section_exit, e1.blocked_until) == ("in_section", "S1-S2", 51, 50)
     assert s._holders["S1-S2"] == "E1"

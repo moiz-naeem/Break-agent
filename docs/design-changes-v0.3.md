@@ -297,7 +297,53 @@ the best known cost.
 
 ---
 
-## 6. Open items
+## 6. Implemented on branch `v03` (2026-11-14): what changed during the build
+
+Everything in §2–§4 is implemented, with these decisions taken while building. Each is a default the team can
+revisit.
+
+**Network and rules**
+
+- **Sizes calibrated.** T3 is 28 stations (24 left no room for four branches and two bypasses) and the
+  structural holdout T2-X is 24 stations, three branches, two bypasses. Branch and bypass lengths shrink to
+  fit the station budget.
+- **Legacy chain tiers** keep the old layouts as C1, C2, C2-S14, C3, used for regression only.
+- **Routes.** `authorize` takes an optional `via` (stations in order) when two shortest routes exist; without
+  it the grant is refused with `R-ROUTE-AMBIGUOUS`. A train never runs back over the section it arrived by,
+  but it may turn round on a bypass loop (a real "balloon loop" move).
+- **Off-route grants** succeed and say what was lost (`R-OFF-ROUTE`). A misroute is counted once, when a grant
+  first makes the destination unreachable. A skipped stop is not a misroute.
+- **Terminals.** A train entering a full origin terminal waits outside and fires a new decision point,
+  `ENTRY_BLOCKED`, once. Without it, time ran on silently.
+- **Gridlock is an exact deadlock check.** v0.2 flagged two trains waiting on each other even when a third,
+  free train was about to clear the way. With a permanent 1000 charge that false positive would have cost
+  agents real score. Now a standing train is stuck only if every way forward is held by trains that are
+  themselves stuck. Stuck trains form one deadlock group; a new group is charged once.
+- **Regression check.** On chain scenarios the v0.3 engine moves trains exactly as v0.2 did
+  (`tests/v03/test_chain_regression.py`, random action scripts replayed through both engines).
+
+**Anchor and verifier**
+
+- `C_best` = the cheaper of the scripted reference and the CP-SAT solver. The solver covers event-free tiers
+  (T1); it models partial runs, terminal track pools and the new cost exactly. It is proven optimal only
+  when its lower bound equals its dispatched plan and the network has no loop. On 6 T1 seeds it proved 4
+  optima of 1–15 against the reference's 70–186.
+- The full-knowledge beam search is far weaker than the reference on graphs and is no longer part of the
+  anchor.
+- Every task ships its best plan. The oracle replays it (exactly 1.0), and **the verifier re-derives both
+  anchors** (runs greedy, replays the plan) instead of trusting `norm.json`. This closes the red team's
+  patched-norm finding.
+- `details.json` carries the KPIs: on-time % (at most 5 minutes late), passenger delay minutes, freight
+  delivered %, red flags, clean shift.
+
+**Still open**
+
+1. The size of the crew-timeout charge (300) on the new cost scale.
+2. Whether the beam search should be improved, or the reference strengthened, for the tiers with events,
+   where the reference is the only anchor.
+3. Re-run the full exploit battery (red team) and calibrate the train counts on accepted seeds.
+
+## 7. Open items (from the discussion)
 
 1. **Size of the crew-timeout charge** on the new cost scale (§3.5). 300 is today's
    number.
@@ -311,6 +357,6 @@ the best known cost.
 
 ---
 
-## 7. Feedback
+## 8. Feedback
 
 astra feedback here

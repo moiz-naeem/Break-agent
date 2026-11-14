@@ -45,8 +45,15 @@ def test_graph_scenario_invariants(preset, seed):
         assert sum(s["alight"] for s in t["stops"]) == t["pax"] + sum(s["board"] for s in t["stops"])
         assert all(s["headway"] > 0 for s in t["stops"])
     assert crossing >= 0.5 * len(raw["trains"])
-    capacity = {t.id: len(t.tracks) for t in net.terminals}
-    assert all(_terminal_peak(raw["trains"], term) <= capacity[term] - 1 for term in capacity)
+    for term in net.terminals:
+        for kind in ("platform", "goods"):
+            n = sum(track.kind == kind for track in term.tracks)
+            if n:
+                assert _terminal_peak(raw["trains"], term.id, kind) <= max(1, n - 1)
+    for s in net.stations:  # passenger branches have a passing place at every station
+        branch_end = f"T{s.id[0]}"
+        if s.id[0] in "ABCD" and branch_end not in {p.id for p in ports}:
+            assert any(loop.kind == "platform" and loop.length_m >= 300 for loop in s.loops)
     by_id = {t.id: t for t in sc.trains}
     for t in sc.trains:
         if t.next_service:

@@ -102,7 +102,8 @@ def generator_version() -> str:
     for path in sorted((Path(__file__).resolve().parents[1] / "gen").glob("*.py")):
         if path.name == "cli.py":  # commands, not scenarios
             continue
-        digest.update(path.name.encode() + b"\0" + path.read_bytes())
+        text = path.read_bytes().replace(b"\r\n", b"\n")  # the same hash on CRLF and LF checkouts
+        digest.update(path.name.encode() + b"\0" + text)
     return digest.hexdigest()
 
 
