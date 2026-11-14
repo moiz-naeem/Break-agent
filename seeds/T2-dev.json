@@ -2,8 +2,8 @@
   "accepted": [
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 749.005,
+      "best_source": "search:h150-c5-l6-omni",
+      "c_best": 705.03,
       "c_greedy": 3070.22,
       "c_ref": 749.005,
       "scenario_hash": "4cf702c66345ce6025b75ff9e4287dd5bc5d3fae98c3e703dbf04c949b4d3f66",
@@ -12,8 +12,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 872.045,
+      "best_source": "search:h150-c8-l6-omni",
+      "c_best": 718.19,
       "c_greedy": 1710.2,
       "c_ref": 872.045,
       "scenario_hash": "34a3b432c165115f16c52ebf385ea5d7afc5b1035aa2cee26e376bcd35c2f205",
@@ -22,8 +22,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1929.825,
+      "best_source": "search:h90-c5-l4-omni",
+      "c_best": 1760.505,
       "c_greedy": 2827.73,
       "c_ref": 1929.825,
       "scenario_hash": "2cbf5faae4db46dad4cd92be017d37ed9b3df7b9f0347bc5b22e69bd7131a848",
@@ -32,8 +32,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 3081.9,
+      "best_source": "search:h90-c8-l4-omni",
+      "c_best": 1752.63,
       "c_greedy": 4482.675,
       "c_ref": 3081.9,
       "scenario_hash": "2b0b595cb2aeff042fc4f8e367a4392a864c8dbe4791ef5fbebb904c6031102b",
@@ -42,8 +42,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1389.81,
+      "best_source": "search:h60-c8-l4-omni",
+      "c_best": 1343.7,
       "c_greedy": 2175.605,
       "c_ref": 1389.81,
       "scenario_hash": "dfdc8d75f5bf94d244a04cb41682614ba3b4df9dbc5cca499cafcc885e724e9a",
@@ -52,8 +52,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1194.915,
+      "best_source": "search:h150-c8-l6",
+      "c_best": 1179.485,
       "c_greedy": 1791.145,
       "c_ref": 1194.915,
       "scenario_hash": "c785e8da841041afe418871870ecf7c64c3897a8afd87361bdbb667d225f00f8",
@@ -62,8 +62,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1039.29,
+      "best_source": "search:h60-c8-l6",
+      "c_best": 1035.71,
       "c_greedy": 1660.61,
       "c_ref": 1039.29,
       "scenario_hash": "927b63b851d1fd630a04bbc097f90d2eeb40d6eac86bf461a3dbc2afae40920a",
@@ -72,8 +72,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1517.415,
+      "best_source": "search:h150-c8-l6-omni",
+      "c_best": 1070.235,
       "c_greedy": 4056.91,
       "c_ref": 1517.415,
       "scenario_hash": "86bfdb89913e39f1d2ebcbe760a084bbdae7b69f5d1d63e4a65f6311bfa0c5d9",
@@ -82,8 +82,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1628.9,
+      "best_source": "search:h60-c8-l4",
+      "c_best": 1429.395,
       "c_greedy": 2692.635,
       "c_ref": 1628.9,
       "scenario_hash": "e64a9876a5283a8b0d2b0ba33f51ae8911fc00537d8cdcc4cc88a4c8d7863464",
@@ -102,8 +102,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1338.925,
+      "best_source": "search:h90-c5-l6",
+      "c_best": 1218.59,
       "c_greedy": 2288.515,
       "c_ref": 1338.925,
       "scenario_hash": "b72998efb3e90f438247056b19dfe9b8b925c25e79c8b819cb4027e3e6ac1d85",
@@ -112,8 +112,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1327.525,
+      "best_source": "search:h60-c8-l6-omni",
+      "c_best": 1248.39,
       "c_greedy": 2908.54,
       "c_ref": 1327.525,
       "scenario_hash": "c1aee6d19a0941505b7327add448073a5d26efcb295c09638ead721c03d2b010",
@@ -122,8 +122,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 794.625,
+      "best_source": "search:h60-c8-l4-omni",
+      "c_best": 755.255,
       "c_greedy": 2014.175,
       "c_ref": 794.625,
       "scenario_hash": "6daad126fccd1f1c4de618def218a0593f8794dd1076c95e1fdd9979de124296",
@@ -132,8 +132,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 592.175,
+      "best_source": "search:h150-c8-l4",
+      "c_best": 578.345,
       "c_greedy": 1973.055,
       "c_ref": 592.175,
       "scenario_hash": "90833ca5eaad724df90aca875c993616729fe10b3e001ec9801257858e188c8a",
@@ -142,8 +142,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1276.9,
+      "best_source": "search:h150-c8-l4",
+      "c_best": 1174.34,
       "c_greedy": 2257.63,
       "c_ref": 1276.9,
       "scenario_hash": "9ca4d762fcda27667e21fb0e4a0995801b703b8e0d42fbd9df9c468dd1acfaec",
@@ -152,8 +152,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1644.33,
+      "best_source": "search:h150-c8-l6-omni",
+      "c_best": 1627.975,
       "c_greedy": 2536.76,
       "c_ref": 1644.33,
       "scenario_hash": "be69273cd7946fffe1e743fca2a68f866b8db3b186e1f1a43a0267f8aa624bf0",
@@ -162,8 +162,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1198.1,
+      "best_source": "search:h150-c8-l6",
+      "c_best": 1067.335,
       "c_greedy": 2218.325,
       "c_ref": 1198.1,
       "scenario_hash": "da3902195eeab344e460b8ee039f135304751074a1586627df3e250241ce629d",
@@ -172,8 +172,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1469.53,
+      "best_source": "search:h150-c8-l4-omni",
+      "c_best": 1063.45,
       "c_greedy": 3025.71,
       "c_ref": 1469.53,
       "scenario_hash": "3faa2d0acf83196d85ad118f5c212197075b93664afeaddb5449d75039eb9af9",
@@ -182,8 +182,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1190.375,
+      "best_source": "search:h150-c8-l6-omni",
+      "c_best": 1160.86,
       "c_greedy": 1822.2,
       "c_ref": 1190.375,
       "scenario_hash": "cdf23eadbbcd5267b22e1431504270f080e4652ff130349a4a9949a2e0e0c3a4",
@@ -192,8 +192,8 @@
     },
     {
       "best_proven": false,
-      "best_source": "reference",
-      "c_best": 1530.65,
+      "best_source": "search:h150-c8-l6-omni",
+      "c_best": 1132.305,
       "c_greedy": 2639.26,
       "c_ref": 1530.65,
       "scenario_hash": "b2bfb2e65d20caf6ee1fbdc7621b25e9796a1ec280a0835b3412d921a3f92f6e",
@@ -202,6 +202,9 @@
     }
   ],
   "header": {
+    "anchor_search": {
+      "variants": 32
+    },
     "cost_version": "998fa5f29d93a894b78912909fd6d02c096388c71a723011564cc905cca7e4cb",
     "filter_version": 3,
     "generator_version": "2cc362f51a287c5de96a8b891b18cd04f8e2570a7ccc96fcaad7f13e6a3cc9d2",
