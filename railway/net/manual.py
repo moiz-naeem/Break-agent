@@ -49,6 +49,17 @@ RULE_DESCRIPTIONS: dict[NetRule, str] = {
     NetRule.BUDGET: "Tool call budget reached; the shift closes immediately.",
     NetRule.NOTES_TOO_LONG: f"Scratchpad text exceeds {NOTES_MAX} characters.",
     NetRule.WINDOW: f"Stringline tick range must lie within [0, shift_min] and span at most {STRINGLINE_WINDOW} min.",
+    NetRule.TRAIN_DONE: "Train has already completed its shift or been cancelled.",
+    NetRule.NO_CALL: "Train has no remaining booked stop matching that station or action.",
+    NetRule.SKIP_DESTINATION: "Cannot skip a terminating train's final stop; use short_turn or cancel instead.",
+    NetRule.NO_RETURN: "Train has no return working (turnaround stop) left to short-turn onto.",
+    NetRule.NOT_REVERSIBLE: "Track is not signalled for bidirectional single-line working.",
+    NetRule.SINGLE_LINE: "Single-line working is already in that state, or a train is routed the wrong way over it.",
+    NetRule.NOT_CREW_POINT: "Train is neither at nor booked to call at a crew-relief platform.",
+    NetRule.CREW_RELIEF: "A crew relief is already scheduled or in progress for that train.",
+    NetRule.POSSESSION: "Track is closed under an engineering possession.",
+    NetRule.POINTS_FAILED: "Point move is closed due to a points failure.",
+    NetRule.PLATFORM_CLOSED: "Platform road is temporarily closed to traffic.",
 }
 
 
@@ -224,6 +235,12 @@ You settle contention with:
 3. `platform(train, station, n)`: re-allocate the train's next booked call to platform `n`
    at `station` (e.g. `station="C", n=2` or `n="C2"`), freeing a busy bay or clearing an
    `UNROUTABLE` train.
+4. Service and crew regulation during disruptions: `route(train, via)` diverts a train's next
+   leg through ordered track or platform IDs (after `single_line(segment, on=True)` if using a
+   reversible track the wrong way); `skip(train, station)` runs past a booked stop;
+   `short_turn(train, station)` turns a train back early onto its return leg; `cancel(train)`
+   withdraws a service; and `relieve_crew(train)` relieves a crew at a crew-relief platform
+   (8 min stop) before duty runs out.
 
 ## Decision points
 
@@ -231,10 +248,12 @@ You settle contention with:
 
 - `CONFLICT`: one or more unresolved resource contentions within `{LOOKAHEAD_MIN}` minutes
   (all open conflicts are bundled together).
+- `DISRUPTION`: a disruption is announced or begins.
+- `CREW`: a crew reaches its warning margin (30 min left) or times out (240 min duty limit).
 - `UNROUTABLE`: a due train has no valid physical path to its next booked platform (for
   example, booked onto a road shorter than the train); reported once per newly stranded set.
-- `BLOCKED`: nothing can move and nothing new is due—the remaining active trains are deadlocked
-  (reported once per stuck set; permanent deadlocks incur the gridlock charge).
+- `GRIDLOCK` / `BLOCKED`: remaining active trains are deadlocked and cannot move; permanent
+  gridlocks incur the gridlock charge.
 - `IDLE`: `{IDLE_MIN}` minutes elapsed without another trigger, letting you inspect the shift.
 - `SHIFT_END`: `tick` reached `shift_min`.
 
