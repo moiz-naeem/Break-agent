@@ -1,4 +1,4 @@
-RULES_VERSION = "0.2-provisional"
+RULES_VERSION = "0.3-provisional"  # v0.3 step 1: C_best anchor, no terminus multiplier, no reversal
 TICK_MINUTES = 1
 TOOL_BUDGET = 600  # calibrated (T05-35): greedy needs up to ~370 calls on T2; DESIGN said 400
 TIME_CAP = 60

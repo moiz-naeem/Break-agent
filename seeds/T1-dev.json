@@ -1,153 +1,233 @@
 {
   "accepted": [
     {
-      "c_greedy": 1746.7,
-      "c_ref": 296.7,
-      "scenario_hash": "e24182c8745fca40b9703600856c9fdb44dab2741cbf5780f3b334d8b74cae28",
-      "scenario_id": "T1-77d6ddc9d9b0",
-      "seed": 0
+      "c_best": 25.3,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1554.7,
+      "c_ref": 280.0,
+      "scenario_hash": "f66d5ffc34cc6a609bed3f4038762000d5ea2eea29b35745558dcf569595530b",
+      "scenario_id": "T1-6dcf13304cf6",
+      "seed": 0,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1408.2,
-      "c_ref": 208.5,
-      "scenario_hash": "89d67021715fa619c41c039f36dc4a51f45e631818a89ce4d442b93ab1f2ca85",
-      "scenario_id": "T1-2f06dfb68904",
-      "seed": 5
+      "c_best": 4.2,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1150.2,
+      "c_ref": 180.9,
+      "scenario_hash": "3b4c335dd0ad3e0f69e2aeab46d039b66b7dce6db46cc17b8ef40502df1bb602",
+      "scenario_id": "T1-a4a0dbe7f1d1",
+      "seed": 5,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 4809.3,
-      "c_ref": 2620.7,
-      "scenario_hash": "d0140e09724374f12f98f51d651361815a5a8968db74cdec828d2d68b48a8f07",
-      "scenario_id": "T1-e251f6f3e20a",
-      "seed": 6
+      "c_best": 54.4,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 4050.9,
+      "c_ref": 2349.8,
+      "scenario_hash": "f5fe5c112219e5ed26bd5a58bf6fcbaa05c2ffd076480e71d5cea6717a017204",
+      "scenario_id": "T1-f22231dfc954",
+      "seed": 6,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2106.2,
-      "c_ref": 1219.3,
-      "scenario_hash": "c5325b24685ba66522bf4cd7525ead5fe4f2735b6729c25d8770a3fcd8eb349e",
-      "scenario_id": "T1-1b572c50f316",
-      "seed": 7
+      "c_best": 3.5,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1802.6,
+      "c_ref": 1084.5,
+      "scenario_hash": "cdaaddf531c394f95e202ed90d23514e346d762299570152be9823392cd6725a",
+      "scenario_id": "T1-51ca23580b08",
+      "seed": 7,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1026.3,
-      "c_ref": 447.0,
-      "scenario_hash": "e0cb2abde3dad51cfffa959e129be6f62d64a6b587a2c899f2e412c7ec4daa64",
-      "scenario_id": "T1-74a29b409f31",
-      "seed": 10
+      "c_best": 0.0,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 861.9,
+      "c_ref": 412.2,
+      "scenario_hash": "90b2a2a4322131def831966541aca5c10ade4e5603761f8cd250f54ca2c7db67",
+      "scenario_id": "T1-75cdcfaec6e8",
+      "seed": 10,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1558.2,
-      "c_ref": 712.1,
-      "scenario_hash": "efb84bf7599e80ced582de485e3df60c73cc5328111d3260aa6ff465605690fc",
-      "scenario_id": "T1-6ded1107539c",
-      "seed": 13
+      "c_best": 10.2,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1256.9,
+      "c_ref": 593.9,
+      "scenario_hash": "8c523a595c3976ad70d59aed697e956e7330e04ef1a37dcc9e7c7a160a7e7499",
+      "scenario_id": "T1-fc835ca6db5f",
+      "seed": 13,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1774.8,
-      "c_ref": 792.2,
-      "scenario_hash": "472ad0c200b11599dfcdd5ee44807e8767e9ad457a779c1efb2e82a9f0613cf1",
-      "scenario_id": "T1-227ae2b9d1c4",
-      "seed": 15
+      "c_best": 33.6,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1473.0,
+      "c_ref": 678.4,
+      "scenario_hash": "d669e3a31d5e5301c6974643d01627d2343eb044d92fbf2f923fcb0003c2d52a",
+      "scenario_id": "T1-a77f254c78e6",
+      "seed": 15,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1970.3,
-      "c_ref": 371.2,
-      "scenario_hash": "1d7d6b1b85a70f0de6609a19d0105ed90d88bfe2b196781173f370f729906ca1",
-      "scenario_id": "T1-485067d0a410",
-      "seed": 16
+      "c_best": 64.3,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1610.9,
+      "c_ref": 348.4,
+      "scenario_hash": "e47e4c3112c2915b9373126f15410651d6eeaf05bbb645b2ce1b98fe8a0bd91c",
+      "scenario_id": "T1-cb29ab959cc0",
+      "seed": 16,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1568.0,
-      "c_ref": 100.7,
-      "scenario_hash": "0c5cc2b45afb438ef236631204e366bfd9025266b4d42830f8126ae1f9ec28f8",
-      "scenario_id": "T1-1243ea79a216",
-      "seed": 17
+      "c_best": 10.6,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1365.5,
+      "c_ref": 94.2,
+      "scenario_hash": "0d41aa9f566f615503ba157e144412e0e088bd80bf37191bb546cbbe0cfe5a14",
+      "scenario_id": "T1-511555a57881",
+      "seed": 17,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2318.7,
-      "c_ref": 887.1,
-      "scenario_hash": "b68541c0788e209e121975996e7f0fc6268e87708cfb356f1850c5b3bbe0ab3b",
-      "scenario_id": "T1-ceee160cf57c",
-      "seed": 21
+      "c_best": 21.9,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1862.4,
+      "c_ref": 667.5,
+      "scenario_hash": "b501fbb914874c751debc642bd30b8b5f8b815dd3fcadfc2538d35c8a955bc8d",
+      "scenario_id": "T1-d051d9f4e55e",
+      "seed": 21,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2443.7,
-      "c_ref": 579.5,
-      "scenario_hash": "80e3e30ebe6db6da76dc75a7fc07d64148a6532da0bfe66de30551cccfcb27a8",
-      "scenario_id": "T1-c264e94d0573",
-      "seed": 22
+      "c_best": 48.2,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 2010.8,
+      "c_ref": 757.1,
+      "scenario_hash": "5f6806170e6bb86236039dcd88d99c5e0a56b1d1de8c87412004249d37f14545",
+      "scenario_id": "T1-6da913ae1280",
+      "seed": 22,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2002.3,
-      "c_ref": 834.7,
-      "scenario_hash": "5a5635ead27a23a6a36cc012434a9b05d55a33bc7155c16a47a4991c0a64cc4c",
-      "scenario_id": "T1-b6156aaa8a8a",
-      "seed": 23
+      "c_best": 42.7,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1637.8,
+      "c_ref": 687.0,
+      "scenario_hash": "6b4968e88b69fa04b58bea472b8a1c9356386ea59d04ced8cc547fb2f7782b46",
+      "scenario_id": "T1-bb71d0270a8c",
+      "seed": 23,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2811.8,
-      "c_ref": 1682.3,
-      "scenario_hash": "5fa613bcf64bc794753f5f9382800f569c06e3806aa76119cf890977cb06df63",
-      "scenario_id": "T1-3a8afe9c55f2",
-      "seed": 24
+      "c_best": 107.9,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 2320.9,
+      "c_ref": 1354.8,
+      "scenario_hash": "eb46368c534826feb2cad6b382ff88e9f9da8a8db0015b2eb74df17caf255083",
+      "scenario_id": "T1-e7c10f9a4923",
+      "seed": 24,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2297.1,
-      "c_ref": 59.6,
-      "scenario_hash": "a1c0235ca23cc801b2a01effefdc65fc554197ce2c0bb93ea9891401bb24c399",
-      "scenario_id": "T1-063167393f1a",
-      "seed": 27
+      "c_best": 98.9,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 2860.6,
+      "c_ref": 496.0,
+      "scenario_hash": "5ce52ba5b08aca064a56aee87a71d2df7c11303555bd71defe4d740c4210dd12",
+      "scenario_id": "T1-22a62a6d5fb4",
+      "seed": 25,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 3948.1,
-      "c_ref": 1852.1,
-      "scenario_hash": "088937996b02d7a0c2228b5838de3aed58edd0b037895fe1197edc48c2021cfc",
-      "scenario_id": "T1-78fdd33b5969",
-      "seed": 28
+      "c_best": 0.0,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 757.6,
+      "c_ref": 567.5,
+      "scenario_hash": "33e3a5a349509e275cbe7cbfa7352acd24ab9f4aa90ee396774f8a6e58418162",
+      "scenario_id": "T1-a88b1e3630bd",
+      "seed": 26,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1715.2,
-      "c_ref": 903.6,
-      "scenario_hash": "ef328ce4b42e61c70886c63c95edbb91a014df7cf75908251df807f38a5e024e",
-      "scenario_id": "T1-72c4bd6f5d91",
-      "seed": 29
+      "c_best": 9.4,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1962.0,
+      "c_ref": 57.8,
+      "scenario_hash": "75ba3c9fbbaa5c704cfaeb6740de75bab7944a00afdedf4d79c5e816808ab524",
+      "scenario_id": "T1-f32eaced4426",
+      "seed": 27,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1569.9,
-      "c_ref": 835.7,
-      "scenario_hash": "a4cef95e5ca2e03b43da8aef46682edd7968b983d961503ecbc8dfe7c24486ab",
-      "scenario_id": "T1-b3f4ca57d08e",
-      "seed": 30
+      "c_best": 112.5,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 3181.8,
+      "c_ref": 1574.9,
+      "scenario_hash": "73e301c58132ab522a24b35b25b841e206e7bcc55f56b670a196d852b11197df",
+      "scenario_id": "T1-b6e9f7117a39",
+      "seed": 28,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 1642.8,
-      "c_ref": 128.4,
-      "scenario_hash": "b9e402cd6163b977096cef794d549a658f04337d574c0196a97e6c097813d908",
-      "scenario_id": "T1-5a7b3ad4a1eb",
-      "seed": 32
+      "c_best": 223.3,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1466.3,
+      "c_ref": 821.6,
+      "scenario_hash": "8886bcf857fa0d67c09f383488e09d09853dc7bbb545b02c341d779c7b73eba7",
+      "scenario_id": "T1-7dc794d9925a",
+      "seed": 29,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 913.0,
-      "c_ref": 293.6,
-      "scenario_hash": "6495c11c29d3c9f3d5a59b38452368a2a2c524239e413a099c9bd990ab65cff8",
-      "scenario_id": "T1-7024cb42fa8e",
-      "seed": 33
+      "c_best": 23.4,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1266.4,
+      "c_ref": 714.1,
+      "scenario_hash": "255183e62fb9d4b2a94c87c30cd81f9433a1473d7708f3a79056e6f1576294e7",
+      "scenario_id": "T1-74a0b91653e5",
+      "seed": 30,
+      "solver_status": "optimal"
     },
     {
-      "c_greedy": 2930.0,
-      "c_ref": 1104.1,
-      "scenario_hash": "68b9de9958efc88ecd53d10bd11aa57865031ea086321c89366f1019ab64f511",
-      "scenario_id": "T1-422190a8b9cb",
-      "seed": 34
+      "c_best": 418.0,
+      "c_best_kind": "proven",
+      "c_best_source": "solver",
+      "c_greedy": 1310.8,
+      "c_ref": 915.7,
+      "scenario_hash": "afea037838caecabb6ae59d382fe9b6ebedb9641b55676c6b8d9552e0edee4fc",
+      "scenario_id": "T1-a2e4701d4e90",
+      "seed": 31,
+      "solver_status": "optimal"
     }
   ],
   "header": {
-    "generator_version": "3a98d230d6e8d6033c167fa5ccb573cfdf032c557fb966d476b2c70330cabfb1",
+    "generator_version": "470ba070750ac5c59ec5d2c64ed2e6dcc54313c64eb42ddcac25a5e2009c87f6",
     "rejected_by_reason": {
-      "exploit_beats_greedy": 11,
-      "greedy_unfinished": 2,
-      "ref_not_30pct_better": 2
+      "exploit_beats_greedy": 10,
+      "greedy_unfinished": 2
     },
-    "rules_version": "0.2-provisional"
+    "rules_version": "0.3-provisional",
+    "solver_timeouts": []
   }
 }

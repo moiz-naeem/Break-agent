@@ -174,7 +174,7 @@ def test_T02_07_public_schema_excludes_hidden_scenario_data():
     static = sim().static_info().model_dump(mode="json")
     assert not {"events", "seed", "scenario_id"}.intersection(state)
     assert not {"events", "seed", "scenario_id"}.intersection(static)
-    assert RULES_VERSION == "0.2-provisional"
+    assert RULES_VERSION == "0.3-provisional"
 
 
 def test_T02_17_section_reserved_refusal_and_resource_release():
