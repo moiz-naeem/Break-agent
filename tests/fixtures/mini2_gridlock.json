@@ -1,0 +1,13 @@
+{
+  "schema_version": 1, "rules_version": "0.1-provisional", "scenario_id": "FIX-mini2_gridlock",
+  "seed": 0, "preset": "fixture", "shift_ticks": 60, "factors": ["F1", "F2", "F3", "F4"],
+  "network": {"yards": {"west": "YW", "east": "YE"}, "stations": [
+    {"id": "S1", "major": false, "crew_station": false, "loops": []},
+    {"id": "S2", "major": false, "crew_station": false, "loops": []}], "sections": [
+    {"id": "YW-S1", "west": "YW", "east": "S1", "length_m": 6000, "line_speed_kmh": 120},
+    {"id": "S1-S2", "west": "S1", "east": "S2", "length_m": 6000, "line_speed_kmh": 120},
+    {"id": "S2-YE", "west": "S2", "east": "YE", "length_m": 6000, "line_speed_kmh": 120}]},
+  "trains": [
+    {"id": "L1", "type": "local", "direction": "east", "pax": 100, "entry_tick": 0, "stops": [{"station": "S1", "arr": 4, "dep": 5, "min_dwell": 1}, {"station": "S2", "arr": 9, "dep": 10, "min_dwell": 1}, {"station": "YE", "arr": 14, "dep": null, "min_dwell": 0}], "next_service": null, "crew_used_at_entry": 0},
+    {"id": "L2", "type": "local", "direction": "west", "pax": 100, "entry_tick": 0, "stops": [{"station": "S2", "arr": 4, "dep": 5, "min_dwell": 1}, {"station": "S1", "arr": 9, "dep": 10, "min_dwell": 1}, {"station": "YW", "arr": 14, "dep": null, "min_dwell": 0}], "next_service": null, "crew_used_at_entry": 0}], "events": []
+}

@@ -1,0 +1,15 @@
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+jobs/
+reports/*.html
+results/*.jsonl
+datasets/*-fresh/
+data/
+artifacts/
+bash.exe.stackdump

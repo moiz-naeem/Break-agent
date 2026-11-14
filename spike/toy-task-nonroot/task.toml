@@ -1,0 +1,20 @@
+schema_version = "1.4"
+
+[metadata]
+category = "spike"
+tags = ["spike", "mcp-sidecar"]
+
+[agent]
+user = "agent"
+timeout_sec = 600
+
+[verifier]
+timeout_sec = 120
+
+[environment]
+build_timeout_sec = 900
+
+[[environment.mcp_servers]]
+name = "toy"
+transport = "streamable-http"
+url = "http://sim:8000/mcp"

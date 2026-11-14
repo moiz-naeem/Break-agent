@@ -1,0 +1,44 @@
+[project]
+name = "railway"
+version = "0.1.0"
+description = "Single-track railway dispatcher RL environment (AfterQuery Break the Agent)"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "matplotlib>=3.11.2",
+    "mcp>=2.3.0",
+    "numpy>=2.4.6",
+    "pydantic>=2.14.3",
+    "pyyaml>=6.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.170.15",
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["railway"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers -ra"
+markers = [
+    "slow: takes more than 10 s",
+    "harbor: needs Docker and the Harbor CLI (Linux, macOS or WSL2)",
+    "model: needs a real model API key or endpoint",
+    "gpu: needs a CUDA GPU",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
