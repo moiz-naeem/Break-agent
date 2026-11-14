@@ -35,6 +35,9 @@ class EpisodeSpec:
     scenario: Scenario
     c_greedy: float
     c_best: float
+    best_source: str | None = None
+    best_proven: bool | None = None
+    c_ref: float | None = None
 
 
 @dataclass
@@ -84,7 +87,15 @@ def episodes_from_dataset(dataset: str | Path) -> list[EpisodeSpec]:
         norm = json.loads((tests / "norm.json").read_text(encoding="utf-8"))
         if "scenario_hash" in norm and norm["scenario_hash"] != content_hash(raw):
             raise ValueError(f"{task}: norm.json scenario_hash does not match scenario.json")
-        out.append(EpisodeSpec(Scenario.model_validate(raw), float(norm["c_greedy"]), float(norm["c_best"])))
+        out.append(
+            EpisodeSpec(
+                Scenario.model_validate(raw),
+                float(norm["c_greedy"]),
+                float(norm["c_best"]),
+                norm.get("best_source"),
+                norm.get("best_proven"),
+            )
+        )
     if not out:
         raise ValueError(f"{dataset}: no tasks with tests/scenario.json")
     return out
@@ -102,7 +113,16 @@ def episodes_from_scenarios(preset: str, set_name: str, count: int) -> list[Epis
         scenario = generate(PRESETS[preset], acc["seed"])
         if content_hash(scenario.model_dump(mode="json")) != acc["scenario_hash"]:
             raise ValueError(f"{preset}/{set_name} seed {acc['seed']}: accepted list is stale (hash mismatch)")
-        out.append(EpisodeSpec(scenario, float(acc["c_greedy"]), float(acc["c_best"])))
+        out.append(
+            EpisodeSpec(
+                scenario,
+                float(acc["c_greedy"]),
+                float(acc["c_best"]),
+                acc.get("best_source"),
+                acc.get("best_proven"),
+                float(acc["c_ref"]) if acc.get("c_ref") is not None else None,
+            )
+        )
     return out
 
 
@@ -182,6 +202,7 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
     done = _done_pairs(out)
     todo = [(ep, rep) for ep in episodes for rep in range(manifest.reps) if (ep.scenario.scenario_id, rep) not in done]
     transcripts = results_dir / manifest.name / "transcripts"
+    trajectories = results_dir / manifest.name / "trajectories"
     writer = _Writer(out)
 
     def one(item):
@@ -201,11 +222,15 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
                 session=session,
                 instruction=instruction,
                 transcript_path=transcripts / f"{sid}-r{rep}.jsonl",
+                trajectory_path=trajectories / f"{sid}-r{rep}.json",
                 run=manifest.name,
                 model=manifest.model.id,
                 rep=rep,
                 c_greedy=ep.c_greedy,
                 c_best=ep.c_best,
+                c_ref=ep.c_ref,
+                best_source=ep.best_source,
+                best_proven=ep.best_proven,
                 score_fn=score_fn,
             )
         except Exception as exc:  # noqa: BLE001 - infra failure: an error row, never a score
@@ -221,11 +246,17 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
                 rep=rep,
                 c_greedy=ep.c_greedy,
                 c_best=ep.c_best,
+                c_ref=ep.c_ref,
+                best_source=ep.best_source,
+                best_proven=ep.best_proven,
                 status="error",
                 error=f"{type(exc).__name__}: {exc}",
                 tool_calls=None,
                 tokens_in=None,
                 tokens_out=None,
+                tokens_cached=None,
+                tokens_thinking=None,
+                llm_s=None,
                 format_errors=None,
                 **scenario_meta(ep.scenario),
             )
@@ -309,9 +340,14 @@ def parse_harbor_jobs(jobs: Path, tasks: dict[str, Path], manifest: Manifest) ->
             rep=reps[sid],
             c_greedy=float(norm["c_greedy"]),
             c_best=float(norm["c_best"]),
+            best_source=norm.get("best_source"),
+            best_proven=norm.get("best_proven"),
             tool_calls=None,
             tokens_in=_find_key(result, "n_input_tokens"),
             tokens_out=_find_key(result, "n_output_tokens"),
+            tokens_cached=None,
+            tokens_thinking=None,
+            llm_s=None,
             format_errors=None,
             **scenario_meta(scenario),
         )
@@ -329,13 +365,22 @@ def parse_harbor_jobs(jobs: Path, tasks: dict[str, Path], manifest: Manifest) ->
             counts = details.get("counts", {})
             rec.cost_total = details["cost_total"]
             rec.cost_by_component = details["cost_by_component"]
+            rec.reward = round(-float(rec.cost_total), 6)
             rec.c_greedy, rec.c_best = float(details["c_greedy"]), float(details["c_best"])
-            rec.score_clipped, rec.score_unclipped = details["reward"], details["score_unclipped"]
-            rec.cost_ratio = rec.cost_total / rec.c_best
+            rec.best_source = details.get("best_source", rec.best_source)
+            rec.best_proven = details.get("best_proven", rec.best_proven)
+            rec.score_unclipped = details["score_unclipped"]
+            norm_score = details["score_normalized"] if "score_normalized" in details else max(0.0, rec.score_unclipped)
+            rec.score_normalized = norm_score
+            rec.score_clipped = norm_score
+            rec.above_best = details.get("above_best", rec.score_unclipped > 1.0 + 1e-6)
+            rec.cost_ratio = rec.cost_total / rec.c_best if rec.c_best else None
             rec.kpis = details.get("kpis")
             for key in COUNT_FIELDS:
                 setattr(rec, key, counts.get(key))
-            rec.unfinished = counts.get("unfinished")
+            rec.unfinished = counts.get("unfinished_trains", counts.get("unfinished"))
+            if rec.unfinished_trains is None:
+                rec.unfinished_trains = rec.unfinished
             rec.tool_calls = details.get("tool_calls")
         records.append(rec)
     return records

@@ -29,14 +29,23 @@ RESULT_FIELDS = [
     "rules_version",
     "cost_total",
     "cost_by_component",
+    "reward",
     "c_greedy",
     "c_best",
+    "best_source",
+    "best_proven",
+    "score_normalized",
     "score_clipped",
     "score_unclipped",
+    "above_best",
     "cost_ratio",
     "gridlocks",
     "crew_timeouts",
     "misroutes",
+    "wrong_terminals",
+    "missed_calls",
+    "missed_connections",
+    "unfinished_trains",
     "unfinished",
     "refusals",
     "invalid_calls",
@@ -176,11 +185,40 @@ def test_T08_15_record_fields(session_cls, mini3, tmp_path):
     assert row["tool_calls"] == 3 and row["decision_points"] is not None
     assert row["tokens_in"] > 0 and row["tokens_out"] > 0
     assert row["cost_by_component"]["total"] == row["cost_total"] == DO_NOTHING_MINI3
-    assert row["unfinished"] == 3
+    assert row["reward"] == -DO_NOTHING_MINI3
+    assert row["unfinished"] == 3 and row["unfinished_trains"] == 3
+    assert row["prompt_stats"]["turns"] == 3
     lines = path.read_text(encoding="utf-8").splitlines()
     assert len(lines) == len(requests) == 3
     turns = [json.loads(line) for line in lines]
     assert [t["executed"]["tool"] for t in turns] == ["notes", "kpis", "end_shift"]
+
+
+def test_T08_15_trajectory_positions(mini3, tmp_path):
+    session = real_session_cls()(mini3)
+    traj_path = tmp_path / "trajectories" / "FIX-mini3-r0.json"
+    Greedy = _greedy_cls()
+    from railway.loop.fake_model import policy
+    from railway.sim.engine import Simulator
+
+    with FakeModelServer(policy(Greedy().decide, session, Simulator.load(mini3).static_info())) as srv:
+        rec = play_episode(
+            mini3,
+            ModelClient(srv.base_url, "fake", None),
+            "windowed",
+            session=session,
+            instruction=INSTRUCTION,
+            trajectory_path=traj_path,
+            c_greedy=6.5,
+            c_best=2.0,
+            best_source="solver",
+            best_proven=True,
+        )
+    assert rec.status == "ok" and rec.reward == -rec.cost_total and traj_path.exists()
+    traj = json.loads(traj_path.read_text(encoding="utf-8"))
+    assert traj["scenario_id"] == "FIX-mini3" and len(traj["trains"]) == len(mini3.trains)
+    assert all(len(t["segments"]) > 0 for t in traj["trains"])
+    assert len(traj["movements"]) > 0 and len(traj["decision_snapshots"]) > 0
 
 
 def test_T08_15_model_error_is_error_record(mini3, monkeypatch):

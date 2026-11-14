@@ -8,7 +8,7 @@ __pycache__/
 .ruff_cache/
 jobs/
 reports/*.html
-results/*.jsonl
+results/
 datasets/*-fresh/
 data/
 artifacts/

@@ -63,6 +63,9 @@ def test_T08_26_flagged():
     rows = fixture_rows() + [row("C", 100, 50, 40, 0), row("C", 100, 50, 60, 1)]
     assert stats.flagged(rows) == ["C"]
     assert stats.flagged(fixture_rows()) == []
+    # v0.3: reward is -cost; normalised score has no clip at 1.0 (seed C reps: 1.2 and 0.8 -> mean 1.0).
+    assert stats.normalized_mean(rows) == pytest.approx(0.6)
+    assert stats.neg_cost_mean(fixture_rows()) == pytest.approx(-450.0)
 
 
 def _synthetic(n=20, seed=1):
