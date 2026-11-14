@@ -296,7 +296,7 @@ def play_job(job: dict) -> dict:
 @app.function(
     cpu=1,
     memory=2048,
-    timeout=4 * 3600,
+    timeout=24 * 3600,  # Modal maximum: uncapped Qwen thinking can run a T3 episode for many hours
     max_containers=64,
     secrets=_secrets(),
     volumes={SCENARIOS_MOUNT: scenarios, TRANSCRIPTS_MOUNT: transcripts},
