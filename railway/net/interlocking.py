@@ -109,29 +109,24 @@ class Interlocking:
         self.directions: dict[str, dict[str, Travel]] = {}  # track id -> {train id: travel}
 
     def _entering(self, start_node: str, steps: list[Step]) -> bool:
-        # shortcut: an entering train takes its whole entry track, so the next one enters only once it is clear;
-        # entry at block headway needs step 2's block-by-block movement.
+        # An entering train takes its whole entry track; step_block frees each block behind it as it runs on.
         node = self.net.node(start_node)
         return isinstance(steps[0].element, Track) and node is not None and node.kind == "portal"
 
-    def check(self, train: TrainSpec, start_node: str, elements: list[str]) -> list[Step] | Refusal:
-        steps = walk(self.net, start_node, elements)
-        if isinstance(steps, Refusal):
-            return steps
-        if refusal := admissible(train, steps):
-            return refusal
+    def _obstacles(self, train: TrainSpec, start_node: str, steps: list[Step]):
+        """Yield (rule, detail, holder) for everything held by others that the route needs, in refusal order."""
         first = steps[0].element
         if isinstance(first, Platform) and self.holder.get(first.id) not in (None, train.id):
-            return Refusal(NetRule.PLATFORM_OCCUPIED, f"{first.id} is held by {self.holder[first.id]}")
+            yield NetRule.PLATFORM_OCCUPIED, f"{first.id} is held by {self.holder[first.id]}", self.holder[first.id]
         for el, travel in steps:
             if isinstance(el, Track):
-                opposing = sorted(t for t, d in self.directions.get(el.id, {}).items() if d != travel)
-                if opposing:
-                    return Refusal(NetRule.DIRECTION_LOCKED, f"{el.id} is set the other way for {opposing[0]}")
+                for t in sorted(t for t, d in self.directions.get(el.id, {}).items() if d != travel):
+                    yield NetRule.DIRECTION_LOCKED, f"{el.id} is set the other way for {t}", t
             elif isinstance(el, Move):
                 for c in self.net.conflicts(el.id):
                     if c in self.holder:
-                        return Refusal(NetRule.MOVE_CONFLICT, f"{el.id} conflicts with {c}, set for {self.holder[c]}")
+                        holder = self.holder[c]
+                        yield NetRule.MOVE_CONFLICT, f"{el.id} conflicts with {c}, set for {holder}", holder
         for resource, (el, _) in claims(steps, self._entering(start_node, steps)):
             other = self.holder.get(resource)
             if other not in (None, train.id):
@@ -139,8 +134,44 @@ class Interlocking:
                     rule = NetRule.BLOCK_OCCUPIED
                 else:
                     rule = NetRule.MOVE_LOCKED if isinstance(el, Move) else NetRule.PLATFORM_OCCUPIED
-                return Refusal(rule, f"{_name(resource)} is held by {other}")
+                yield rule, f"{_name(resource)} is held by {other}", other
+
+    def check(self, train: TrainSpec, start_node: str, elements: list[str]) -> list[Step] | Refusal:
+        steps = walk(self.net, start_node, elements)
+        if isinstance(steps, Refusal):
+            return steps
+        if refusal := admissible(train, steps):
+            return refusal
+        for rule, detail, _ in self._obstacles(train, start_node, steps):
+            return Refusal(rule, detail)
         return steps
+
+    def blockers(self, train: TrainSpec, start_node: str, elements: list[str]) -> set[str]:
+        """Trains holding something this route needs (empty if it is malformed or inadmissible)."""
+        steps = walk(self.net, start_node, elements)
+        if isinstance(steps, Refusal) or admissible(train, steps):
+            return set()
+        return {holder for *_, holder in self._obstacles(train, start_node, steps)} - {train.id}
+
+    def step_block(self, train_id: str, track_id: str, travel: Travel, done: int) -> str | None:
+        """Move a train from its done-th block (in travel order) into the next one; return the blocker, if any."""
+        track = self.net.element(track_id)
+        order = list(range(track.blocks)) if travel == "ab" else list(range(track.blocks - 1, -1, -1))
+        nxt, cur = (track_id, order[done + 1]), (track_id, order[done])
+        if self.holder.get(nxt) not in (None, train_id):
+            return self.holder[nxt]
+        self.holder[nxt] = train_id
+        if self.holder.get(cur) == train_id:
+            del self.holder[cur]
+        return None
+
+    def occupy(self, train_id: str, platform_id: str) -> str | None:
+        """Place a train that starts its trip standing in a platform; return the holder if it is taken."""
+        other = self.holder.get(platform_id)
+        if other not in (None, train_id):
+            return other
+        self.holder[platform_id] = train_id
+        return None
 
     def lock(self, train: TrainSpec, start_node: str, elements: list[str]) -> Refusal | None:
         steps = self.check(train, start_node, elements)

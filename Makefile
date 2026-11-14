@@ -1,7 +1,11 @@
-.PHONY: test lint ci oracle spike-variants
+.PHONY: test test-modal lint ci oracle spike-variants
 
 test:
 	uv run pytest -m "not harbor and not model and not gpu"
+
+# The same suite sharded over Modal containers: ~3 min instead of ~48. Needs `modal setup` once.
+test-modal:
+	uv run --with modal modal run scripts/modal_tests.py
 
 lint:
 	uv run ruff check railway tests spike scripts

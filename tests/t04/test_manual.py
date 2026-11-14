@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+from railway.net.rules import NetRule
 from railway.sim import constants
 from railway.sim.cost import CostBreakdown
 from railway.sim.manual import _value, render_manual
@@ -62,13 +63,17 @@ def test_T04_09_manual_interpolates_constants(monkeypatch):
 
 
 def test_T04_03_code_rule_references_are_known():
+    # railway/net is the v0.3 network; its NetRule ids belong to the v0.3 manual, not this frozen one.
     root = Path(__file__).parents[2] / "railway"
+    net = root / "net"
     rule_names = {rule.name for rule in RuleId}
     rule_values = {rule.value for rule in RuleId}
+    net_values = {rule.value for rule in NetRule}
     for source in root.rglob("*.py"):
         text = source.read_text(encoding="utf-8")
+        known = net_values if net in source.parents else rule_values
         assert all(name in rule_names for name in re.findall(r"RuleId\.([A-Z_]+)", text))
-        assert all(value in rule_values for value in re.findall(r"R-[A-Z][A-Z-]+", text))
+        assert all(value in known for value in re.findall(r"R-[A-Z][A-Z-]+", text)), source
 
 
 def test_T04_04_manual_lists_all_components_and_public_constants():
