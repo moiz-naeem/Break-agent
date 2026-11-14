@@ -253,7 +253,7 @@ def test_T02_37_total_is_sum_of_cost_components():
     s.end_shift()
     c = s.cost()
     assert c.total == sum(
-        c.model_dump().get(k, 0) for k in ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+        c.model_dump().get(k, 0) for k in ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
     )
 
 

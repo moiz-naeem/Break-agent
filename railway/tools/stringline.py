@@ -12,7 +12,7 @@ YARDS = {"YW", "YE"}
 
 
 def _place(change) -> str:
-    # ENTRY "X enters at YW", ENTER "X enters S1-S2" / "X reversing into S1-S2", ARRIVE "X at S2/L1": the place is last.
+    # ENTRY "X enters at YW", ENTER "X enters S1-S2", ARRIVE "X at S2/L1": the place is last.
     return change.text.rsplit(" ", 1)[1].split("/")[0]
 
 

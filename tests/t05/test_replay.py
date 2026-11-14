@@ -27,7 +27,7 @@ call = st.one_of(
     ),
     st.builds(lambda t, u: ("hold", {"train": t, "until_tick": u}), train, st.integers(0, 90)),
     st.builds(
-        lambda tool, t: (tool, {"train": t}), st.sampled_from(["cancel_authority", "relieve_crew", "reverse"]), train
+        lambda tool, t: (tool, {"train": t}), st.sampled_from(["cancel_authority", "relieve_crew"]), train
     ),
     st.builds(lambda n: ("notes", {"text": "n" * n}), st.sampled_from([0, 5, 1500, 1501])),
 )

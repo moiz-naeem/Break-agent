@@ -36,7 +36,6 @@ RESULT_FIELDS = [
     "cost_ratio",
     "gridlocks",
     "crew_timeouts",
-    "reversals",
     "unfinished",
     "refusals",
     "invalid_calls",

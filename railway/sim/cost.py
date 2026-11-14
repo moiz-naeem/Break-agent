@@ -18,7 +18,6 @@ class CostBreakdown(BaseModel):
     pax_lateness: float = 0.0
     freight_lateness: float = 0.0
     crew_timeout: float = 0.0
-    reversal: float = 0.0
     unfinished: float = 0.0
     total: float = 0.0
 
@@ -44,6 +43,6 @@ def unfinished_cost(train, shift_ticks: int) -> float:
 
 
 def update_total(cost: CostBreakdown) -> CostBreakdown:
-    keys = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+    keys = ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
     cost.total = round(sum(getattr(cost, k) for k in keys), 6)
     return cost

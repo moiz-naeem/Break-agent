@@ -6,7 +6,7 @@ from tests.t05.common import EPISODE_A, kpis, play, session
 
 PRD_TOOLS = {
     "manual", "network", "timetable", "status", "bulletins", "kpis", "stringline", "notes", "authorize",
-    "cancel_authority", "hold", "relieve_crew", "reverse", "advance_to_next_event", "end_shift",
+    "cancel_authority", "hold", "relieve_crew", "advance_to_next_event", "end_shift",
 }  # fmt: skip
 
 

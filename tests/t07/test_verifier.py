@@ -35,7 +35,7 @@ DETAIL_KEYS = {
     "tool_calls",
     "final_tick",
 }
-COUNT_KEYS = {"gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"}
+COUNT_KEYS = {"gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"}
 OPENCODE_LOG = Path("opencode/xdg-data/opencode/log/2026-11-14T120000.log")
 
 
@@ -128,7 +128,7 @@ def test_T07_14f_details_shape_fake_sim(task, plan_log):
     d = task.expect_reward(task.verify(plan_log), "1.000000\n")
     assert set(d) == DETAIL_KEYS
     assert set(d["counts"]) == COUNT_KEYS
-    assert set(d["cost_by_component"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished"}
+    assert set(d["cost_by_component"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "unfinished"}
     assert d["scenario_id"] == task.scenario["scenario_id"] and d["rules_version"] == RULES_VERSION
     assert (d["c_greedy"], d["c_ref"]) == (task.norm["c_greedy"], task.norm["c_ref"])
     assert d["cost_total"] == plan_log["final_cost"] and d["final_tick"] == plan_log["final_tick"]

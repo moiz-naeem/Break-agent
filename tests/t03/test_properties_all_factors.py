@@ -12,7 +12,7 @@ from railway.util import canonical_json
 from tests.helpers import REPO
 from tests.t03.common import all_factor_scenario, dump, load, run_step, steps
 
-COST_KEYS = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+COST_KEYS = ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
 
 
 def check_invariants(sim, prev_cost):
@@ -20,12 +20,12 @@ def check_invariants(sim, prev_cost):
     # T02-41: one train per resource.
     tracks = [(t.station, t.track) for t in state.trains if t.phase == "at_station" and t.station not in {"YW", "YE"}]
     assert len(tracks) == len(set(tracks))
-    sections = [t.section for t in state.trains if t.phase in {"in_section", "reversing"}]
+    sections = [t.section for t in state.trains if t.phase == "in_section"]
     assert len(sections) == len(set(sections))
     stops = {t["id"]: {s["station"]: s for s in t["stops"]} for t in sim.static_info().trains}
     stations = {s["id"]: s for s in sim.static_info().network["stations"]}
     for t in state.trains:
-        # T02-42: nothing moves without an authority (reversal carries its own).
+        # T02-42: nothing moves without an authority.
         if t.phase == "in_section":
             assert t.authority is not None, t.id
         # T02-43: a train never leaves a timed stop before its scheduled departure.

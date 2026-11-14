@@ -332,7 +332,7 @@ def parse_harbor_jobs(jobs: Path, tasks: dict[str, Path], manifest: Manifest) ->
             rec.c_greedy, rec.c_ref = float(details["c_greedy"]), float(details["c_ref"])
             rec.score_clipped, rec.score_unclipped = details["reward"], details["score_unclipped"]
             rec.cost_ratio = rec.cost_total / rec.c_ref
-            for key in ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"):
+            for key in ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"):
                 setattr(rec, key, counts.get(key))
             rec.unfinished = counts.get("unfinished")
             rec.tool_calls = details.get("tool_calls")

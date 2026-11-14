@@ -15,10 +15,10 @@ from railway.tools.session import TOOLS
 from tests.t05.common import EPISODE_A, session
 
 
-def test_T05_17_lists_15_tools():
+def test_T05_17_lists_14_tools():
     with spawn(session().scenario) as srv, McpClient(srv.url) as client:
         names = client.tool_names()
-    assert sorted(names) == sorted(TOOLS) and len(names) == 15
+    assert sorted(names) == sorted(TOOLS) and len(names) == 14  # v0.3: reverse removed
     assert not {"conflicts", "what_if"} & set(names)
 
 

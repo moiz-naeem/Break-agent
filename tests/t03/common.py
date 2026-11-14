@@ -6,7 +6,7 @@ from hypothesis import strategies as st
 
 from railway.gen.presets import ALL_FACTORS  # noqa: F401  (re-exported for T03 tests)
 from railway.sim.engine import Simulator
-from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse, Scenario
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Scenario
 from tests.helpers import load_fixture
 
 L6 = {
@@ -101,7 +101,6 @@ actions = st.one_of(
     st.builds(Hold, train=st.sampled_from(TRAINS), until_tick=st.integers(0, 90)),
     st.builds(CancelAuthority, train=st.sampled_from(TRAINS)),
     st.builds(RelieveCrew, train=st.sampled_from(TRAINS)),
-    st.builds(Reverse, train=st.sampled_from(TRAINS)),
 )
 # One step: some actions at the current decision point, then advance (None = to the next decision point).
 steps = st.lists(st.tuples(st.lists(actions, max_size=3), st.one_of(st.none(), st.integers(1, 8))), max_size=12)

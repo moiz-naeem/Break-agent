@@ -50,8 +50,6 @@ def _position(t, loop_kinds: dict[tuple[str, str], str]) -> str:
         return f"at {t.station}/{t.track}-{loop_kinds[(t.station, t.track)]}"
     if t.phase == "in_section":
         return f"{t.section} {'eastbound' if t.direction == 'east' else 'westbound'}"
-    if t.phase == "reversing":
-        return f"{t.section} reversing"
     yard = YARD[t.direction]
     return f"waiting {yard} after {t.waits_for}" if t.waits_for else f"waiting {yard} entry@{t.entry_tick}"
 
@@ -82,7 +80,7 @@ def compact_status(state: State, scenario: Scenario) -> str:
 def final_line(tick: int, cost: CostBreakdown) -> str:
     return (
         f"SHIFT ENDED at t={tick}. Final cost {cost.total} (pax {cost.pax_lateness}, freight "
-        f"{cost.freight_lateness}, crew {cost.crew_timeout}, reversal {cost.reversal}, unfinished {cost.unfinished})"
+        f"{cost.freight_lateness}, crew {cost.crew_timeout}, unfinished {cost.unfinished})"
     )
 
 

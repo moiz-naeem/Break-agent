@@ -36,7 +36,7 @@ def test_T02_42_no_move_without_authority():
     sim = make_sim()
     sim.advance()
     sim.advance(max_tick=20)
-    assert all(t.phase not in {"in_section", "reversing"} for t in sim.state().trains)
+    assert all(t.phase != "in_section" for t in sim.state().trains)
 
 
 def test_T02_43_departure_never_precedes_timed_stop():
@@ -136,7 +136,7 @@ def test_T02_45_cost_is_nonnegative_and_total_is_component_sum():
     sim.advance()
     sim.end_shift()
     current = sim.cost().model_dump(mode="json")
-    keys = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+    keys = ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
     components = [current[k] for k in keys]
     assert all(v >= 0 for v in components)
     assert current["total"] == sum(components)

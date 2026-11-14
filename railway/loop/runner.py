@@ -22,7 +22,7 @@ from railway.sim.constants import TOOL_BUDGET
 from railway.util import content_hash
 
 MAX_STRIKES = 3
-COUNT_FIELDS = ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points")
+COUNT_FIELDS = ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points")
 
 
 @dataclass
@@ -48,7 +48,6 @@ class EpisodeRecord:
     cost_ratio: float | None = None
     gridlocks: int | None = None
     crew_timeouts: int | None = None
-    reversals: int | None = None
     unfinished: int | None = None
     refusals: int | None = None
     invalid_calls: int | None = None

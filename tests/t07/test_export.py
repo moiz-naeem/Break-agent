@@ -61,7 +61,7 @@ through the tools of the `railway` MCP server; nothing moves without your author
 3. Time moves only when you call `advance_to_next_event()`. Give your orders
    (`authorize`, `hold`, `relieve_crew`, ...) and then advance.
 4. Goal: the lowest total cost at the end of the shift (passenger and freight lateness,
-   crew timeouts, gridlock reversals, unfinished trains).
+   crew timeouts, unfinished trains; a gridlock is permanent).
 
 Scoring: your total cost is compared with a simple greedy dispatcher (score 0) and a
 strong reference dispatcher (score 1).

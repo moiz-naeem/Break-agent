@@ -5,7 +5,7 @@ from __future__ import annotations
 from railway.policies.baselines import EpisodeOver, Guard, ToolCall
 from railway.sim.constants import W_EXPRESS, W_FREIGHT, W_LOCAL
 from railway.sim.engine import Simulator
-from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew
 from railway.sim.observe import State, StaticInfo
 from railway.tools.observe import Observer
 
@@ -117,7 +117,6 @@ class Reference:
                 "hold": Hold,
                 "cancel_authority": CancelAuthority,
                 "relieve_crew": RelieveCrew,
-                "reverse": Reverse,
             }
             action_type = action_types.get(call.tool)
             if action_type is not None:

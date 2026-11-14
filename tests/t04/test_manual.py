@@ -47,7 +47,6 @@ def test_T04_02_manual_is_deterministic_and_lists_tools():
         "cancel_authority",
         "hold",
         "relieve_crew",
-        "reverse",
         "advance_to_next_event",
         "end_shift",
     ):
@@ -109,7 +108,6 @@ TOOLS = (
     "cancel_authority",
     "hold",
     "relieve_crew",
-    "reverse",
     "advance_to_next_event",
     "end_shift",
 )

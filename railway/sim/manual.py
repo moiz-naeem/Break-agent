@@ -42,7 +42,6 @@ def render_manual() -> str:
         f"| `pax_lateness` | On passenger stop arrival | w × pax/100 × max(0, late − {constants.PAX_GRACE}) |\n"
         f"| `freight_lateness` | Freight destination arrival | {constants.W_FREIGHT} × max(0, late) |\n"
         f"| `crew_timeout` | Crew timeout | {constants.TIMEOUT_COST} |\n"
-        f"| `reversal` | Reverse granted | {constants.REVERSE_COST} |\n"
         f"| `unfinished` | Train unfinished at shift end | {constants.UNFINISHED_COST} plus "
         f"destination lateness at shift end; freight adds {constants.UNFINISHED_FREIGHT_EXTRA} × shift_ticks / "
         f"{constants.UNFINISHED_FREIGHT_SHIFT} |"
@@ -99,7 +98,7 @@ relief; yards are not crew stations.
    least `min_dwell`, waits until `dep`, then continues; at the destination it uses the
    requested track.
 6. Departure waits for entry time, scheduled departure, dwell, hold, relief, timeout and
-   breakdown timers. The train must have authority and cannot depart while reversing.
+   breakdown timers. The train must have authority.
 7. Section travel is ceil(length × 60 / (minimum of line, train and active restriction
    speeds × 1000)), with a minimum of one tick. Restrictions apply when entering within
    `[start, end)`. F5 adds the type's restart ticks after an unscheduled stop.
@@ -111,9 +110,8 @@ relief; yards are not crew stations.
 10. Gridlock is a strongly connected component of at least two blocked trains in the
     wait-for graph. A blocked train is unfinished, stationary at a station, and has no
     authority. Timers do not affect this structural check.
-11. `reverse(train)` is allowed only in gridlock. It moves to the previous station using
-    a free, fitting, permitted loop or yard, occupies the section for
-    {constants.REVERSE_TICKS} ticks, and costs {constants.REVERSE_COST}.
+11. Gridlock is permanent. No move can undo it: the trains in it stay where they are and
+    are charged as unfinished at shift end. Trains outside it keep running.
 12. `cancel_authority(train)` truncates authority at the first station not yet passed,
     using its main if the path passes through it. If stationary at the authority origin,
     it removes the whole authority. Without authority it is refused.
@@ -168,7 +166,7 @@ decimals.
 {cost_rows}
 
 The express passenger weight is {constants.W_EXPRESS}; local is {constants.W_LOCAL}.
-Passenger lateness also multiplies by pax/100. Total is the sum of the five components.
+Passenger lateness also multiplies by pax/100. Total is the sum of the four components.
 
 ## Score
 
@@ -194,14 +192,13 @@ Every tool name below is also its MCP name. Every call uses one budget unit.
 | `timetable` | optional `train` | Original train schedule and any entry bulletins |
 | `status` | `compact=false` | Full visible state; compact mode prints one line per train and a restrictions footer |
 | `bulletins` | none | Revealed event list and reveal ticks |
-| `kpis` | none | Component costs, gridlocks, timeouts, reversals, refusals and budget |
+| `kpis` | none | Component costs, gridlocks, timeouts, refusals and budget |
 {stringline_row}
 | `notes` | `text` | Replaces notes; maximum {constants.NOTES_MAX} characters |
 | `authorize` | `train`, `station`, `track` | Granted authority or a rule refusal |
 | `cancel_authority` | `train` | Cancels or truncates authority, or a refusal |
 | `hold` | `train`, `until_tick` | Sets a hold or a refusal |
 | `relieve_crew` | `train` | Starts crew relief or a refusal |
-| `reverse` | `train` | Reverses a gridlocked train or a refusal |
 | `advance_to_next_event` | none | Tick, stop reasons, changes since last advance and remaining budget |
 | `end_shift` | none | Runs to shift end and returns final cost |
 

@@ -17,7 +17,7 @@ from railway.sim.engine import Simulator
 from railway.sim.model import ActionAdapter, Scenario
 from railway.util import content_hash
 
-MUTATING = {"authorize", "cancel_authority", "hold", "relieve_crew", "reverse"}
+MUTATING = {"authorize", "cancel_authority", "hold", "relieve_crew"}
 READ_ONLY = {"manual", "network", "timetable", "status", "bulletins", "kpis", "stringline", "notes"}
 INVALID_RULES = {"R-BAD-ARGS", "R-UNKNOWN-TRAIN", "R-UNKNOWN-STATION", "R-UNKNOWN-TRACK"}
 
@@ -39,7 +39,7 @@ class _FakeSession:
         self.sim = Simulator.load(scenario)
         self.closed = False
         self.counts = dict.fromkeys(
-            ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"), 0
+            ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"), 0
         )
 
     def call(self, tool: str, args: dict) -> tuple[str, str | None]:
@@ -53,8 +53,6 @@ class _FakeSession:
                 return "INVALID", "R-BAD-ARGS"
             res = self.sim.apply(action)
             if res.ok:
-                if tool == "reverse":
-                    self.counts["reversals"] += 1
                 return ("GRANTED" if tool == "authorize" else "OK"), None
             rule = str(getattr(res.rule, "value", res.rule))
             if rule in INVALID_RULES:

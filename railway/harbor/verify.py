@@ -35,8 +35,8 @@ from railway.sim.constants import RULES_VERSION
 from railway.util import canonical_json, content_hash
 
 STATUSES = {"GRANTED", "REFUSED", "OK", "INVALID", "INFO"}
-COMPONENTS = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
-COUNT_KEYS = ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points")
+COMPONENTS = ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
+COUNT_KEYS = ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points")
 TOLERANCE = 1e-6
 SHIFT_ENDED = "R-SHIFT-ENDED"  # calls after the shift ended are logged but use no budget (T05 §2.1)
 

@@ -12,7 +12,7 @@ from tests.t05.common import EPISODE_A, play, session
 
 TRAIN_LINE = re.compile(
     r"^(?P<id>\S+) +(?P<type>\S+) +"
-    r"(?P<pos>at \S+|\S+ (eastbound|westbound|reversing)|waiting \S+ (entry@\d+|after \S+))"
+    r"(?P<pos>at \S+|\S+ (eastbound|westbound)|waiting \S+ (entry@\d+|after \S+))"
     r"( auth:(?P<auth>\S+) delay:(\+\d+|0)( crew:\d+)?( next:\S+@\d+)?)?$"
 )
 
@@ -69,9 +69,9 @@ def test_T05_12_kpis_shape():
     play(s, EPISODE_A[:4])
     k = json.loads(s.call("kpis", {}))
     assert set(k) == {"tick", "cost", "counts", "budget"}
-    assert set(k["cost"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished", "total"}
+    assert set(k["cost"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "unfinished", "total"}
     assert set(k["counts"]) == {
-        "gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"
+        "gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"
     }  # fmt: skip
     assert set(k["budget"]) == {"used", "left", "total"}
     assert k["cost"]["total"] == sum(v for key, v in k["cost"].items() if key != "total")

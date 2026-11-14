@@ -10,7 +10,7 @@ from railway.sim.constants import NOTES_MAX, TOOL_BUDGET
 from railway.sim.cost import CostBreakdown
 from railway.sim.engine import Simulator
 from railway.sim.manual import render_manual
-from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse, Scenario
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Scenario
 from railway.sim.observe import Change
 from railway.sim.rules import RuleId
 from railway.tools import formats
@@ -112,7 +112,7 @@ class Session:
         self.closed = False
         self.final: FinalResult | None = None
         self.counts = dict.fromkeys(
-            ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points"), 0
+            ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"), 0
         )
         # Movement changes, for stringline. Trains already in the network at load never emit ENTRY, so seed them.
         self.history: list = [
@@ -315,15 +315,6 @@ def _hold(s: Session, a: HoldArgs):
 def _relieve(s: Session, a: TrainArg):
     """Start a crew relief at a crew station. See manual()."""
     return s._action(RelieveCrew(train=a.train))
-
-
-@tool("reverse", TrainArg)
-def _reverse(s: Session, a: TrainArg):
-    """Reverse a gridlocked train. See manual()."""
-    out = s._action(Reverse(train=a.train))
-    if out[1] == "OK":
-        s.counts["reversals"] += 1
-    return out
 
 
 @tool("advance_to_next_event")

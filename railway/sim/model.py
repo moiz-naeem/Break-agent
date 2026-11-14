@@ -239,10 +239,5 @@ class RelieveCrew(StrictModel):
     train: str
 
 
-class Reverse(StrictModel):
-    kind: Literal["reverse"] = "reverse"
-    train: str
-
-
-Action = Annotated[Authorize | CancelAuthority | Hold | RelieveCrew | Reverse, Field(discriminator="kind")]
+Action = Annotated[Authorize | CancelAuthority | Hold | RelieveCrew, Field(discriminator="kind")]
 ActionAdapter = TypeAdapter(Action)

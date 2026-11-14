@@ -9,8 +9,6 @@ from .constants import (
     CREW_WARNING,
     RELIEF_TICKS,
     RESTART_TICKS,
-    REVERSE_COST,
-    REVERSE_TICKS,
     TIME_CAP,
     TIMEOUT_BLOCK,
     TIMEOUT_COST,
@@ -30,7 +28,6 @@ from .model import (
     LateEntryEvent,
     PossessionEvent,
     RelieveCrew,
-    Reverse,
     Scenario,
     SpeedRestrictionEvent,
 )
@@ -106,7 +103,6 @@ class Simulator:
                 "stop_idx": 0,
                 "arrivals": [],
                 "finished_tick": None,
-                "reversing_to": None,
                 "restart_pending": False,
                 "crew_base": t.crew_used_at_entry,
                 "crew_since_tick": t.entry_tick,
@@ -460,9 +456,6 @@ class Simulator:
             path = [train["section"]]
             if next_station != stop.station:
                 path.extend(self._route(next_station, stop.station, "main"))
-        elif train["phase"] == "reversing":
-            station = train["reversing_to"][0]
-            path = self._route(station, stop.station, "main")
         else:
             station = train["station"] or train["position"]
             path = self._route(station, stop.station, "main")
@@ -514,8 +507,6 @@ class Simulator:
             return ActionResult(ok=True, message=f"OK {a.train} authority cancelled")
         if isinstance(a, RelieveCrew):
             return self._relieve_crew(a.train)
-        if isinstance(a, Reverse):
-            return self._reverse(a.train)
         return self._refuse(RuleId.NOT_STATIONARY, "crew relief is not available in T02")
 
     def _relieve_crew(self, tid: str):
@@ -569,7 +560,7 @@ class Simulator:
         return self.clone()._apply_mutating(action)
 
     def _start_move(self, t):
-        if t["phase"] == "in_section" or t["phase"] == "reversing":
+        if t["phase"] == "in_section":
             return
         if t["phase"] == "not_entered":
             if self.tick < t["entry_tick"] or t["waits_for"]:
@@ -808,47 +799,6 @@ class Simulator:
         components = find_gridlock(self._wait_graph())
         return sorted({x for comp in components for x in comp})
 
-    def _reverse(self, tid):
-        if tid not in self._gridlock:
-            return self._refuse(RuleId.NO_GRIDLOCK, f"{tid} is not in a gridlock")
-        t = self._trains[tid]
-        idx = self._station_idx[t["station"]]
-        prev = self._station_ids[idx - (1 if t["direction"] == "east" else -1)]
-        if prev in self._stations:
-            free = [
-                x
-                for x in self._stations[prev].loops
-                if not self._holders.get(f"{prev}/{x.id}")
-                and TRAIN_TYPES[t["type"]]["length_m"] <= x.length_m
-                and (x.kind == "platform" or t["type"] not in {"express", "local"})
-            ]
-            if not free:
-                return self._refuse(RuleId.NO_REVERSE_PATH, f"no free loop at {prev}")
-            track = sorted(free, key=lambda x: x.id)[0].id
-        else:
-            track = "main"
-        sec = self._section_by_pair.get((prev, t["station"])) or self._section_by_pair.get((t["station"], prev))
-        if self._holders.get(sec.id) not in {None, tid}:
-            return self._refuse(RuleId.NO_REVERSE_PATH, f"no free reverse section behind {tid}")
-        self._holders.pop(f"{t['station']}/{t['track']}", None)  # only after the checks: a refusal changes nothing
-        self._pending_changes.append(
-            Change(tick=self.tick, kind="ENTER", train=tid, text=f"{tid} reversing into {sec.id}")
-        )
-        self._cost.reversal += REVERSE_COST
-        t.update(
-            phase="reversing",
-            section=sec.id,
-            section_enter=self.tick,
-            section_exit=self.tick + REVERSE_TICKS,
-            reversing_to=(prev, track),
-            auth=None,
-            station=None,
-            track=None,
-        )
-        self._holders[sec.id] = tid
-        self._gridlock = self._update_gridlock()
-        return ActionResult(ok=True, message=f"OK {tid} reversing to {prev}/{track}")
-
     def advance(self, max_tick: int | None = None) -> AdvanceResult:
         if self.done:
             return AdvanceResult(tick=self.tick, reasons=[], changes=[], done=True)
@@ -872,7 +822,7 @@ class Simulator:
             for t in self._trains.values():
                 if t["phase"] == "not_entered" and not t["waits_for"]:
                     future.append(t["entry_tick"])
-                elif t["phase"] in {"in_section", "reversing"}:
+                elif t["phase"] == "in_section":
                     future.append(t["section_exit"])
                 elif t["phase"] == "at_station" and t["auth"]:
                     future.append(
@@ -907,21 +857,7 @@ class Simulator:
             # Section exits and arrivals precede new entries and departures.
             for tid in sorted(self._trains):
                 t = self._trains[tid]
-                if t["phase"] == "reversing" and t["section_exit"] == self.tick:
-                    self._holders.pop(t["section"], None)
-                    station, track = t["reversing_to"]
-                    t["phase"] = "at_station"
-                    t["station"], t["track"], t["position"] = station, track, station
-                    t["ready_tick"] = self.tick
-                    if station in self._stations:
-                        self._holders[f"{station}/{track}"] = tid
-                    t["section"] = t["section_exit"] = t["section_enter"] = None
-                    t["reversing_to"] = None
-                    self._pending_changes.append(
-                        Change(tick=self.tick, kind="ARRIVE", train=tid, text=f"{tid} at {station}/{track}")
-                    )
-                    reasons.append(Reason(kind="READY", train=tid))
-                elif t["phase"] == "in_section" and t["section_exit"] == self.tick:
+                if t["phase"] == "in_section" and t["section_exit"] == self.tick:
                     section = self._section_by_id[t["section"]]
                     station = section.east if t["direction"] == "east" else section.west
                     if station not in self._stations and t["auth"] and station == t["auth"]["dest_station"]:

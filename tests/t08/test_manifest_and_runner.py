@@ -305,7 +305,6 @@ def _details(sid, cost):
             "pax_lateness": cost,
             "freight_lateness": 0.0,
             "crew_timeout": 0.0,
-            "reversal": 0.0,
             "unfinished": 0.0,
             "total": cost,
         },
@@ -317,7 +316,6 @@ def _details(sid, cost):
         "counts": {
             "gridlocks": 1,
             "crew_timeouts": 0,
-            "reversals": 2,
             "refusals": 3,
             "invalid_calls": 4,
             "decision_points": 40,
@@ -371,7 +369,7 @@ def test_T08_20_harbor_harness_parsing(tmp_path, monkeypatch):
         assert r["score_unclipped"] == pytest.approx((900.0 - 100 * i) / 1200.0)
         assert r["score_clipped"] == pytest.approx((900.0 - 100 * i) / 1200.0)
         assert r["cost_ratio"] == pytest.approx((400.0 + 100 * i) / 100.0)
-        assert (r["gridlocks"], r["reversals"], r["refusals"], r["invalid_calls"]) == (1, 2, 3, 4)
+        assert (r["gridlocks"], r["refusals"], r["invalid_calls"]) == (1, 3, 4)
         assert r["decision_points"] == 40 and r["tool_calls"] == 150
         assert r["tokens_in"] is None and r["tokens_out"] is None
         assert r["seed"] == i and r["preset"] == "fixture" and r["scenario_hash"]

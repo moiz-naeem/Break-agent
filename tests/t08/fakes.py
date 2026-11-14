@@ -99,7 +99,6 @@ class FakeSession:
         self.counts = {
             "gridlocks": 0,
             "crew_timeouts": 0,
-            "reversals": 0,
             "refusals": 0,
             "invalid_calls": 0,
             "decision_points": 0,

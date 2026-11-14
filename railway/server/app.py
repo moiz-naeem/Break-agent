@@ -1,4 +1,4 @@
-"""MCP server (T05 §2.4): one Session per process behind the 15 tools, plus /health and /episode_log."""
+"""MCP server (T05 §2.4): one Session per process behind the 14 tools, plus /health and /episode_log."""
 
 from __future__ import annotations
 
@@ -81,10 +81,6 @@ def build(scenario: Scenario, token: str) -> MCPServer:
     @server.tool(description=describe("relieve_crew"))
     async def relieve_crew(train: str) -> str:
         return await call("relieve_crew", {"train": train})
-
-    @server.tool(description=describe("reverse"))
-    async def reverse(train: str) -> str:
-        return await call("reverse", {"train": train})
 
     @server.tool(description=describe("advance_to_next_event"))
     async def advance_to_next_event() -> str:

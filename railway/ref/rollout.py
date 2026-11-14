@@ -22,9 +22,6 @@ def terminal_estimate(sim) -> float:
         if train["phase"] == "in_section":
             tick = max(tick, train["section_exit"] or tick)
             current = stations[sim._station_idx[train["position"]] + (1 if train["direction"] == "east" else -1)]
-        elif train["phase"] == "reversing" and train.get("reversing_to"):
-            tick = max(tick, train["section_exit"] or tick)
-            current = train["reversing_to"][0]
         else:
             current = train["station"] or train["position"]
             tick = max(tick, train.get("dwell_until") or 0, train.get("ready_tick") or 0)
