@@ -128,9 +128,7 @@ def improve(preset: str = "T2", set_name: str = "dev"):
             improved.append((entry["seed"], entry["c_best"], new["c_best"], new["best_source"]))
         data["accepted"][i] = new
     data["header"]["anchor_search"] = {"variants": len(PORTFOLIO)}
-    path.write_text(json.dumps(data, sort_keys=True, indent=2) + "
-", encoding="utf-8", newline="
-")
+    path.write_text(json.dumps(data, sort_keys=True, indent=2) + chr(10), encoding="utf-8", newline=chr(10))
     for seed, old, new, source in improved:
         print(f"{preset}-{seed}: c_best {old:.1f} -> {new:.1f} ({source})")
     print(f"{len(improved)}/{len(data['accepted'])} anchors improved; wrote {path}")
