@@ -188,4 +188,4 @@ def main(
             }
             path = out / f"net-{tier}-{split}.json"
             path.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
-            print(f"{tier}-{split}: {len(accepted)}/{count} accepted -> {path.relative_to(REPO)}")
+            print(f"{tier}-{split}: {len(accepted)}/{count} accepted -> {path}")
