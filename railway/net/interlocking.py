@@ -152,6 +152,13 @@ class Interlocking:
             return Refusal(rule, detail)
         return steps
 
+    def blockers(self, train: TrainSpec, start_node: str, elements: list[str]) -> set[str]:
+        """Every other train holding something this route needs: who it is waiting for, if it cannot be set."""
+        steps = walk(self.net, start_node, elements)
+        if isinstance(steps, Refusal):
+            return set()
+        return {holder for _, _, holder in self._obstacles(train, start_node, steps)} - {train.id}
+
     def step_block(self, train_id: str, track_id: str, travel: Travel, done: int) -> str | None:
         """Move a train from its done-th block (in travel order) into the next one; return the blocker, if any."""
         track = self.net.element(track_id)
