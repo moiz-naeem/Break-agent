@@ -1,0 +1,454 @@
+{
+ "schema_version": 2,
+ "rules_version": "0.3-provisional",
+ "scenario_id": "G-test",
+ "seed": 0,
+ "preset": "fixture",
+ "shift_ticks": 90,
+ "factors": [
+  "F1",
+  "F2",
+  "F3",
+  "F4"
+ ],
+ "network": {
+  "terminals": [
+   {
+    "id": "TA",
+    "tracks": [
+     {
+      "id": "P1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "P2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "TB",
+    "tracks": [
+     {
+      "id": "P1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "P2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "TC",
+    "tracks": [
+     {
+      "id": "P1",
+      "length_m": 300,
+      "kind": "platform"
+     }
+    ]
+   },
+   {
+    "id": "TD",
+    "tracks": [
+     {
+      "id": "P1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "P2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   }
+  ],
+  "stations": [
+   {
+    "id": "A1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "J1",
+    "major": true,
+    "crew_station": true,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "M1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "Y1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "X1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "M2",
+    "major": true,
+    "crew_station": true,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "J2",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "B1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "C1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   },
+   {
+    "id": "D1",
+    "major": true,
+    "crew_station": false,
+    "loops": [
+     {
+      "id": "L1",
+      "length_m": 300,
+      "kind": "platform"
+     },
+     {
+      "id": "L2",
+      "length_m": 700,
+      "kind": "goods"
+     }
+    ]
+   }
+  ],
+  "sections": [
+   {
+    "id": "TA-A1",
+    "west": "TA",
+    "east": "A1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "A1-J1",
+    "west": "A1",
+    "east": "J1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "J1-M1",
+    "west": "J1",
+    "east": "M1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "M1-Y1",
+    "west": "M1",
+    "east": "Y1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "Y1-M2",
+    "west": "Y1",
+    "east": "M2",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "M2-J2",
+    "west": "M2",
+    "east": "J2",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "J2-B1",
+    "west": "J2",
+    "east": "B1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "B1-TB",
+    "west": "B1",
+    "east": "TB",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "TC-C1",
+    "west": "TC",
+    "east": "C1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "C1-J1",
+    "west": "C1",
+    "east": "J1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "M1-X1",
+    "west": "M1",
+    "east": "X1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "X1-M2",
+    "west": "X1",
+    "east": "M2",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "J2-D1",
+    "west": "J2",
+    "east": "D1",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   },
+   {
+    "id": "D1-TD",
+    "west": "D1",
+    "east": "TD",
+    "length_m": 5000,
+    "line_speed_kmh": 100
+   }
+  ]
+ },
+ "trains": [
+  {
+   "id": "E1",
+   "type": "express",
+   "origin": "TA",
+   "destination": "TB",
+   "route": [
+    "TA",
+    "A1",
+    "J1",
+    "M1",
+    "Y1",
+    "M2",
+    "J2",
+    "B1",
+    "TB"
+   ],
+   "pax": 300,
+   "entry_tick": 0,
+   "stops": [
+    {
+     "station": "J1",
+     "arr": 7,
+     "dep": 8,
+     "min_dwell": 1,
+     "alight": 50,
+     "board": 20
+    },
+    {
+     "station": "M2",
+     "arr": 19,
+     "dep": 20,
+     "min_dwell": 1,
+     "alight": 100,
+     "board": 30
+    },
+    {
+     "station": "TB",
+     "arr": 30,
+     "dep": null,
+     "min_dwell": 0,
+     "alight": 200
+    }
+   ],
+   "next_service": null,
+   "crew_used_at_entry": 0
+  },
+  {
+   "id": "F1",
+   "type": "freight",
+   "origin": "TB",
+   "destination": "TA",
+   "route": [
+    "TB",
+    "B1",
+    "J2",
+    "M2",
+    "Y1",
+    "M1",
+    "J1",
+    "A1",
+    "TA"
+   ],
+   "pax": 0,
+   "entry_tick": 0,
+   "stops": [
+    {
+     "station": "TA",
+     "arr": 40,
+     "dep": null,
+     "min_dwell": 0
+    }
+   ],
+   "next_service": null,
+   "crew_used_at_entry": 0
+  },
+  {
+   "id": "L1",
+   "type": "local",
+   "origin": "TC",
+   "destination": "TD",
+   "route": [
+    "TC",
+    "C1",
+    "J1",
+    "M1",
+    "Y1",
+    "M2",
+    "J2",
+    "D1",
+    "TD"
+   ],
+   "pax": 80,
+   "entry_tick": 0,
+   "stops": [
+    {
+     "station": "J1",
+     "arr": 8,
+     "dep": 9,
+     "min_dwell": 1
+    },
+    {
+     "station": "M2",
+     "arr": 20,
+     "dep": 21,
+     "min_dwell": 1
+    },
+    {
+     "station": "TD",
+     "arr": 32,
+     "dep": null,
+     "min_dwell": 0
+    }
+   ],
+   "next_service": null,
+   "crew_used_at_entry": 0
+  }
+ ],
+ "events": []
+}

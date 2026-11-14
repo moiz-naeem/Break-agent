@@ -22,7 +22,7 @@ from railway.sim.constants import TOOL_BUDGET
 from railway.util import content_hash
 
 MAX_STRIKES = 3
-COUNT_FIELDS = ("gridlocks", "crew_timeouts", "reversals", "refusals", "invalid_calls", "decision_points")
+COUNT_FIELDS = ("gridlocks", "crew_timeouts", "misroutes", "missed_calls", "refusals", "invalid_calls", "decision_points")
 
 
 @dataclass
@@ -42,13 +42,15 @@ class EpisodeRecord:
     cost_total: float | None = None
     cost_by_component: dict | None = None
     c_greedy: float | None = None
-    c_ref: float | None = None
+    c_best: float | None = None
     score_clipped: float | None = None
     score_unclipped: float | None = None
     cost_ratio: float | None = None
     gridlocks: int | None = None
     crew_timeouts: int | None = None
-    reversals: int | None = None
+    misroutes: int | None = None
+    missed_calls: int | None = None
+    kpis: dict | None = None
     unfinished: int | None = None
     refusals: int | None = None
     invalid_calls: int | None = None
@@ -161,11 +163,13 @@ def _record_outcome(rec: EpisodeRecord, session, final, score_fn) -> None:
         kpi_counts = {}
     for key in COUNT_FIELDS:
         setattr(rec, key, counts.get(key, kpi_counts.get(key)))
-    rec.unfinished = counts["unfinished"] if "unfinished" in counts else _unfinished(session)
-    if rec.c_ref:
-        rec.cost_ratio = rec.cost_total / rec.c_ref
-    if score_fn is not None and rec.c_greedy is not None and rec.c_ref is not None:
-        rec.score_clipped, rec.score_unclipped = normalize_reward(score_fn(rec.c_greedy, rec.c_ref, rec.cost_total))
+    rec.unfinished = counts["unfinished_trains"] if "unfinished_trains" in counts else _unfinished(session)
+    kpis = _get(final, "kpis")
+    rec.kpis = dict(kpis) if kpis else None
+    if rec.c_best:
+        rec.cost_ratio = rec.cost_total / rec.c_best
+    if score_fn is not None and rec.c_greedy is not None and rec.c_best is not None:
+        rec.score_clipped, rec.score_unclipped = normalize_reward(score_fn(rec.c_greedy, rec.c_best, rec.cost_total))
 
 
 def _loop(rec, session, model_client, mode, system, tools, max_turns):
@@ -224,14 +228,14 @@ def play_episode(
     model: str | None = None,
     rep: int = 0,
     c_greedy: float | None = None,
-    c_ref: float | None = None,
+    c_best: float | None = None,
     score_fn=None,
 ) -> EpisodeRecord:
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}, not {mode!r}")
     start = time.monotonic()
     rec = EpisodeRecord(
-        run=run, mode=mode, model=model, rep=rep, c_greedy=c_greedy, c_ref=c_ref, **scenario_meta(scenario)
+        run=run, mode=mode, model=model, rep=rep, c_greedy=c_greedy, c_best=c_best, **scenario_meta(scenario)
     )
     if session is None:
         session = make_session(scenario, disabled=disabled, diagnostics=diagnostics, session_cls=session_cls)

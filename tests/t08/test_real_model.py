@@ -21,7 +21,7 @@ def test_T08_M1_real_model_smoke():
 
     ep = episodes_from_scenarios("T1", "dev", 1)[0]
     client = ModelClient(base_url, name, os.environ.get("MODEL_SMOKE_KEY_ENV"))
-    rec = play_episode(ep.scenario, client, "windowed", c_greedy=ep.c_greedy, c_ref=ep.c_ref, score_fn=reward_from_t07)
+    rec = play_episode(ep.scenario, client, "windowed", c_greedy=ep.c_greedy, c_best=ep.c_best, score_fn=reward_from_t07)
     assert rec.status == "ok", rec.error
     assert rec.tool_calls >= 5
     assert 0.0 <= rec.score_clipped <= 1.0

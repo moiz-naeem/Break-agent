@@ -50,7 +50,7 @@ SPIKE_HOSTS: tuple[str, ...] = ()
 # Vendored subsets of `railway/` (ticket §2.3): package-level modules + subpackages.
 VENDOR_MODULES = ("__init__.py", "util.py")
 SIM_PACKAGES = ("sim", "tools", "server")
-TESTS_PACKAGES = ("sim", "tools")
+TESTS_PACKAGES = ("sim", "tools", "policies")  # policies: the verifier re-runs greedy
 SOLUTION_PACKAGES = ("sim", "tools", "ref", "policies")
 
 # Roots of the image requirement closure (uv.lock); uvicorn/starlette arrive through mcp.
@@ -297,6 +297,7 @@ def export_task(
         if abs(replay_plan(Scenario.model_validate(scenario), plan) - entry["c_best"]) > 1e-6:
             raise ValueError(f"{entry['scenario_id']}: the given plan does not reach c_best")
     _write(solution / "plan.json", canonical_json(plan))
+    _write(tests / "plan.json", canonical_json(plan))  # the verifier replays it to re-derive C_best
     vendor(solution / "railway", SOLUTION_PACKAGES)
 
 

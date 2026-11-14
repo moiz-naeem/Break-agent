@@ -45,16 +45,23 @@ def do_nothing_cost(scenario: dict) -> float:
 
 
 def fixture_anchors(scenario: dict) -> dict:
-    """Test anchors: C_greedy = do-nothing cost, C_ref = cost of `scripted_plan` (via the fake log)."""
-    plan = scripted_plan(scenario)
-    c_ref = play(scenario, plan)["final_cost"]
-    return norm_entry(scenario, c_greedy=do_nothing_cost(scenario), c_ref=c_ref, plan=plan)
+    """Real anchors, as the verifier re-derives them: C_greedy from greedy, C_best from the best plan."""
+    from railway.policies.baselines import Greedy
+    from railway.policies.runner import run_policy
+    from railway.ref.best import best_plan
+    from railway.sim.model import Scenario
+
+    sc = Scenario.model_validate(scenario)
+    best = best_plan(sc)
+    entry = norm_entry(scenario, c_greedy=run_policy(Greedy(), sc).final.cost.total, c_ref=best.cost)
+    entry.update(best_source=best.source, best_proven=best.proven, plan=best.plan)
+    return entry
 
 
 @pytest.fixture(scope="session")
 def fixture_items() -> list[tuple[dict, dict]]:
     items = []
-    for name in ("mini3", "mini2_gridlock"):
+    for name in ("mini3", "graph_mini"):  # the other fixtures have no headroom: greedy is already optimal
         scenario = load_fixture(name)
         items.append((scenario, fixture_anchors(scenario)))
     return items

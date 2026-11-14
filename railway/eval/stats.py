@@ -47,7 +47,7 @@ class _Seeds:
         cg, cr, ca, clipped, unclipped = [], [], [], [], []
         for sid in self.ids:
             reps = by_seed[sid]
-            g, c = float(reps[0]["c_greedy"]), float(reps[0]["c_ref"])
+            g, c = float(reps[0]["c_greedy"]), float(reps[0]["c_best"])
             costs = np.array([float(r["cost_total"]) for r in reps])
             u = (g - costs) / (g - c)
             cg.append(g)
@@ -106,7 +106,7 @@ def flagged(rows) -> list[str]:
     """Seeds where any ok rep scores above 1.0 unclipped (the reference erred, or the gap claim is wrong)."""
     out = []
     for sid, reps in _Seeds(dedupe(rows)).by_seed.items():
-        if any((r["c_greedy"] - r["cost_total"]) / (r["c_greedy"] - r["c_ref"]) > 1.0 for r in reps):
+        if any((r["c_greedy"] - r["cost_total"]) / (r["c_greedy"] - r["c_best"]) > 1.0 for r in reps):
             out.append(sid)
     return sorted(out)
 

@@ -99,7 +99,7 @@ class FakeSession:
         self.counts = {
             "gridlocks": 0,
             "crew_timeouts": 0,
-            "reversals": 0,
+            "misroutes": 0,
             "refusals": 0,
             "invalid_calls": 0,
             "decision_points": 0,
@@ -229,6 +229,6 @@ def fake_decide(static, state):
     return calls
 
 
-def fake_reward_from(c_greedy: float, c_ref: float, c_agent: float) -> dict:
-    u = (c_greedy - c_agent) / (c_greedy - c_ref)
-    return {"reward": min(1.0, max(0.0, u)), "score_unclipped": u, "above_reference": u > 1.0}
+def fake_reward_from(c_greedy: float, c_best: float, c_agent: float) -> dict:
+    u = (c_greedy - c_agent) / (c_greedy - c_best)
+    return {"reward": min(1.0, max(0.0, u)), "score_unclipped": u, "above_best": u > 1.0}

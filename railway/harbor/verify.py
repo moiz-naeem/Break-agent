@@ -167,6 +167,32 @@ def load_norm(path: Path, scenario: dict) -> dict:
     return norm
 
 
+def recompute_anchors(scenario: dict, plan_path: Path, norm: dict) -> None:
+    """Re-derive both anchors from the frozen scenario: C_greedy by running greedy, C_best by replaying the
+    stored best plan. norm.json is then only a cache: a task whose numbers were edited fails as infra."""
+    from railway.policies.baselines import Greedy
+    from railway.sim.model import Scenario
+    from railway.tools.client import InProcClient
+    from railway.tools.session import Session
+
+    try:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        raise Infra("missing or corrupt plan.json") from None
+    sc = Scenario.model_validate(scenario)
+    session = Session(sc)
+    Greedy().run(InProcClient(session))
+    c_greedy = session.close().cost.total
+    session = Session(sc)
+    for call in plan:
+        if session.closed:
+            break
+        session.call(call["tool"], call["args"])
+    c_best = session.close().cost.total
+    if abs(c_greedy - norm["c_greedy"]) > TOLERANCE or abs(c_best - norm["c_best"]) > TOLERANCE:
+        raise Infra("bad norm.json: anchors do not match the scenario")
+
+
 def tool_calls(log: dict) -> int:
     """Budgeted calls: every logged call except those refused because the shift had already ended."""
     return sum(1 for e in log["entries"] if e["rule"] != SHIFT_ENDED)
@@ -273,6 +299,7 @@ def verify(args: argparse.Namespace) -> Score:
 
     scenario = json.loads((tests / "scenario.json").read_text(encoding="utf-8"))
     norm = load_norm(tests / "norm.json", scenario)
+    recompute_anchors(scenario, tests / "plan.json", norm)
     token = (tests / "token").read_text(encoding="utf-8").strip()
     if not token:
         raise Infra("empty token")

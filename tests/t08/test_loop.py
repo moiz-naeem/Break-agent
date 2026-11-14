@@ -30,13 +30,13 @@ RESULT_FIELDS = [
     "cost_total",
     "cost_by_component",
     "c_greedy",
-    "c_ref",
+    "c_best",
     "score_clipped",
     "score_unclipped",
     "cost_ratio",
     "gridlocks",
     "crew_timeouts",
-    "reversals",
+    "misroutes",
     "unfinished",
     "refusals",
     "invalid_calls",
@@ -108,7 +108,7 @@ def test_T08_11_fake_reference_equals_reference():
     for ep in _t1_dev(2):
         rec = _play_policy(ep.scenario, session_cls(ep.scenario), ref.Reference().decide)
         assert rec.status == "ok"
-        assert rec.cost_total == ep.c_ref
+        assert rec.cost_total == ep.c_best
 
 
 def test_T08_12_prose_three_strikes(session_cls, mini3):

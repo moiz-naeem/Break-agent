@@ -34,7 +34,7 @@ def session_cls(request):
     return real_session_cls()
 
 
-def make_dataset(root: Path, n: int, c_greedy: float = 1300.0, c_ref: float = 100.0) -> Path:
+def make_dataset(root: Path, n: int, c_greedy: float = 1300.0, c_best: float = 100.0) -> Path:
     """A loop-harness dataset of n mini3 variants: <root>/<scenario_id>/tests/{scenario.json,norm.json}."""
     root.mkdir(parents=True, exist_ok=True)
     base = load_fixture("mini3")
@@ -48,7 +48,7 @@ def make_dataset(root: Path, n: int, c_greedy: float = 1300.0, c_ref: float = 10
             "scenario_hash": content_hash(sc),
             "rules_version": sc["rules_version"],
             "c_greedy": c_greedy,
-            "c_ref": c_ref,
+            "c_best": c_best,
         }
         (tests / "norm.json").write_text(json.dumps(norm), encoding="utf-8")
     return root

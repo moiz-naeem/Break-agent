@@ -101,8 +101,21 @@ def task(mini3_export, tmp_path) -> Task:
 
 @pytest.fixture(scope="session")
 def plan_log() -> dict:
+    """The best plan's own episode: it must score exactly 1."""
     scenario = load_fixture("mini3")
-    return play(scenario, scripted_plan(scenario))
+    return play(scenario, [(c["tool"], c["args"]) for c in fixture_anchors(scenario)["plan"]])
+
+
+@pytest.fixture(scope="session")
+def reference_log() -> dict:
+    """The scripted reference's episode on mini3: between greedy (6.5) and the best plan (2.0)."""
+    from railway.policies.runner import run_policy
+    from railway.ref.reference import Reference
+    from railway.sim.model import Scenario
+
+    scenario = load_fixture("mini3")
+    run = run_policy(Reference(), Scenario.model_validate(scenario))
+    return play(scenario, [(e["tool"], e["args"]) for e in run.log])
 
 
 # ---------------------------------------------------------------- scoring through the fake sim
@@ -114,12 +127,11 @@ def test_T07_11f_anchor_plan_scores_one_fake_sim(task, plan_log):
     assert d["above_best"] is False
 
 
-def test_T07_12f_partial_plan_scores_between_fake_sim(task, plan_log):
-    calls = [(e["tool"], e["args"]) for e in plan_log["entries"]]
-    log = play(task.scenario, [*calls[:2], ("end_shift", {})])
+def test_T07_12f_partial_plan_scores_between_fake_sim(task, reference_log):
+    log = reference_log
     c_greedy, c_best, c_agent = task.norm["c_greedy"], task.norm["c_best"], log["final_cost"]
     u = (c_greedy - c_agent) / (c_greedy - c_best)
-    assert 0.0 < u < 1.0, "fixture plan prefix should land strictly between the anchors"
+    assert 0.0 < u < 1.0, "the reference should land strictly between the anchors"
     d = task.expect_reward(task.verify(log), f"{u:.6f}\n")
     assert d["score_unclipped"] == pytest.approx(u, abs=1e-12)
     assert d["cost_total"] == c_agent
@@ -128,7 +140,7 @@ def test_T07_12f_partial_plan_scores_between_fake_sim(task, plan_log):
 @pytest.mark.parametrize("calls", [[], [("end_shift", {})]], ids=["no-calls", "end-shift-at-once"])
 def test_T07_13f_do_nothing_and_stop_early_zero_fake_sim(task, calls):
     d = task.expect_reward(task.verify(play(task.scenario, calls)), "0.000000\n")
-    assert d["score_unclipped"] == 0.0
+    assert d["score_unclipped"] < 0.0  # far worse than greedy
     assert d["tool_calls"] == len(calls)
 
 
@@ -388,7 +400,7 @@ def test_T07_12_greedy_scores_zero(real_task, tmp_path):
 
     t = _run_real(real_task, tmp_path, Greedy())
     d = t.expect_reward(t.last, "0.000000\n")
-    assert d["score_unclipped"] == 0.0
+    assert d["score_unclipped"] < 0.0  # far worse than greedy
 
 
 def test_T07_13_do_nothing_and_stop_early_zero(real_task, tmp_path):
@@ -411,3 +423,20 @@ def test_T07_14_details_shape(real_task, tmp_path):
     log = json.loads((t.logs / "action_log.json").read_text(encoding="utf-8"))
     assert log["closed"] is True and log["final_cost"] == d["cost_total"]
     assert not (t.logs / "reward.json").exists()
+
+
+def test_T07_22b_consistently_patched_norm_is_infra(tmp_path, mini3_export, plan_log):
+    """Red-team finding (patched_norm): a norm.json whose anchors were edited, but still valid on its own,
+    used to turn a greedy episode into ~1.0. The verifier now re-derives both anchors and refuses it."""
+    import shutil
+
+    root = tmp_path / "task"
+    shutil.copytree(mini3_export, root)
+    norm_path = root / "tests" / "norm.json"
+    norm = json.loads(norm_path.read_text(encoding="utf-8"))
+    norm["c_greedy"] = norm["c_greedy"] * 1000
+    norm_path.write_text(json.dumps(norm), encoding="utf-8")
+    logs = tmp_path / "verifier"
+    logs.mkdir()
+    t = Task(root, logs)
+    t.expect_no_reward(t.verify(plan_log), "INFRA: bad norm.json: anchors do not match")

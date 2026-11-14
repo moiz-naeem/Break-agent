@@ -11,7 +11,7 @@ from railway.sim.engine import Simulator
 from railway.sim.timing import travel_ticks
 
 
-@pytest.mark.parametrize("preset", ["T1", "T2", "T2-S14", "T3"])
+@pytest.mark.parametrize("preset", ["C1", "C2", "C2-S14", "C3"])
 @settings(max_examples=50, deadline=None)
 @given(seed=st.integers(min_value=0, max_value=999_999))
 def test_T04_16_to_24_generated_invariants(preset, seed):
@@ -116,6 +116,6 @@ def test_T04_16_to_24_generated_invariants(preset, seed):
 
 
 def test_T04_20_factor_off_has_no_crew_station_or_events():
-    scenario = generate(PRESETS["T1"], 5)
+    scenario = generate(PRESETS["C1"], 5)
     assert not any(station.crew_station for station in scenario.network.stations)
     assert not scenario.events

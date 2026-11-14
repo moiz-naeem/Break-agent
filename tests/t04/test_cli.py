@@ -23,7 +23,7 @@ def test_T04_29_describe_summarizes_counts(tmp_path):
     run_cli("sample", "--config", "T2", "--seed", "7", "--out", str(output)).check_returncode()
     result = run_cli("describe", str(output))
     assert result.returncode == 0
-    assert "12 stations" in result.stdout
+    assert "16 stations" in result.stdout
     assert f"{PRESETS['T2'].trains} trains" in result.stdout
     assert "possession=" in result.stdout and "speed_restriction=" in result.stdout
 
@@ -31,7 +31,7 @@ def test_T04_29_describe_summarizes_counts(tmp_path):
 def test_T04_30_bad_preset_lists_valid_names(tmp_path):
     result = run_cli("sample", "--config", "T9", "--seed", "5", "--out", str(tmp_path / "x"))
     assert result.returncode != 0
-    assert "T1" in result.stderr and "T2-S14" in result.stderr
+    assert "T1" in result.stderr and "T2-X" in result.stderr
 
 
 def test_T04_26_candidates_print_in_order():
