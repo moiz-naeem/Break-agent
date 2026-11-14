@@ -148,11 +148,11 @@ class _Writer:
 
 
 def _default_client_factory(manifest: Manifest):
-    from railway.loop.model_client import ModelClient
+    from railway.loop.providers import make_client
 
     def factory(session, episode):
         m = manifest.model
-        return ModelClient(
+        return make_client(
             m.base_url, m.name, m.api_key_env, temperature=manifest.temperature, max_tokens=manifest.max_tokens
         )
 
@@ -163,9 +163,11 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
     deps = deps or LoopDeps()
     if manifest.dataset is not None:
         episodes = episodes_from_dataset(manifest.dataset)
+        seed_set = Path(manifest.dataset).name
     else:
         sc = manifest.scenarios
         episodes = episodes_from_scenarios(sc.preset, sc.set, sc.count)
+        seed_set = sc.set
     session_cls = deps.session_cls
     if session_cls is None:
         from railway.tools.session import Session as session_cls
@@ -182,6 +184,11 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
     done = _done_pairs(out)
     todo = [(ep, rep) for ep in episodes for rep in range(manifest.reps) if (ep.scenario.scenario_id, rep) not in done]
     transcripts = results_dir / manifest.name / "transcripts"
+    bundle_root = (
+        Path(os.environ["RAILWAY_TRANSCRIPTS_DIR"])
+        if os.environ.get("RAILWAY_TRANSCRIPTS_DIR")
+        else (results_dir / "bundles")
+    )
     writer = _Writer(out)
 
     def one(item):
@@ -201,6 +208,8 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
                 session=session,
                 instruction=instruction,
                 transcript_path=transcripts / f"{sid}-r{rep}.jsonl",
+                transcript_root=bundle_root,
+                seed_set=seed_set,
                 run=manifest.name,
                 model=manifest.model.id,
                 rep=rep,

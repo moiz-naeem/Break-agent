@@ -175,8 +175,10 @@ def test_T08_15_record_fields(session_cls, mini3, tmp_path):
     assert row["cost_by_component"]["total"] == row["cost_total"] == DO_NOTHING_MINI3
     assert row["unfinished"] == 3
     lines = path.read_text(encoding="utf-8").splitlines()
-    assert len(lines) == len(requests) == 3
-    turns = [json.loads(line) for line in lines]
+    records = [json.loads(line) for line in lines]
+    assert records[0]["type"] == "header" and records[-1]["type"] == "footer"
+    turns = [r for r in records if r.get("type") == "turn"]
+    assert len(turns) == len(requests) == 3
     assert [t["executed"]["tool"] for t in turns] == ["notes", "kpis", "end_shift"]
 
 

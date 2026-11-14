@@ -38,17 +38,28 @@ def render_current(status_compact: str, bulletins: str, notes: str, used: int, t
     return f"{FORMAT_ERROR}\n{body}" if error else body
 
 
-def turn_messages(index: int, name: str, arguments_raw: str, output: str) -> tuple[dict, dict]:
+def turn_messages(
+    index: int,
+    name: str,
+    arguments_raw: str,
+    output: str,
+    *,
+    provider_blocks: list[dict] | None = None,
+) -> tuple[dict, dict]:
     """One turn = the assistant tool-call message + its tool-result message.
 
     Call ids are renumbered `call_<index>` so the prompt doesn't depend on the provider's ids.
+    When `provider_blocks` is set (e.g. Claude's signed thinking blocks or Gemini's parts with
+    `thoughtSignature`), native clients read it back while OpenAI-compatible clients strip it.
     """
     call_id = f"call_{index}"
-    assistant = {
+    assistant: dict = {
         "role": "assistant",
         "content": None,
         "tool_calls": [{"id": call_id, "type": "function", "function": {"name": name, "arguments": arguments_raw}}],
     }
+    if provider_blocks is not None:
+        assistant["provider_blocks"] = provider_blocks
     return assistant, {"role": "tool", "tool_call_id": call_id, "content": output}
 
 
