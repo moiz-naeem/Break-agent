@@ -167,8 +167,9 @@ station left without service is never cheaper than a late one.
 
 ## Score
 
-Your score compares your total cost with a simple greedy dispatcher (score 0) and the
-best plan known for this shift (score 1). Doing no better than greedy scores 0.
+Your reward is minus your total cost: every unit of cost above lowers it by one. Nothing else
+counts. Reports also show where you land between a simple greedy dispatcher and the best plan
+known for this shift.
 
 ## Budgets and ending
 

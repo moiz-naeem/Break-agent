@@ -1,8 +1,8 @@
 """Harbor verifier for one railway task (ticket T07 §2.6; DESIGN.md §8.3; v0.3 reward, docs/design-changes-v0.3.md §2).
 
-Reward = max(0, (C_greedy − C_agent) / (C_greedy − C_best)): 0 is greedy or worse, 1 the best plan known for
-the task (`tests/norm.json`). There is no clip at the top: a score above 1 means the agent beat the best known
-plan, and is flagged in details.json so the anchor can be updated (with a new norm_version).
+Reward = −(C1 + C2 + C3 + C4 + C5), minus the episode's total cost (reward.txt). details.json also carries a
+report-only normalised score, (C_greedy − C_agent) / (C_greedy − C_best), against the greedy and best-known
+anchors in `tests/norm.json`; above 1 means the agent beat the best known plan, and is flagged.
 
 Vendored as `<task>/tests/verify.py` next to `tests/railway/` (util, sim, tools), `scenario.json`, `norm.json`
 and `token`; Harbor runs it from `tests/test.sh` in the main container after the agent has finished.
@@ -70,18 +70,22 @@ class Mismatch(VerifyError):
 
 @dataclass(frozen=True)
 class Score:
-    reward: float
-    score_unclipped: float
+    reward: float  # −(C1 + C2 + C3 + C4 + C5): what reward.txt holds
+    score_normalized: float  # report only: max(0, u)
+    score_unclipped: float  # report only: u = (C_greedy − C_agent) / (C_greedy − C_best)
     above_best: bool
 
 
 def reward_from(c_greedy: float, c_best: float, c_agent: float) -> Score:
-    """u = (C_greedy − C_agent) / (C_greedy − C_best); reward = max(0, u). Above 1 is kept and flagged."""
+    """The reward is minus the episode's total cost. The greedy and best-plan anchors only feed the
+    report-only normalised score, which makes tasks of different size comparable when averaging."""
     gap = c_greedy - c_best
     if not (gap > 0 and math.isfinite(gap)):
         raise ValueError(f"need c_greedy > c_best, got {c_greedy} and {c_best}")
     u = (c_greedy - c_agent) / gap
-    return Score(reward=max(0.0, u), score_unclipped=u, above_best=u > 1.0 + TOLERANCE)
+    return Score(
+        reward=round(-c_agent, 6), score_normalized=max(0.0, u), score_unclipped=u, above_best=u > 1.0 + TOLERANCE
+    )
 
 
 # ---------------------------------------------------------------- fetch
@@ -326,6 +330,7 @@ def verify(args: argparse.Namespace) -> Score:
         "best_proven": norm["best_proven"],
         "norm_version": norm["norm_version"],
         "score_unclipped": score.score_unclipped,
+        "score_normalized": score.score_normalized,
         "reward": score.reward,
         "above_best": score.above_best,
         "counts": {k: counts[k] for k in COUNT_KEYS},
@@ -371,7 +376,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:  # a crash is a trial error, never a 0; keep the message free of secrets
         print(f"INFRA: verifier error ({type(e).__name__})")
         return 1
-    print(f"reward {score.reward:.6f} (unclipped {score.score_unclipped:.6f})")
+    print(f"reward {score.reward:.6f} (normalised {score.score_unclipped:.6f})")
     return 0
 
 
