@@ -37,7 +37,7 @@ if modal.is_local():
     REPO = Path(__file__).resolve().parents[2]
     source = Path(tempfile.mkdtemp(prefix="railway-bench-v03-"))
     archive = subprocess.run(
-        ["git", "-C", str(REPO), "archive", "HEAD", "railway", "seeds", "datasets", "infra", "tests", "runs", "pyproject.toml"],
+        ["git", "-C", str(REPO), "archive", "HEAD", "railway", "seeds", "datasets", "infra", "tests", "runs", "pyproject.toml", "uv.lock"],
         capture_output=True,
         check=True,
     )

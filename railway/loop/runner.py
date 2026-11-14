@@ -301,7 +301,7 @@ def build_position_segments(scenario, session) -> list[dict]:
                 "origin": tdef.origin,
                 "destination": tdef.destination,
                 "entry_tick": tdef.entry_tick,
-                "route": list(tdef.route),
+                "route": list(tdef.route or []),
                 "outcome": tstate.outcome if tstate else None,
                 "finished_tick": tstate.finished_tick if tstate else None,
                 "delay": tstate.delay if tstate else 0,
