@@ -108,7 +108,7 @@ class Interlocking:
         self.holder: dict[Resource, str] = {}
         self.directions: dict[str, dict[str, Travel]] = {}  # track id -> {train id: travel}
 
-    def _entering(self, start_node: str, steps: list[Step]) -> bool:
+    def entering(self, start_node: str, steps: list[Step]) -> bool:
         # An entering train takes its whole entry track; step_block frees each block behind it as it runs on.
         node = self.net.node(start_node)
         return isinstance(steps[0].element, Track) and node is not None and node.kind == "portal"
@@ -127,7 +127,7 @@ class Interlocking:
                     if c in self.holder:
                         holder = self.holder[c]
                         yield NetRule.MOVE_CONFLICT, f"{el.id} conflicts with {c}, set for {holder}", holder
-        for resource, (el, _) in claims(steps, self._entering(start_node, steps)):
+        for resource, (el, _) in claims(steps, self.entering(start_node, steps)):
             other = self.holder.get(resource)
             if other not in (None, train.id):
                 if isinstance(el, Track):
@@ -177,7 +177,7 @@ class Interlocking:
         steps = self.check(train, start_node, elements)
         if isinstance(steps, Refusal):
             return steps
-        for resource, (el, travel) in claims(steps, self._entering(start_node, steps)):
+        for resource, (el, travel) in claims(steps, self.entering(start_node, steps)):
             self.holder[resource] = train.id
             if isinstance(el, Track):
                 self.directions.setdefault(el.id, {})[train.id] = travel

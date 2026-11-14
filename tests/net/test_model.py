@@ -19,8 +19,8 @@ def by_id(items, item_id):
 
 def test_t1_template_is_valid():
     assert (len(NET.nodes), len(NET.tracks), len(NET.platforms), len(NET.moves)) == (9, 13, 12, 32)
-    assert NET.element("JA-B.u").blocks == 8  # 15 km in 2 km blocks
-    assert NET.element("A-JA.u").blocks == 2
+    assert NET.element("JA-B.u").blocks == 5  # 15 km in 3 km blocks on a 160 km/h line
+    assert NET.element("A-JA.u").blocks == 2  # 4 km in 3 km blocks
     assert not NET.element("JB-PORT").electrified
     assert NET.element("nope") is None and NET.node("PW").kind == "portal"
 

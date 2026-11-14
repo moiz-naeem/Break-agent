@@ -23,7 +23,7 @@ def rule(result):
 def test_entry_into_platform_and_conflicting_crossover():
     il = Interlocking(NET)
     assert il.lock(IC, "PW", ["PW-A.u", "A.w1", "A1"]) is None
-    assert il.holder["A1"] == "IC1" and il.holder[("PW-A.u", 5)] == "IC1"  # entering takes the whole entry track
+    assert il.holder["A1"] == "IC1" and il.holder[("PW-A.u", 3)] == "IC1"  # entering takes the whole entry track
     assert rule(il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"])) == NetRule.MOVE_CONFLICT
     il.release("IC1", "A.w1")
     assert rule(il.lock(S, "PW", ["PW-A.u", "A.w3", "A2"])) == NetRule.BLOCK_OCCUPIED  # IC1 still on PW-A.u

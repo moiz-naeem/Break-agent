@@ -74,12 +74,38 @@ class Move(NetModel):
 
 
 class TrainSpec(NetModel):
-    """What the interlocking needs to know about a train; the full train model comes with the timetable."""
+    """A train as the interlocking and the engine see it. The generator (step 3) fills these from §3's type table."""
 
     id: str
     length_m: int = Field(gt=0)
     electric: bool
     passenger: bool
+    max_speed_kmh: int = Field(default=120, gt=0)
+    restart_min: int = Field(default=1, ge=0)  # extra minutes to get going after an unplanned stop
+
+
+class Call(NetModel):
+    """A scheduled stop. `arrive` is None at the origin, `depart` at the destination."""
+
+    platform: str
+    arrive: int | None = None
+    depart: int | None = None
+    min_dwell: int = Field(default=1, ge=0)
+
+
+class Trip(NetModel):
+    """One train's work for the shift: where it starts and the calls it must make, in order."""
+
+    train: TrainSpec
+    calls: tuple[Call, ...] = Field(min_length=2)
+    entry_node: str | None = None  # portal it enters from; None means it starts standing at calls[0]
+    entry_tick: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def valid_trip(self):
+        if self.calls[0].depart is None or self.calls[-1].arrive is None:
+            raise ValueError(f"trip {self.train.id}: the origin needs a departure and the destination an arrival")
+        return self
 
 
 class Network(NetModel):
