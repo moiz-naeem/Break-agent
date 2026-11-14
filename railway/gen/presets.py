@@ -39,3 +39,8 @@ PRESETS = {
         shift_ticks=720,
     ),
 }
+
+# T09 factor ablation: T2 with the four core factors plus exactly one other.
+for _factor in ("F5", "F6", "F7", "F8", "F10", "F15", "F16"):
+    _name = f"T2-only-{_factor}"
+    PRESETS[_name] = PRESETS["T2"].model_copy(update={"preset": _name, "factors": sorted([*CORE_FACTORS, _factor])})
