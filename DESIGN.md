@@ -199,7 +199,7 @@ restrictions: possession S9-S10 170-200
 
 ## 6. Reward
 
-> The v0.3 reward (§6.6) replaces §6.1 and §6.2 once the graph network is implemented.
+> v0.3 (branch `v03`) implements §6.6, which replaces §6.1 and §6.2: the reward is −C, minus the total cost.
 
 ### 6.1 Cost (weighted minutes)
 Charged as events happen (visible in `kpis()`):
@@ -218,7 +218,11 @@ These weights are provisional. **They are frozen at the end of the pilot** and n
 changed in response to held-out results.
 
 ### 6.2 Score
-The official per-task reward anchors on greedy, so the scale measures dispatching
+
+> **Superseded (v0.2 only).** Since v0.3 the reward is −C, minus the total cost (§6.6). The
+> normalised formula below is not used as a reward anywhere.
+
+The v0.2 per-task reward anchored on greedy, so the scale measured dispatching
 quality rather than "did the trains move at all":
 
 ```
@@ -269,23 +273,24 @@ accepts custom agents easily, they also ship as Harbor agents.
 | Tamper with the score | The verifier re-scores by replaying the action log against `tests/scenario.json`, which arrives only after the agent finishes |
 | Malformed commands | Refused with a reason; no state change; counted as invalid calls |
 
-### 6.6 v0.3 reward (agreed 2026-11-14, not yet implemented)
+### 6.6 v0.3 reward (agreed 2026-11-14, implemented on branch `v03`)
 
 This replaces §6.1 and §6.2 when the graph network lands. Until then, §6.1 and §6.2
 describe the code. It builds on `docs/design-changes-v0.3.md`, which removes reversal
 and the terminus ×2 and anchors on `C_best`.
 
 ```
-reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )        → reward.txt
-C      = C1 + C2 + C3 + C5            (1 unit = 100 passenger-minutes late)
+reward = −C                            → reward.txt
+C      = C1 + C2 + C3 + C4 + C5        (1 unit = 100 passenger-minutes late)
 ```
 
-- **0** means greedy or worse, which includes do-nothing and stop-early. **1** means the
-  best known plan. A score above 1 happens only when the agent beats the best known
-  plan. It is flagged, and that plan becomes the new `C_best`, so the reward stays in
-  [0, 1].
-- The agent is trained and evaluated on this reward. Rollouts worse than greedy all
-  score 0, so during training their unclipped value breaks ties between them.
+- **The reward is minus the total cost. Nothing else is in it** (Anh, 2026-11-14). The agent
+  is trained and evaluated on it.
+- `C_greedy` (a greedy dispatcher) and `C_best` (the best plan known for the task) are
+  reference costs only: the seed filter uses them, the verifier re-derives them, and
+  reports show where a cost lands between them, `(C_greedy − C_agent) / (C_greedy − C_best)`,
+  so tasks of different size can be read side by side. That number is never the reward.
+- C4 (crew timeout, 40) stays; see `docs/design-changes-v0.3.md` §3.5 and §6.
 
 **Lateness curve**, per passenger, used by C1 and C2:
 

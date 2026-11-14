@@ -19,14 +19,21 @@ from tests.t07.conftest import REAL_EXPORT_MODULES, has_module, require_modules,
 
 pytestmark = pytest.mark.harbor
 
-MINI = REPO / "datasets" / "t1-dev-mini"
+MINI = REPO / "datasets" / "t1-dev-v03"
 
 
-def _ok(trials, reward: float) -> None:
+def _ok(trials, expect: str) -> None:
+    """The reward is −cost. `expect`: "best" (the oracle replays the best plan: reward == −c_best) or
+    "below_greedy" (do-nothing, stop-early: reward < −c_greedy)."""
     assert trials
     for t in trials:
         assert not t.errored, t.raw_dir
-        assert t.reward == reward, t.raw_dir
+        d = t.verifier_details
+        assert t.reward == pytest.approx(-d["cost_total"], abs=1e-6), t.raw_dir
+        if expect == "best":
+            assert t.reward == pytest.approx(-d["c_best"], abs=1e-6), t.raw_dir
+        else:
+            assert t.reward < -d["c_greedy"], t.raw_dir
 
 
 def _export(out: Path, preset: str = "T1", count: int = 1, **opts) -> list[Path]:
@@ -38,28 +45,28 @@ def _export(out: Path, preset: str = "T1", count: int = 1, **opts) -> list[Path]
 
 
 def test_T07_H1_oracle_all_tasks():
-    assert MINI.is_dir(), "datasets/t1-dev-mini is exported in T07 (needs T06 accepted lists)"
+    assert MINI.is_dir(), "datasets/t1-dev-v03 is exported from seeds/T1-dev.json"
     trials = harbor_run(MINI, "oracle")
-    assert len(trials) == 3
-    _ok(trials, 1.0)
+    assert len(trials) == 5
+    _ok(trials, "best")
 
 
 def test_T07_H2_nop_zero():
-    _ok(harbor_run(MINI, "nop"), 0.0)  # built-in no-op name from the spike (F-NOP)
+    _ok(harbor_run(MINI, "nop"), "below_greedy")  # built-in no-op name from the spike (F-NOP)
 
 
 def test_T07_H3_stop_early_zero():
     # F-CUSTOM == PASS in the spike, so the agent must exist. Harbor imports it in its own tool env (which has
     # the `harbor` package); this venv doesn't, so check the module is there without importing it.
     assert has_module("railway.harbor.agents")
-    _ok(harbor_run(MINI, "railway.harbor.agents:StopEarlyAgent"), 0.0)
+    _ok(harbor_run(MINI, "railway.harbor.agents:StopEarlyAgent"), "below_greedy")
 
 
 def test_T07_H4_probe_isolation(tmp_path):
     _export(tmp_path / "ds", probe=True)
     probe_task = next(p for p in (tmp_path / "ds").iterdir() if p.name.endswith("-probe"))
     (trial,) = harbor_run(probe_task, "oracle")
-    assert not trial.errored and trial.reward == 1.0
+    assert not trial.errored and trial.reward == pytest.approx(-trial.verifier_details["c_best"], abs=1e-6)
     probe = trial.verifier_details["probe"]
     assert probe["uid"] != "0"
     assert probe["github"] == "unreachable"
@@ -97,12 +104,12 @@ def test_T07_H6_sim_down_is_error(tmp_path):
     shutil.rmtree(task / "environment" / "sim")
     for trial in harbor_run(task, "oracle"):
         assert trial.errored or trial.reward is None
-        assert trial.reward != 0.0
+        assert trial.reward is None
 
 
 def test_T07_H7_t2_oracle(tmp_path):
     (task,) = _export(tmp_path / "ds", preset="T2")
-    _ok(harbor_run(task, "oracle"), 1.0)
+    _ok(harbor_run(task, "oracle"), "best")
 
 
 @pytest.mark.model
@@ -111,5 +118,5 @@ def test_T07_H8_opencode_smoke(tmp_path):
     (task,) = _export(tmp_path / "ds")
     (trial,) = harbor_run(task, "opencode", model=model)
     assert not trial.errored
-    assert 0.0 <= trial.reward <= 1.0
+    assert trial.reward == pytest.approx(-trial.verifier_details["cost_total"], abs=1e-6)
     assert trial.verifier_details["tool_calls"] > 0

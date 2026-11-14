@@ -32,16 +32,17 @@ misroutes (the "30 + lateness" block) are **superseded** and should not be built
 ## 2. Reward (Settled)
 
 ```
-reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )        → reward.txt
+reward = −C = −(C1 + C2 + C3 + C4 + C5)        → reward.txt
 ```
 
-- **`C_best`** is the proven optimum where the exact solver can prove one, otherwise the
-  best known cost, labelled as such in `norm.json`.
-- **0** means greedy or worse, including do-nothing and stop-early. **1** means the best
-  known plan.
-- **Above 1** means the agent beat the best known plan. It is flagged and that plan
-  becomes the new `C_best`. Because this changes earlier scores, `norm.json` carries a
-  version and past results are re-scored when it changes.
+- **The reward is minus the total cost. Nothing else is in it** (Anh, 2026-11-14). Training
+  and evaluation both use it.
+- **`C_greedy` and `C_best` are reference costs, not part of the reward.** `C_best` is the
+  proven optimum where the exact solver can prove one, otherwise the best known cost
+  (labelled in `norm.json`). The seed filter uses both, the verifier re-derives both, and
+  reports show `(C_greedy − C_agent) / (C_greedy − C_best)` so that tasks of different size
+  can be read side by side. Above 1 means the agent beat the best known plan: it is
+  flagged and that plan becomes the new `C_best` (with a new `norm_version`).
 - **The reference dispatcher** becomes a baseline row in the table and stays the
   training teacher.
 - **Reported beside the score:** on-time percentage, weighted passenger delay minutes,
