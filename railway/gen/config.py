@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -19,6 +21,14 @@ class GenConfig(BaseModel):
     rotation_fraction: float = Field(default=0.4, ge=0, le=1)
     tight_crew_fraction: float = Field(default=0.3, ge=0, le=1)
     end_margin: int = Field(default=15, ge=0)  # ticks between the last scheduled arrival and the shift end
+    # v0.3 graph layout (docs/design-changes-v0.3.md §4.2). `stations` counts every station, junctions included.
+    layout: Literal["chain", "graph"] = "chain"
+    branches: int = Field(default=0, ge=0, le=4)
+    bypasses: int = Field(default=0, ge=0, le=2)
+    port: bool = False  # the last branch ends at a freight-only port
+    od_pairs: int = Field(default=4, ge=1)  # directed origin-destination pairs in the timetable
+    trunk_share: float = Field(default=0.7, ge=0, le=1)  # share of trains crossing the middle of the trunk
+    connections: int = Field(default=0, ge=0)  # F11 connections to create
 
     @model_validator(mode="after")
     def validate_config(self):

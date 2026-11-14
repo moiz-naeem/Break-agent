@@ -317,6 +317,10 @@ def _events(config: GenConfig, network: dict, trains: list[dict], seed: int):
 
 
 def generate(config: GenConfig, seed: int) -> Scenario:
+    if config.layout == "graph":
+        from .graph_gen import generate_graph
+
+        return generate_graph(config, seed)
     network = _network(config, seed)
     trains = _trains(config, network, seed)
     if "F6" in config.factors:
