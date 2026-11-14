@@ -382,6 +382,16 @@ def test_T07_11_reference_scores_at_most_one(real_task, tmp_path):
     assert 0.0 <= d["reward"] <= 1.0 and d["above_best"] is False
 
 
+def test_T07_11b_oracle_replays_plan_and_scores_one(real_task, tmp_path):
+    """v0.3 §2.7: the oracle replays solution/plan.json through the real MCP server and scores exactly 1.0."""
+    from railway.ref.oracle import PlanReplay
+
+    plan = json.loads((real_task / "solution" / "plan.json").read_text(encoding="utf-8"))
+    t = _run_real(real_task, tmp_path, PlanReplay(plan))
+    d = t.expect_reward(t.last, "1.000000\n")
+    assert d["score_unclipped"] == 1.0 and d["cost_total"] == d["c_best"] and d["above_best"] is False
+
+
 def test_T07_12_greedy_scores_zero(real_task, tmp_path):
     require_modules("railway.policies.baselines")
     from railway.policies.baselines import Greedy

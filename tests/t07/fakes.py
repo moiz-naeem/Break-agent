@@ -103,9 +103,11 @@ def scripted_plan(scenario: dict) -> list[tuple[str, dict]]:
     return calls
 
 
-def norm_entry(scenario: dict, c_greedy: float, c_best: float) -> dict:
-    """An accepted-list entry whose top anchor is `c_best` (labelled best-known; the reference costs the same)."""
+def norm_entry(scenario: dict, c_greedy: float, c_best: float, plan: list[tuple[str, dict]]) -> dict:
+    """An accepted-list entry whose top anchor is `c_best`, reached by `plan` (labelled best-known; the reference
+    costs the same)."""
     return {
+        "plan": [{"tool": tool, "args": args} for tool, args in plan],
         "seed": scenario["seed"],
         "scenario_id": scenario["scenario_id"],
         "scenario_hash": content_hash(scenario),

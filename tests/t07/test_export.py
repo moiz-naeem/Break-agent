@@ -33,6 +33,7 @@ TASK_PATHS = [
     "tests/norm.json",
     "tests/token",
     "solution/solve.sh",
+    "solution/plan.json",
     "solution/railway/__init__.py",
 ]
 
@@ -315,7 +316,10 @@ def test_T07_08c_compose_and_scripts(exported):
         assert b'python3 "$(dirname "$0")/verify.py" --logs-dir /logs/verifier' in test_sh
         solve = (task / "solution" / "solve.sh").read_bytes()
         assert b"\r" not in solve and b"set -euo pipefail" in solve
-        assert b'PYTHONPATH="$(dirname "$0")" python3 -m railway.ref.oracle --url http://sim:8000/mcp' in solve
+        assert (
+            b'PYTHONPATH="$(dirname "$0")" python3 -m railway.ref.oracle --url http://sim:8000/mcp'
+            b' --plan "$(dirname "$0")/plan.json"' in solve
+        )
         assert (task / "tests" / "verify.py").read_bytes() == (REPO / "railway" / "harbor" / "verify.py").read_bytes()
 
 

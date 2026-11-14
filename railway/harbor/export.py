@@ -227,6 +227,8 @@ def norm_for(scenario: dict, entry: dict) -> dict:
         raise ValueError(f"{entry['scenario_id']}: needs c_greedy > c_best")
     if entry["c_best_kind"] not in ("proven", "best-known"):
         raise ValueError(f"{entry['scenario_id']}: c_best_kind {entry['c_best_kind']!r}")
+    if not isinstance(entry.get("plan"), list) or not entry["plan"]:
+        raise ValueError(f"{entry['scenario_id']}: needs the C_best plan the oracle replays")
     return {
         "scenario_id": scenario["scenario_id"],
         "scenario_hash": scenario_hash,
@@ -277,6 +279,7 @@ def export_task(
 
     solution = task_dir / "solution"
     _write(solution / "solve.sh", _template("solve_probe.sh" if probe else "solve.sh"), executable=True)
+    _write(solution / "plan.json", canonical_json(entry["plan"]))  # the oracle replays it (v0.3 §2.7)
     vendor(solution / "railway", SOLUTION_PACKAGES)
 
 
@@ -347,11 +350,12 @@ def accepted_items(preset: str, set_name: str, count: int) -> list[tuple[dict, d
     """T06 accepted list → (regenerated scenario, entry) pairs. Recomputes the list if stale (T06 does)."""
     from railway.gen.generator import generate
     from railway.gen.presets import PRESETS
-    from railway.ref.seed_filter import accepted_seeds
+    from railway.ref.seed_filter import accepted_seeds, load_plan
 
     items = []
     for raw in accepted_seeds(preset, set_name, count):
         entry = _entry_dict(raw)
+        entry["plan"] = load_plan(preset, set_name, entry["scenario_id"])
         items.append((_scenario_dict(generate(PRESETS[preset], entry["seed"])), entry))
     return items
 
@@ -377,7 +381,7 @@ def fresh_items(preset: str, count: int) -> list[tuple[dict, dict]]:
             "seed": seed,
             "scenario_id": data["scenario_id"],
             "scenario_hash": content_hash(data),
-            **{k: report[k] for k in ("c_greedy", "c_ref", "c_best", "c_best_kind")},
+            **{k: report[k] for k in ("c_greedy", "c_ref", "c_best", "c_best_kind", "plan")},
         }
         items.append((data, entry))
     return items

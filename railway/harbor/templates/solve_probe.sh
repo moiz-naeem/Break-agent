@@ -30,4 +30,4 @@ with open("/logs/agent/probe.json", "w") as f:
     json.dump({k: os.environ.get(v, "") for k, v in keys.items()}, f, indent=2, sort_keys=True)
 PY
 set -e
-PYTHONPATH="$(dirname "$0")" python3 -m railway.ref.oracle --url http://sim:8000/mcp
+PYTHONPATH="$(dirname "$0")" python3 -m railway.ref.oracle --url http://sim:8000/mcp --plan "$(dirname "$0")/plan.json"
