@@ -73,7 +73,10 @@ COMPONENTS = {
 }
 KPI_KEYS = ("on_time_pct", "passenger_delay_minutes", "freight_delivered_pct")
 
-REPO = Path(__file__).resolve().parents[2]
+# Locally this file is <repo>/infra/modal/net_bench.py; in the container it is /root/net_bench.py,
+# which has no parents[2], so fall back to the file's own folder (REPO is only used locally).
+_HERE = Path(__file__).resolve()
+REPO = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 image = modal.Image.debian_slim(python_version="3.12").uv_pip_install(
     "httpx>=0.28.1", "mcp>=2.3.0", "numpy>=2.4.6", "pydantic>=2.14.3", "pyyaml>=6.0.3",
 )  # fmt: skip
