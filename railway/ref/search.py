@@ -61,5 +61,7 @@ def improve_entry(entry: dict, results: dict[str, float]) -> dict:
     """Lower an accepted entry's C_best to the cheapest variant result, if any beats it."""
     name = min(results, key=lambda k: (results[k], k))
     if results[name] < entry["c_best"] - 1e-6:
-        return {**entry, "c_best": results[name], "best_source": f"search:{name}", "best_proven": False}
+        better = {**entry, "c_best": results[name], "best_source": f"search:{name}", "best_proven": False}
+        better.pop("plan", None)  # export reproduces the variant's plan (the reference is deterministic)
+        return better
     return entry

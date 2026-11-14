@@ -49,14 +49,15 @@ def run_named(name: str, scenario):
 
 
 def best_for(scenario, reference_run):
-    """(c_best, source, proven): the reference, or the exact solver where it applies and does better."""
-    from railway.ref.best import best_plan
+    """(c_best, source, proven, plan): the reference, or the exact solver where it applies and does better.
+    The plan is kept: the solver stops at a time limit, so a rerun may not find the same one."""
+    from railway.ref.best import best_plan, plan_from_log
 
     try:
         best = best_plan(scenario, reference_run=reference_run)
     except RuntimeError:  # a plan that does not replay: fall back to the reference, which always does
-        return reference_run.final.cost.total, "reference", False
-    return best.cost, best.source, best.proven
+        return reference_run.final.cost.total, "reference", False, plan_from_log(reference_run.log)
+    return best.cost, best.source, best.proven, best.plan
 
 
 def evaluate_scenario(scenario, runner=run_named, best=None) -> FilterReport:
@@ -69,7 +70,7 @@ def evaluate_scenario(scenario, runner=run_named, best=None) -> FilterReport:
     results = {name: runner(name, scenario) for name in POLICY_NAMES}
     c_greedy = results["greedy"].final.cost.total
     c_ref = results["reference"].final.cost.total
-    c_best, best_source, best_proven = (best or best_for)(scenario, results["reference"])
+    c_best, best_source, best_proven, *plan = (best or best_for)(scenario, results["reference"])
     gridlocks = results["reference"].final.counts["gridlocks"]
     unfinished = results["greedy"].unfinished
     exploit_costs = {name: r.final.cost.total for name, r in results.items() if name not in {"greedy", "reference"}}
@@ -89,6 +90,7 @@ def evaluate_scenario(scenario, runner=run_named, best=None) -> FilterReport:
         "c_best": c_best,
         "best_source": best_source,
         "best_proven": best_proven,
+        "plan": plan[0] if plan else None,
         "ref_gridlocks": gridlocks,
         "greedy_unfinished": unfinished,
         "exploit_costs": exploit_costs,
@@ -170,6 +172,7 @@ def accepted_seeds(
                     accepted.append(
                         entry
                         | {k: report[k] for k in ("c_greedy", "c_ref", "c_best", "best_source", "best_proven")}
+                        | ({"plan": report["plan"]} if report.get("plan") else {})
                     )
                 else:
                     rejected.update(report["reasons"])

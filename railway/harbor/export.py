@@ -363,7 +363,11 @@ def fresh_dir(out: Path) -> Path:
 
 def _entry_dict(entry) -> dict:
     keys = ("seed", "scenario_id", "scenario_hash", "c_greedy", "c_ref", "c_best", "best_source", "best_proven")
-    return {k: entry[k] if isinstance(entry, dict) else getattr(entry, k) for k in keys}
+    out = {k: entry[k] if isinstance(entry, dict) else getattr(entry, k) for k in keys}
+    plan = entry.get("plan") if isinstance(entry, dict) else getattr(entry, "plan", None)
+    if plan and not out["best_source"].startswith("search:"):  # a search result is reproduced from its variant
+        out["plan"] = plan
+    return out
 
 
 def _scenario_dict(scenario) -> dict:
