@@ -1,0 +1,9 @@
+[
+  {"role": "system", "content": "# Railway dispatcher shift\n\nTEST INSTRUCTION TEXT.\n\nReply with exactly one tool call per message. Do not write prose outside tool calls."},
+  {"role": "user", "content": "MANUAL\nFAKE MANUAL v1"},
+  {"role": "assistant", "content": null, "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "notes", "arguments": "{\"text\": \"plan A\"}"}}]},
+  {"role": "tool", "tool_call_id": "call_1", "content": "OK notes saved (6 chars)"},
+  {"role": "assistant", "content": null, "tool_calls": [{"id": "call_2", "type": "function", "function": {"name": "notes", "arguments": "{\"text\": \"plan B\"}"}}]},
+  {"role": "tool", "tool_call_id": "call_2", "content": "OK notes saved (6 chars)"},
+  {"role": "user", "content": "CURRENT STATE\nt=0 | gridlock: none | notes: \"plan B\"\nrestrictions: none\nBULLETINS\n[]\nNOTES\nplan B\nBudget used: 2/400. Call exactly one tool."}
+]

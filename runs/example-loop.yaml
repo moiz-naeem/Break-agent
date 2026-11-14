@@ -1,0 +1,16 @@
+# Our own loop (diagnostics and training). Run: railway-eval run runs/example-loop.yaml
+name: example-loop              # must equal the file stem
+harness: loop
+mode: windowed                  # windowed (main) | full
+model:
+  id: small                     # label used in tables and charts
+  name: Qwen/Qwen2.5-7B-Instruct
+  base_url: http://localhost:8001/v1
+  api_key_env: SMALL_API_KEY    # the NAME of an env var; never put a key in a manifest
+temperature: null               # null = the model's default
+max_tokens: 1024
+scenarios: {preset: T1, set: dev, count: 10}
+reps: 3
+concurrency: 4
+tools_disabled: []              # e.g. [stringline] for the ablation
+diagnostics: false

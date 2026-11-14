@@ -1,0 +1,14 @@
+# Harbor + OpenCode (headline numbers). Run: railway-eval run runs/example-harbor.yaml
+name: example-harbor            # must equal the file stem
+harness: harbor
+model:
+  id: small
+  name: Qwen/Qwen2.5-7B-Instruct
+  harbor_model: openrouter/qwen/qwen-2.5-7b-instruct   # the `harbor run -m` value
+temperature: null
+max_tokens: 1024
+dataset: datasets/t1-dev-mini
+reps: 3
+concurrency: 4
+tools_disabled: []
+diagnostics: false
