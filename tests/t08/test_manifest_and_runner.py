@@ -158,7 +158,7 @@ def _rows(path: Path) -> list[dict]:
 
 def test_T08_18_loop_run_writes_rows_fake(tmp_path, fake_clients, mini3, capsys):
     cost = _fake_decide_cost(mini3)
-    dataset = make_dataset(tmp_path / "ds", 3, c_greedy=cost, c_ref=cost - 10)
+    dataset = make_dataset(tmp_path / "ds", 3, c_greedy=cost, c_best=cost - 10)
     manifest = _loop_manifest(tmp_path, dataset, concurrency=2)
     deps = LoopDeps(
         session_cls=FakeSession, score_fn=fake_reward_from, client_factory=fake_clients, instruction=INSTRUCTION
@@ -309,7 +309,7 @@ def _details(sid, cost):
             "total": cost,
         },
         "c_greedy": 1300.0,
-        "c_ref": 100.0,
+        "c_best": 100.0,
         "score_unclipped": (1300.0 - cost) / 1200.0,
         "reward": min(1.0, max(0.0, (1300.0 - cost) / 1200.0)),
         "above_reference": False,
@@ -365,7 +365,7 @@ def test_T08_20_harbor_harness_parsing(tmp_path, monkeypatch):
     ok = [rows["FIX-mini3-0"], rows["FIX-mini3-1"]]
     for i, r in enumerate(ok):
         assert r["status"] == "ok" and r["harness"] == "harbor" and r["mode"] is None and r["model"] == "big"
-        assert r["cost_total"] == 400.0 + 100 * i and r["c_greedy"] == 1300.0 and r["c_ref"] == 100.0
+        assert r["cost_total"] == 400.0 + 100 * i and r["c_greedy"] == 1300.0 and r["c_best"] == 100.0
         assert r["score_unclipped"] == pytest.approx((900.0 - 100 * i) / 1200.0)
         assert r["score_clipped"] == pytest.approx((900.0 - 100 * i) / 1200.0)
         assert r["cost_ratio"] == pytest.approx((400.0 + 100 * i) / 100.0)

@@ -223,14 +223,18 @@ def norm_for(scenario: dict, entry: dict) -> dict:
         raise ValueError(f"stale accepted entry for {entry['scenario_id']}: scenario_hash does not match")
     if scenario["rules_version"] != RULES_VERSION:
         raise ValueError(f"{entry['scenario_id']}: rules_version {scenario['rules_version']} != {RULES_VERSION}")
-    if not entry["c_greedy"] > entry["c_ref"]:
-        raise ValueError(f"{entry['scenario_id']}: needs c_greedy > c_ref")
+    if not entry["c_greedy"] > entry["c_best"]:
+        raise ValueError(f"{entry['scenario_id']}: needs c_greedy > c_best")
+    if entry["c_best_kind"] not in ("proven", "best-known"):
+        raise ValueError(f"{entry['scenario_id']}: c_best_kind {entry['c_best_kind']!r}")
     return {
         "scenario_id": scenario["scenario_id"],
         "scenario_hash": scenario_hash,
         "rules_version": RULES_VERSION,
         "c_greedy": entry["c_greedy"],
-        "c_ref": entry["c_ref"],
+        "c_best": entry["c_best"],
+        "c_best_kind": entry["c_best_kind"],
+        "c_ref": entry["c_ref"],  # the scripted reference: a baseline row (v0.3 §2.4), not an anchor
     }
 
 
@@ -316,6 +320,8 @@ def _manifest_row(scenario: dict, entry: dict, task: str) -> dict:
         "scenario_hash": content_hash(scenario),
         "seed": scenario["seed"],
         "c_greedy": entry["c_greedy"],
+        "c_best": entry["c_best"],
+        "c_best_kind": entry["c_best_kind"],
         "c_ref": entry["c_ref"],
     }
 
@@ -329,7 +335,7 @@ def fresh_dir(out: Path) -> Path:
 
 
 def _entry_dict(entry) -> dict:
-    keys = ("seed", "scenario_id", "scenario_hash", "c_greedy", "c_ref")
+    keys = ("seed", "scenario_id", "scenario_hash", "c_greedy", "c_ref", "c_best", "c_best_kind")
     return {k: entry[k] if isinstance(entry, dict) else getattr(entry, k) for k in keys}
 
 
@@ -363,18 +369,15 @@ def fresh_items(preset: str, count: int) -> list[tuple[dict, dict]]:
             break
         scenario = generate(PRESETS[preset], seed)
         report = evaluate_scenario(scenario)
-        accepted = report["accepted"] if isinstance(report, dict) else report.accepted
-        if not accepted:
+        report = report if isinstance(report, dict) else vars(report)
+        if not report["accepted"]:
             continue
-        c_greedy = report["c_greedy"] if isinstance(report, dict) else report.c_greedy
-        c_ref = report["c_ref"] if isinstance(report, dict) else report.c_ref
         data = _scenario_dict(scenario)
         entry = {
             "seed": seed,
             "scenario_id": data["scenario_id"],
             "scenario_hash": content_hash(data),
-            "c_greedy": c_greedy,
-            "c_ref": c_ref,
+            **{k: report[k] for k in ("c_greedy", "c_ref", "c_best", "c_best_kind")},
         }
         items.append((data, entry))
     return items

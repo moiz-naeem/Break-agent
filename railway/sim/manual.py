@@ -170,9 +170,10 @@ Passenger lateness also multiplies by pax/100. Total is the sum of the four comp
 
 ## Score
 
-Your score compares your total cost with a simple greedy dispatcher and with a strong
-reference dispatcher: matching the reference scores 1, doing no better than greedy
-scores 0.
+Your score compares your total cost with a simple greedy dispatcher and with the best
+plan known for this shift (proven optimal where an exact solver covers it): matching the
+best plan scores 1, doing no better than greedy scores 0. There is no upper limit:
+beating the best known plan scores above 1.
 
 ## Budgets and ending
 

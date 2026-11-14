@@ -3,7 +3,9 @@
 {{COUNT}} Harbor tasks (preset `{{PRESET}}`, seed set `{{SET}}`, rules version `{{RULES_VERSION}}`). Each task
 is one shift of a single-track railway that the agent dispatches through the `railway` MCP server, which
 runs in its own `sim` container. `manifest.json` lists every task with its scenario hash and the two
-anchors of its score (`c_greedy` scores 0, `c_ref` scores 1).
+anchors of its score (`c_greedy` scores 0, `c_best` scores 1). `c_best` is the lowest cost known for the
+scenario: `c_best_kind` is `proven` where the exact solver proved it optimal, otherwise `best-known`. `c_ref`,
+the scripted reference dispatcher's cost, is listed as a baseline.
 
 ## Run the judges' checks
 
@@ -20,7 +22,8 @@ A model run adds `-a opencode -m <provider/model>` and, if the provider is not i
 
 ## What a reward means
 
-`reward.txt` is `clip((c_greedy - c_agent) / (c_greedy - c_ref), 0, 1)`, computed by replaying the episode
+`reward.txt` is `max(0, (c_greedy - c_agent) / (c_greedy - c_best))`, with no top clip (above 1 means the
+agent beat the best known plan, flagged as `above_best` in `details.json`), computed by replaying the episode
 log against the scenario, which reaches the verifier only after the agent has finished. `details.json`
 holds the cost breakdown, the unclipped score and failure counts. A trial without `reward.txt` is an
 infrastructure error to rerun (simulator unreachable, corrupt log, replay mismatch, or the agent started

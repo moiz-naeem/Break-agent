@@ -228,6 +228,6 @@ def fake_decide(static, state):
     return calls
 
 
-def fake_reward_from(c_greedy: float, c_ref: float, c_agent: float) -> dict:
-    u = (c_greedy - c_agent) / (c_greedy - c_ref)
+def fake_reward_from(c_greedy: float, c_best: float, c_agent: float) -> dict:
+    u = (c_greedy - c_agent) / (c_greedy - c_best)
     return {"reward": min(1.0, max(0.0, u)), "score_unclipped": u, "above_reference": u > 1.0}

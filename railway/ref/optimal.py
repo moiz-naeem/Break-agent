@@ -154,8 +154,11 @@ def solve(sc, time_limit=300.0, bound_only=False):
     }
 
 
-def dispatch(sc, plan, budget=TOOL_BUDGET):
-    """Dispatch the plan through the real tool session. `hold` is used as an alarm clock for a waiting train."""
+def dispatch(sc, plan, budget=TOOL_BUDGET, log=None):
+    """Dispatch the plan through the real tool session. `hold` is used as an alarm clock for a waiting train.
+
+    `log`, if given, receives the session's episode log (the tool calls the Harbor oracle replays).
+    """
     session = Session(sc, budget=budget)
     todo = {tid: list(hops) for tid, hops in plan.items()}
     alarms = set()
@@ -186,6 +189,8 @@ def dispatch(sc, plan, budget=TOOL_BUDGET):
             break
         session.call("advance_to_next_event", {})
     final = session.close()
+    if log is not None:
+        log.extend(session.log)
     undelivered = {tid: hops[0] for tid, hops in todo.items() if hops}
     return final.cost.total, len(session.log), undelivered
 

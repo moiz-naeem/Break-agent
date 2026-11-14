@@ -34,7 +34,7 @@ from railway.util import content_hash
 class EpisodeSpec:
     scenario: Scenario
     c_greedy: float
-    c_ref: float
+    c_best: float
 
 
 @dataclass
@@ -63,18 +63,18 @@ AGENT_FAILURES = frozenset(
 )
 
 
-def reward_from_t07(c_greedy: float, c_ref: float, c_agent: float):
+def reward_from_t07(c_greedy: float, c_best: float, c_agent: float):
     """The verifier's own reward function, so loop and Harbor rows score identically."""
     from railway.harbor.verify import reward_from
 
-    return reward_from(c_greedy, c_ref, c_agent)
+    return reward_from(c_greedy, c_best, c_agent)
 
 
 # --- scenario sources ------------------------------------------------------------------------------
 
 
 def episodes_from_dataset(dataset: str | Path) -> list[EpisodeSpec]:
-    """One episode per task: `<task>/tests/scenario.json` with `c_greedy`/`c_ref` from `norm.json`."""
+    """One episode per task: `<task>/tests/scenario.json` with `c_greedy`/`c_best` from `norm.json`."""
     out = []
     for task in sorted(Path(dataset).iterdir()):
         tests = task / "tests"
@@ -84,7 +84,7 @@ def episodes_from_dataset(dataset: str | Path) -> list[EpisodeSpec]:
         norm = json.loads((tests / "norm.json").read_text(encoding="utf-8"))
         if "scenario_hash" in norm and norm["scenario_hash"] != content_hash(raw):
             raise ValueError(f"{task}: norm.json scenario_hash does not match scenario.json")
-        out.append(EpisodeSpec(Scenario.model_validate(raw), float(norm["c_greedy"]), float(norm["c_ref"])))
+        out.append(EpisodeSpec(Scenario.model_validate(raw), float(norm["c_greedy"]), float(norm["c_best"])))
     if not out:
         raise ValueError(f"{dataset}: no tasks with tests/scenario.json")
     return out
@@ -102,7 +102,7 @@ def episodes_from_scenarios(preset: str, set_name: str, count: int) -> list[Epis
         scenario = generate(PRESETS[preset], acc["seed"])
         if content_hash(scenario.model_dump(mode="json")) != acc["scenario_hash"]:
             raise ValueError(f"{preset}/{set_name} seed {acc['seed']}: accepted list is stale (hash mismatch)")
-        out.append(EpisodeSpec(scenario, float(acc["c_greedy"]), float(acc["c_ref"])))
+        out.append(EpisodeSpec(scenario, float(acc["c_greedy"]), float(acc["c_best"])))
     return out
 
 
@@ -205,7 +205,7 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
                 model=manifest.model.id,
                 rep=rep,
                 c_greedy=ep.c_greedy,
-                c_ref=ep.c_ref,
+                c_best=ep.c_best,
                 score_fn=score_fn,
             )
         except Exception as exc:  # noqa: BLE001 - infra failure: an error row, never a score
@@ -220,7 +220,7 @@ def _run_loop(manifest: Manifest, out: Path, results_dir: Path, deps: LoopDeps |
                 model=manifest.model.id,
                 rep=rep,
                 c_greedy=ep.c_greedy,
-                c_ref=ep.c_ref,
+                c_best=ep.c_best,
                 status="error",
                 error=f"{type(exc).__name__}: {exc}",
                 tool_calls=None,
@@ -308,7 +308,7 @@ def parse_harbor_jobs(jobs: Path, tasks: dict[str, Path], manifest: Manifest) ->
             model=manifest.model.id,
             rep=reps[sid],
             c_greedy=float(norm["c_greedy"]),
-            c_ref=float(norm["c_ref"]),
+            c_best=float(norm["c_best"]),
             tool_calls=None,
             tokens_in=_find_key(result, "n_input_tokens"),
             tokens_out=_find_key(result, "n_output_tokens"),
@@ -329,9 +329,9 @@ def parse_harbor_jobs(jobs: Path, tasks: dict[str, Path], manifest: Manifest) ->
             counts = details.get("counts", {})
             rec.cost_total = details["cost_total"]
             rec.cost_by_component = details["cost_by_component"]
-            rec.c_greedy, rec.c_ref = float(details["c_greedy"]), float(details["c_ref"])
+            rec.c_greedy, rec.c_best = float(details["c_greedy"]), float(details["c_best"])
             rec.score_clipped, rec.score_unclipped = details["reward"], details["score_unclipped"]
-            rec.cost_ratio = rec.cost_total / rec.c_ref
+            rec.cost_ratio = rec.cost_total / rec.c_best if rec.c_best else None  # a proven C_best can be 0
             for key in ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points"):
                 setattr(rec, key, counts.get(key))
             rec.unfinished = counts.get("unfinished")

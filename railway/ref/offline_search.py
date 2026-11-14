@@ -38,36 +38,53 @@ def _actionable(sim) -> list[str]:
     return [t.id for t in sorted(trains, key=Reference()._priority)]
 
 
-def offline_search(scenario, beam: int = 16, per_train: int = 4) -> tuple[float, list[dict]]:
+ADVANCE = {"tool": "advance_to_next_event", "args": {}}
+
+
+def _call(action) -> dict:
+    """A simulator action as the tool call that applies it (action kinds are tool names)."""
+    return {"tool": action.kind, "args": action.model_dump(mode="json", exclude={"kind"})}
+
+
+def offline_plan(scenario, beam: int = 16, per_train: int = 4) -> tuple[float, list[dict]]:
     """Beam search over decision points on the *true* simulator (unrevealed events included).
 
     A partial plan branches per actionable train over its top `per_train` candidates plus WAIT and is
-    scored by cost + terminal estimate. Every kept plan runs to the shift end. The reference's own
-    result seeds the answer, so the result is never worse than the reference.
+    scored by cost + terminal estimate. Every kept plan runs to the shift end. Returns the best kept plan's
+    cost and its tool calls (`authorize`/`hold`/... at each decision point, then `advance_to_next_event`).
     """
-    from railway.policies.runner import run_policy
-
-    c_ref = run_policy(Reference(), scenario).final.cost.total
-    frontier = [(Simulator.load(scenario), None, 0)]  # (sim, trains to decide at this decision point, next index)
-    while not all(sim.done for sim, _, _ in frontier):
+    # (sim, trains to decide at this decision point, next index, tool calls so far)
+    frontier = [(Simulator.load(scenario), None, 0, ())]
+    while not all(item[0].done for item in frontier):
         expanded = []
-        for sim, trains, i in frontier:
+        for sim, trains, i, calls in frontier:
             if sim.done:
-                expanded.append((sim, trains, i))
+                expanded.append((sim, trains, i, calls))
                 continue
             trains = _actionable(sim) if trains is None else trains
             if i == len(trains):
                 after = sim.clone()
                 after.advance()
-                expanded.append((after, None, 0))
+                expanded.append((after, None, 0, (*calls, ADVANCE)))
                 continue
             for choice in candidates(sim, trains[i], max_candidates=per_train, deadlock_safe=False):
                 branch = sim.clone()
+                step = calls
                 if choice is not WAIT:
                     branch.apply(choice)
-                expanded.append((branch, trains, i + 1))
+                    step = (*calls, _call(choice))
+                expanded.append((branch, trains, i + 1, step))
         frontier = sorted(expanded, key=lambda item: _score(item[0]))[:beam]
-    best = min(sim.cost().total for sim, _, _ in frontier)
+    sim, _, _, calls = min(frontier, key=lambda item: item[0].cost().total)
+    return sim.cost().total, list(calls)
+
+
+def offline_search(scenario, beam: int = 16, per_train: int = 4) -> tuple[float, list[dict]]:
+    """`offline_plan`'s cost, seeded with the reference's own result so it is never worse than the reference."""
+    from railway.policies.runner import run_policy
+
+    c_ref = run_policy(Reference(), scenario).final.cost.total
+    best, _ = offline_plan(scenario, beam, per_train)
     return min(best, c_ref), [{"beam": beam, "per_train": per_train, "c_ref": c_ref, "best_beam": best}]
 
 

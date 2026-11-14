@@ -37,6 +37,7 @@ from railway.util import canonical_json, content_hash
 STATUSES = {"GRANTED", "REFUSED", "OK", "INVALID", "INFO"}
 COMPONENTS = ("pax_lateness", "freight_lateness", "crew_timeout", "unfinished")
 COUNT_KEYS = ("gridlocks", "crew_timeouts", "refusals", "invalid_calls", "decision_points")
+C_BEST_KINDS = ("proven", "best-known")  # proven: the exact solver's bound, plan and played cost agree
 TOLERANCE = 1e-6
 SHIFT_ENDED = "R-SHIFT-ENDED"  # calls after the shift ended are logged but use no budget (T05 §2.1)
 
@@ -64,16 +65,19 @@ class Mismatch(VerifyError):
 class Score:
     reward: float
     score_unclipped: float
-    above_reference: bool
+    above_best: bool
 
 
-def reward_from(c_greedy: float, c_ref: float, c_agent: float) -> Score:
-    """u = (C_greedy − C_agent) / (C_greedy − C_ref); reward = clip(u, 0, 1)."""
-    gap = c_greedy - c_ref
+def reward_from(c_greedy: float, c_best: float, c_agent: float) -> Score:
+    """u = (C_greedy − C_agent) / (C_greedy − C_best); reward = max(0, u) (v0.3 §2.4: no top clip).
+
+    A reward above 1 means the agent beat the best known plan; it is reported as is and flagged (`above_best`).
+    """
+    gap = c_greedy - c_best
     if not (gap > 0 and math.isfinite(gap)):
-        raise ValueError(f"need c_greedy > c_ref, got {c_greedy} and {c_ref}")
+        raise ValueError(f"need c_greedy > c_best, got {c_greedy} and {c_best}")
     u = (c_greedy - c_agent) / gap
-    return Score(reward=min(1.0, max(0.0, u)), score_unclipped=u, above_reference=u > 1.0)
+    return Score(reward=max(0.0, u), score_unclipped=u, above_best=u > 1.0)
 
 
 # ---------------------------------------------------------------- fetch
@@ -144,8 +148,12 @@ def _valid_entry(e) -> bool:
 def load_norm(path: Path, scenario: dict) -> dict:
     try:
         norm = json.loads(path.read_text(encoding="utf-8"))
-        reward_from(norm["c_greedy"], norm["c_ref"], norm["c_ref"])
-        ok = norm["scenario_hash"] == content_hash(scenario) and norm["rules_version"] == RULES_VERSION
+        reward_from(norm["c_greedy"], norm["c_best"], norm["c_best"])
+        ok = (
+            norm["scenario_hash"] == content_hash(scenario)
+            and norm["rules_version"] == RULES_VERSION
+            and norm["c_best_kind"] in C_BEST_KINDS
+        )
     except (OSError, ValueError, KeyError, TypeError):
         ok = False
     if not ok:
@@ -272,7 +280,7 @@ def verify(args: argparse.Namespace) -> Score:
 
     final = replay_log(scenario, log)
     cost, total = compare(final, log)
-    score = reward_from(norm["c_greedy"], norm["c_ref"], total)
+    score = reward_from(norm["c_greedy"], norm["c_best"], total)
     counts = _as_dict(_field(final, "counts"))
     details = {
         "scenario_id": scenario["scenario_id"],
@@ -280,10 +288,12 @@ def verify(args: argparse.Namespace) -> Score:
         "cost_total": total,
         "cost_by_component": cost,
         "c_greedy": norm["c_greedy"],
-        "c_ref": norm["c_ref"],
+        "c_best": norm["c_best"],
+        "c_best_kind": norm["c_best_kind"],
+        "c_ref": norm.get("c_ref"),  # the scripted reference: a baseline row, no longer an anchor
         "score_unclipped": score.score_unclipped,
         "reward": score.reward,
-        "above_reference": score.above_reference,
+        "above_best": score.above_best,
         "counts": {k: counts[k] for k in COUNT_KEYS},
         "tool_calls": calls,
         "final_tick": log["final_tick"],

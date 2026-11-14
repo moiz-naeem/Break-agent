@@ -30,7 +30,7 @@ RESULT_FIELDS = [
     "cost_total",
     "cost_by_component",
     "c_greedy",
-    "c_ref",
+    "c_best",
     "score_clipped",
     "score_unclipped",
     "cost_ratio",
@@ -104,10 +104,13 @@ def test_T08_10_fake_greedy_equals_greedy(mini3):
 def test_T08_11_fake_reference_equals_reference():
     session_cls = real_session_cls()
     ref = pytest.importorskip("railway.ref.reference", reason="waits for T06 reference")
+    from railway.ref.seed_filter import accepted_seeds
+
+    c_ref = {e["scenario_id"]: e["c_ref"] for e in accepted_seeds("T1", "dev", 2)}
     for ep in _t1_dev(2):
         rec = _play_policy(ep.scenario, session_cls(ep.scenario), ref.Reference().decide)
         assert rec.status == "ok"
-        assert rec.cost_total == ep.c_ref
+        assert rec.cost_total == c_ref[ep.scenario.scenario_id] >= ep.c_best
 
 
 def test_T08_12_prose_three_strikes(session_cls, mini3):

@@ -16,7 +16,7 @@ def row(sid, cg, cr, ca, rep, status="ok", **extra):
         "scenario_id": sid,
         "rep": rep,
         "c_greedy": cg,
-        "c_ref": cr,
+        "c_best": cr,
         "cost_total": ca,
         "status": status,
         "gridlocks": 0,

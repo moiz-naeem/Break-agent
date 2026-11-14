@@ -27,10 +27,12 @@ DETAIL_KEYS = {
     "cost_total",
     "cost_by_component",
     "c_greedy",
+    "c_best",
+    "c_best_kind",
     "c_ref",
     "score_unclipped",
     "reward",
-    "above_reference",
+    "above_best",
     "counts",
     "tool_calls",
     "final_tick",
@@ -103,14 +105,14 @@ def plan_log() -> dict:
 def test_T07_11f_anchor_plan_scores_one_fake_sim(task, plan_log):
     d = task.expect_reward(task.verify(plan_log), "1.000000\n")
     assert d["score_unclipped"] == 1.0 and d["reward"] == 1.0
-    assert d["above_reference"] is False
+    assert d["above_best"] is False
 
 
 def test_T07_12f_partial_plan_scores_between_fake_sim(task, plan_log):
     calls = [(e["tool"], e["args"]) for e in plan_log["entries"]]
     log = play(task.scenario, [*calls[:2], ("end_shift", {})])
-    c_greedy, c_ref, c_agent = task.norm["c_greedy"], task.norm["c_ref"], log["final_cost"]
-    u = (c_greedy - c_agent) / (c_greedy - c_ref)
+    c_greedy, c_best, c_agent = task.norm["c_greedy"], task.norm["c_best"], log["final_cost"]
+    u = (c_greedy - c_agent) / (c_greedy - c_best)
     assert 0.0 < u < 1.0, "fixture plan prefix should land strictly between the anchors"
     d = task.expect_reward(task.verify(log), f"{u:.6f}\n")
     assert d["score_unclipped"] == pytest.approx(u, abs=1e-12)
@@ -130,7 +132,8 @@ def test_T07_14f_details_shape_fake_sim(task, plan_log):
     assert set(d["counts"]) == COUNT_KEYS
     assert set(d["cost_by_component"]) == {"pax_lateness", "freight_lateness", "crew_timeout", "unfinished"}
     assert d["scenario_id"] == task.scenario["scenario_id"] and d["rules_version"] == RULES_VERSION
-    assert (d["c_greedy"], d["c_ref"]) == (task.norm["c_greedy"], task.norm["c_ref"])
+    keys = ("c_greedy", "c_best", "c_best_kind", "c_ref")
+    assert tuple(d[k] for k in keys) == tuple(task.norm[k] for k in keys)
     assert d["cost_total"] == plan_log["final_cost"] and d["final_tick"] == plan_log["final_tick"]
     assert d["tool_calls"] == len(plan_log["entries"])
     assert json.loads((task.logs / "action_log.json").read_text(encoding="utf-8")) == plan_log
@@ -148,13 +151,14 @@ def test_T07_14g_calls_after_shift_end_do_not_count(task, plan_log):
 def test_T07_15_reward_math():
     from railway.harbor.verify import reward_from
 
-    s = reward_from(1000, 500, 400)
-    assert s.reward == 1.0 and s.above_reference is True and s.score_unclipped == pytest.approx(1.2)
+    s = reward_from(1000, 500, 400)  # v0.3: no top clip; beating C_best is reported as is and flagged
+    assert s.reward == pytest.approx(1.2) and s.above_best is True and s.score_unclipped == pytest.approx(1.2)
     s = reward_from(1000, 500, 1200)
-    assert s.reward == 0.0 and s.score_unclipped == pytest.approx(-0.4) and s.above_reference is False
+    assert s.reward == 0.0 and s.score_unclipped == pytest.approx(-0.4) and s.above_best is False
     s = reward_from(1000, 500, 750)
     assert s.reward == 0.5 and s.score_unclipped == 0.5
-    assert reward_from(1000, 500, 500).reward == 1.0 and reward_from(1000, 500, 500).above_reference is False
+    assert reward_from(1000, 500, 500).reward == 1.0 and reward_from(1000, 500, 500).above_best is False
+    assert reward_from(1000, 0, 0).reward == 1.0  # a proven optimum of 0 is a valid anchor
     assert reward_from(1000, 500, 1000).reward == 0.0
     for bad in ((500, 500, 1), (400, 500, 1)):
         with pytest.raises(ValueError):
@@ -231,7 +235,9 @@ def test_T07_21_stale_reward_files_removed(task, plan_log):
     task.expect_reward(task.verify(play(task.scenario, [])), "0.000000\n")
 
 
-@pytest.mark.parametrize("patch", [{"scenario_hash": "0" * 64}, {"rules_version": "9.9"}, {"c_ref": 1e9}])
+@pytest.mark.parametrize(
+    "patch", [{"scenario_hash": "0" * 64}, {"rules_version": "9.9"}, {"c_best": 1e9}, {"c_best_kind": "guess"}]
+)
 def test_T07_22_bad_norm_is_infra(tmp_path, mini3_export, plan_log, patch):
     import shutil
 
@@ -364,13 +370,16 @@ def _run_real(real_task: Path, tmp_path: Path, policy) -> Task:
     return t
 
 
-def test_T07_11_oracle_scores_one(real_task, tmp_path):
+def test_T07_11_reference_scores_at_most_one(real_task, tmp_path):
+    """v0.3: the reference is a baseline row; C_best is never above its cost, so it scores in [0, 1]."""
     require_modules("railway.ref.reference")
     from railway.ref.reference import Reference
 
     t = _run_real(real_task, tmp_path, Reference())
-    d = t.expect_reward(t.last, "1.000000\n")
-    assert d["score_unclipped"] == 1.0
+    assert t.last.returncode == 0, t.last.stdout + t.last.stderr
+    d = t.details()
+    assert d["cost_total"] == d["c_ref"] >= d["c_best"]
+    assert 0.0 <= d["reward"] <= 1.0 and d["above_best"] is False
 
 
 def test_T07_12_greedy_scores_zero(real_task, tmp_path):

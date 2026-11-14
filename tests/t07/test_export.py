@@ -63,8 +63,8 @@ through the tools of the `railway` MCP server; nothing moves without your author
 4. Goal: the lowest total cost at the end of the shift (passenger and freight lateness,
    crew timeouts, unfinished trains; a gridlock is permanent).
 
-Scoring: your total cost is compared with a simple greedy dispatcher (score 0) and a
-strong reference dispatcher (score 1).
+Scoring: your total cost is compared with a simple greedy dispatcher (score 0) and the
+best plan known for this shift (score 1). Beating that plan scores above 1.
 
 Ending: the shift ends when you call `end_shift()`, when you use up the tool budget
 ({TOOL_BUDGET} calls), or when you stop. Stopping without calling end_shift() counts as
@@ -100,7 +100,7 @@ def test_T07_01_layout(exported):
     assert len(m["tasks"]) == 2
     assert m["rules_version"] == RULES_VERSION
     for t in m["tasks"]:
-        assert {"scenario_id", "scenario_hash", "c_greedy", "c_ref"} <= set(t)
+        assert {"scenario_id", "scenario_hash", "c_greedy", "c_best", "c_best_kind", "c_ref"} <= set(t)
     assert (exported / "README.md").is_file()
     for task in task_dirs(exported):
         assert task.name == json.loads((task / "tests" / "scenario.json").read_text(encoding="utf-8"))["scenario_id"]
@@ -122,6 +122,8 @@ def test_T07_02_norm_values(exporter, exported):
             "scenario_hash": entry["scenario_hash"],
             "rules_version": RULES_VERSION,
             "c_greedy": entry["c_greedy"],
+            "c_best": entry["c_best"],
+            "c_best_kind": entry["c_best_kind"],
             "c_ref": entry["c_ref"],
         }
         scenario = json.loads((task / "tests" / "scenario.json").read_text(encoding="utf-8"))
@@ -150,7 +152,9 @@ def test_T07_02_norm_values_recomputed(tmp_path):
     for task in task_dirs(out):
         norm = json.loads((task / "tests" / "norm.json").read_text(encoding="utf-8"))
         entry = accepted[norm["scenario_id"]]
-        assert (norm["c_greedy"], norm["c_ref"]) == (field(entry, "c_greedy"), field(entry, "c_ref"))
+        keys = ("c_greedy", "c_ref", "c_best", "c_best_kind")
+        assert tuple(norm[k] for k in keys) == tuple(field(entry, k) for k in keys)
+        assert norm["c_best_kind"] in ("proven", "best-known") and norm["c_best"] <= norm["c_ref"]
         scenario = Scenario.model_validate_json((task / "tests" / "scenario.json").read_text(encoding="utf-8"))
         costs = []
         for policy in (Greedy(), Reference()):

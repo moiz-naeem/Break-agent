@@ -47,13 +47,13 @@ class _Seeds:
         cg, cr, ca, clipped, unclipped = [], [], [], [], []
         for sid in self.ids:
             reps = by_seed[sid]
-            g, c = float(reps[0]["c_greedy"]), float(reps[0]["c_ref"])
+            g, c = float(reps[0]["c_greedy"]), float(reps[0]["c_best"])
             costs = np.array([float(r["cost_total"]) for r in reps])
             u = (g - costs) / (g - c)
             cg.append(g)
             cr.append(c)
             ca.append(costs.mean())
-            clipped.append(np.clip(u, 0.0, 1.0).mean())
+            clipped.append(np.maximum(u, 0.0).mean())  # the verifier's reward: max(0, u), no top clip (v0.3)
             unclipped.append(u.mean())
         self.cg, self.cr, self.ca = np.array(cg), np.array(cr), np.array(ca)
         self.clipped, self.unclipped = np.array(clipped), np.array(unclipped)
@@ -84,12 +84,12 @@ def _point(rows, name: str) -> float:
 
 
 def score_ros(rows) -> float:
-    """Σ_s (cg_s − ca_s) / Σ_s (cg_s − cr_s): the headline (D16)."""
+    """Σ_s (cg_s − ca_s) / Σ_s (cg_s − cb_s), cb = C_best: the headline (D16)."""
     return _point(rows, "score_ros")
 
 
 def reward_mean(rows) -> float:
-    """mean_s mean_reps clip((cg − ca)/(cg − cr), 0, 1): what Harbor shows."""
+    """mean_s mean_reps max(0, (cg − ca)/(cg − cb)): what Harbor shows (cb = C_best)."""
     return _point(rows, "reward_mean")
 
 
@@ -98,15 +98,15 @@ def unclipped_mean(rows) -> float:
 
 
 def cost_ratio(rows) -> float:
-    """Σ_s ca_s / Σ_s cr_s."""
+    """Σ_s ca_s / Σ_s cb_s (cost relative to C_best)."""
     return _point(rows, "cost_ratio")
 
 
 def flagged(rows) -> list[str]:
-    """Seeds where any ok rep scores above 1.0 unclipped (the reference erred, or the gap claim is wrong)."""
+    """Seeds where any ok rep scores above 1.0: it beat C_best (a proven C_best doing so is a bug)."""
     out = []
     for sid, reps in _Seeds(dedupe(rows)).by_seed.items():
-        if any((r["c_greedy"] - r["cost_total"]) / (r["c_greedy"] - r["c_ref"]) > 1.0 for r in reps):
+        if any((r["c_greedy"] - r["cost_total"]) / (r["c_greedy"] - r["c_best"]) > 1.0 for r in reps):
             out.append(sid)
     return sorted(out)
 
