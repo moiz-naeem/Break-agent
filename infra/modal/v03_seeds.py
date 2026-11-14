@@ -134,3 +134,23 @@ def improve(preset: str = "T2", set_name: str = "dev"):
     for seed, old, new, source in improved:
         print(f"{preset}-{seed}: c_best {old:.1f} -> {new:.1f} ({source})")
     print(f"{len(improved)}/{len(data['accepted'])} anchors improved; wrote {path}")
+
+
+@app.function(cpu=4, memory=4096, timeout=3600, max_containers=100)
+def filter_report(preset: str, seed: int) -> dict:
+    _setup()
+    from railway.gen.generator import generate
+    from railway.gen.presets import PRESETS
+    from railway.ref.seed_filter import evaluate_scenario
+
+    report = evaluate_scenario(generate(PRESETS[preset], seed), best=lambda sc, ref: (ref.final.cost.total, "reference", False))
+    return {"seed": seed, **report}
+
+
+@app.local_entrypoint()
+def exploits(preset: str = "T2", seeds: int = 30):
+    """Which exploit beats greedy, by how much: the filter's reports on the first `seeds` candidates."""
+    for r in filter_report.map([preset] * seeds, list(range(1000, 1000 + seeds))):
+        g = r["c_greedy"]
+        beats = {k: round(v, 1) for k, v in r["exploit_costs"].items() if v < g}
+        print(f"{preset}-{r['seed']} greedy {g:.1f} ref {r['c_ref']:.1f} reasons {r['reasons']} beats-greedy {beats}")
