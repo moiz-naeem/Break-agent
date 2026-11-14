@@ -1,3 +1,4 @@
+from railway.sim.cost import COMPONENTS
 """T02 invariants (T02-41..T02-48) re-run with all 11 factors and one event of each kind."""
 
 import os
@@ -12,7 +13,7 @@ from railway.util import canonical_json
 from tests.helpers import REPO
 from tests.t03.common import all_factor_scenario, dump, load, run_step, steps
 
-COST_KEYS = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+COST_KEYS = COMPONENTS
 
 
 def check_invariants(sim, prev_cost):

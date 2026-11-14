@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from railway.sim.constants import RULES_VERSION
-from railway.sim.cost import freight_cost, pax_cost
+from railway.sim.cost import COMPONENTS, freight_cost, pax_cost
 from railway.sim.engine import Simulator
 from railway.sim.model import Authorize, CancelAuthority, Hold, Scenario
 from railway.sim.timing import project, travel_ticks
@@ -106,15 +106,22 @@ def test_T02_26_episode_A_exact():
     assert s.advance().tick == 11
     assert s.apply(Authorize(train="E1", station="YE", track="main")).ok
     s.end_shift()
-    assert s.cost().pax_lateness == 24.0
-    assert s.cost().unfinished == 745.0  # F21 freight: 200 + 1000 x 60/240 + 295
-    assert s.cost().total == 769.0
+    # v0.3: E1 reaches YE at 17, 4 late; its 100 alighting pay 1.5 x 1 x f(4) = 3.
+    assert s.cost().pax_lateness == pax_cost("express", 100, 4) == 3.0
+    # L5 never serves S1 or YW: 500 + 1.0 x (25 + 25)/100 x (f(60) + 10), and 500 + 1.0 x 25/100 x 103.
+    assert s.cost().missed_calls == 1000 + 0.5 * 103 + 0.25 * 103 == 1077.25
+    # L5 200; F21 freight 200 + 0.5 x 34 + 50 (more than 30 late at shift end).
+    assert s.cost().unfinished == 200 + 200 + 17 + 50
+    assert s.cost().total == 1547.25
 
 
 def test_T02_32_do_nothing_cost():
     s = sim()
     s.end_shift()
-    assert s.tick == 60 and s.cost().total == 1485.0
+    # Every train unfinished (3 x 200, freight +67), every passenger stop missed:
+    # E1 S2 500 + 1.5 x 2 x 103, YE 500 + 1.5 x 1 x 103; L5 S3/S2/S1 500 + 0.5 x 103 each, YW 500 + 0.25 x 103.
+    expected = 600 + 67 + (809 + 654.5) + (3 * 551.5 + 525.75)
+    assert s.tick == 60 and s.cost().total == expected == 4310.75
 
 
 def test_T02_29_time_cap_and_shift_end():
@@ -133,20 +140,20 @@ def test_T02_29_time_cap_and_shift_end():
 
 
 @pytest.mark.parametrize(
-    ("kind", "pax", "late", "terminal", "expected"),
+    ("kind", "alight", "late", "expected"),
     [
-        ("express", 200, 7, False, 30.0),
-        ("express", 200, 7, True, 60.0),
-        ("local", 100, 2, False, 0.0),
-        ("local", 150, 10, True, 24.0),
-        ("express", 100, -5, True, 0.0),
+        ("express", 200, 7, 15.0),
+        ("express", 200, 15, 54.0),
+        ("local", 100, 2, 0.0),
+        ("local", 150, 10, 12.0),
+        ("express", 100, -5, 0.0),
     ],
 )
-def test_T02_35_passenger_cost_formula(kind, pax, late, terminal, expected):
-    assert pax_cost(kind, pax, late, terminal) == expected
+def test_T02_35_passenger_cost_formula(kind, alight, late, expected):
+    assert pax_cost(kind, alight, late) == expected
 
 
-@pytest.mark.parametrize(("late", "expected"), [(10, 5.0), (-3, 0.0)])
+@pytest.mark.parametrize(("late", "expected"), [(10, 5.0), (-3, 0.0), (30, 15.0), (31, 65.5)])
 def test_T02_36_freight_cost_formula(late, expected):
     assert freight_cost(late) == expected
 
@@ -175,7 +182,7 @@ def test_T02_07_public_schema_excludes_hidden_scenario_data():
     static = sim().static_info().model_dump(mode="json")
     assert not {"events", "seed", "scenario_id"}.intersection(state)
     assert not {"events", "seed", "scenario_id"}.intersection(static)
-    assert RULES_VERSION == "0.2-provisional"
+    assert RULES_VERSION == "0.3-provisional"
 
 
 def test_T02_17_section_reserved_refusal_and_resource_release():
@@ -254,7 +261,7 @@ def test_T02_37_total_is_sum_of_cost_components():
     s.end_shift()
     c = s.cost()
     assert c.total == sum(
-        c.model_dump().get(k, 0) for k in ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+        c.model_dump()[k] for k in COMPONENTS
     )
 
 
@@ -362,16 +369,16 @@ def test_T02_13_schema_rejects_invalid_network_and_train(patch):
 
 def test_T02_14_free_run_project_matches_fixture_timetable():
     s = sim()
-    assert project(s, "E1", s._route("YW", "YE", "main"), 0) == [
+    assert project(s, "E1", s._route("YW", None, "YE", "main"), 0) == [
         ("YW-S1", 0, 3),
         ("S1-S2", 3, 6),
         ("S2-S3", 7, 10),
         ("S3-YE", 10, 13),
     ]
-    assert project(s, "L5", s._route("YE", "YW", "main"), 0) == [
+    assert project(s, "L5", s._route("YE", None, "YW", "main"), 0) == [
         ("S3-YE", 0, 4),
         ("S2-S3", 5, 9),
         ("S1-S2", 10, 14),
         ("YW-S1", 15, 19),
     ]
-    assert project(s, "F21", s._route("YW", "YE", "main"), 2)[-1] == ("S3-YE", 20, 26)
+    assert project(s, "F21", s._route("YW", None, "YE", "main"), 2)[-1] == ("S3-YE", 20, 26)

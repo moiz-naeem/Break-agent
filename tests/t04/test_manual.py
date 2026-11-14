@@ -47,7 +47,6 @@ def test_T04_02_manual_is_deterministic_and_lists_tools():
         "cancel_authority",
         "hold",
         "relieve_crew",
-        "reverse",
         "advance_to_next_event",
         "end_shift",
     ):
@@ -84,6 +83,7 @@ def test_T04_05_manual_lists_every_decision_reason_kind():
     manual = render_manual()
     expected = {
         "AUTHORITY_END",
+        "ENTRY_BLOCKED",
         "READY",
         "BULLETIN",
         "BREAKDOWN",
@@ -109,7 +109,6 @@ TOOLS = (
     "cancel_authority",
     "hold",
     "relieve_crew",
-    "reverse",
     "advance_to_next_event",
     "end_shift",
 )

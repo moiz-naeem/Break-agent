@@ -17,7 +17,7 @@ def test_T03_24_mid_section():
     assert tr(s, "E1").section_exit == 16
     s.end_shift()
     assert [x.actual for x in tr(s, "E1").arrivals if x.station == "S2"] == [16]
-    assert s.cost().pax_lateness == 48.0  # 3.0 x 2 x (10 - 2)
+    assert s.cost().pax_lateness == 12.0  # v0.3: 1.5 x 100/100 x f(10) = 1.5 x 8
 
 
 def test_T03_25_not_in_network_skipped():

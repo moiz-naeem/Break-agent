@@ -1,3 +1,4 @@
+from railway.sim.cost import COMPONENTS
 import copy
 import os
 import subprocess
@@ -136,7 +137,7 @@ def test_T02_45_cost_is_nonnegative_and_total_is_component_sum():
     sim.advance()
     sim.end_shift()
     current = sim.cost().model_dump(mode="json")
-    keys = ("pax_lateness", "freight_lateness", "crew_timeout", "reversal", "unfinished")
+    keys = COMPONENTS
     components = [current[k] for k in keys]
     assert all(v >= 0 for v in components)
     assert current["total"] == sum(components)

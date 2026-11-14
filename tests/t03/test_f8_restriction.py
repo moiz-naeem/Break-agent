@@ -21,7 +21,7 @@ def test_T03_14_restriction_applies_on_entry():
     assert tr(s, "E1").delay == 6
     s.end_shift()
     assert [a.actual for a in tr(s, "E1").arrivals if a.station == "S2"] == [12]
-    assert s.cost().pax_lateness == 24.0  # 3.0 x 2 x (6 - 2); no other train reaches a stop
+    assert s.cost().pax_lateness == 6.0  # v0.3: 1.5 x 100/100 x f(6) = 1.5 x 4; no other train reaches a stop
 
 
 def test_T03_15_boundary_not_applied():
