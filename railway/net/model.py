@@ -222,6 +222,7 @@ class Network(NetModel):
     _index: dict[str, Track | Platform | Move] = PrivateAttr(default_factory=dict)
     _nodes: dict[str, Node] = PrivateAttr(default_factory=dict)
     _conflicts: dict[str, frozenset[str]] = PrivateAttr(default_factory=dict)
+    _conflicts_sorted: dict[str, tuple[str, ...]] = PrivateAttr(default_factory=dict)
 
     @model_validator(mode="after")
     def valid_graph(self):
@@ -239,6 +240,7 @@ class Network(NetModel):
         for m in self.moves:
             self._check_move(m, nodes)
         self._conflicts = self._derive_conflicts()
+        self._conflicts_sorted = {k: tuple(sorted(v)) for k, v in self._conflicts.items()}
         used = {(end, m.node) for m in self.moves for end in m.ends}
         for t in self.tracks:
             for end in (t.a, t.b):
@@ -298,13 +300,13 @@ class Network(NetModel):
         return {k: frozenset(v) for k, v in conflicts.items()}
 
     def element(self, element_id: str) -> Track | Platform | Move | None:
-        return self._index.get(element_id)
+        return self.__pydantic_private__["_index"].get(element_id)
 
     def node(self, node_id: str) -> Node | None:
-        return self._nodes.get(node_id)
+        return self.__pydantic_private__["_nodes"].get(node_id)
 
     def conflicts(self, move_id: str) -> list[str]:
-        return sorted(self._conflicts.get(move_id, ()))
+        return list(self.__pydantic_private__["_conflicts_sorted"].get(move_id, ()))
 
 
 class Timetable(NetModel):
