@@ -18,7 +18,7 @@ from railway.tools.client import InProcClient, McpClient
 def test_mcp_server_lists_all_tools_and_health_routes(sample_timetable):
     with spawn(sample_timetable) as srv, McpClient(srv.url) as client:
         names = client.tool_names()
-        assert sorted(names) == sorted(TOOLS) and len(names) == 14
+        assert sorted(names) == sorted(TOOLS) and len(names) == 20
         assert httpx.get(srv.base + "/health").text == "ok"
         for path in ("/", "/timetable", "/state"):
             assert httpx.get(srv.base + path).status_code == 404, path
@@ -37,6 +37,12 @@ def test_mcp_server_parity_with_inproc_and_episode_log_auth(sample_timetable):
         ("order", {"resource": "A.e1/A.e3", "trains": ["IC1", "L4"]}),
         ("platform", {"train": "IC1", "station": "C", "n": 2}),
         ("hold", {"train": "L4", "until": 14}),
+        ("single_line", {"segment": "PW-A.u", "on": True}),
+        ("relieve_crew", {"train": "L4"}),
+        ("skip", {"train": "L4", "station": "C"}),
+        ("short_turn", {"train": "L4", "station": "C"}),
+        ("route", {"train": "L4", "via": []}),
+        ("cancel", {"train": "NO_SUCH_TRAIN"}),
         ("kpis", {}),
         ("end_shift", {}),
     ]

@@ -44,6 +44,12 @@ EXPECTED_TOOLS = {
     "order",
     "hold",
     "platform",
+    "route",
+    "skip",
+    "short_turn",
+    "cancel",
+    "single_line",
+    "relieve_crew",
     "advance_to_next_event",
     "end_shift",
 }
@@ -51,6 +57,7 @@ EXPECTED_TOOLS = {
 
 def test_tool_registration_and_openai_schemas():
     assert set(TOOLS) == EXPECTED_TOOLS
+    assert len(TOOLS) == 20
     for name in EXPECTED_TOOLS:
         doc = describe(name)
         assert doc and "\n" not in doc
@@ -62,9 +69,9 @@ def test_tool_registration_and_openai_schemas():
     # Disabled tool is omitted from schemas and billed/refused as R-BAD-ARGS if called.
     trimmed = tool_schemas(disabled=("stringline",), registry=TOOLS)
     assert "stringline" not in {s["function"]["name"] for s in trimmed}
-    # Lane B extension specs are ready with Args models and status labels, not yet exposed in TOOLS.
+    # All 6 Lane B service & crew tools are active in TOOLS and match LANE_B_TOOL_SPECS.
     assert set(LANE_B_TOOL_SPECS) == {"route", "skip", "short_turn", "cancel", "single_line", "relieve_crew"}
-    assert not (set(LANE_B_TOOL_SPECS) & set(TOOLS))
+    assert set(LANE_B_TOOL_SPECS) <= set(TOOLS)
 
 
 @pytest.mark.parametrize(
@@ -75,6 +82,12 @@ def test_tool_registration_and_openai_schemas():
         ("order", {"resource": "A-JA.u:0", "trains": []}),
         ("order", {"resource": "A-JA.u:0", "trains": ["IC1", "IC1"]}),
         ("hold", {"train": "IC1", "until": "ten"}),
+        ("route", {"train": "IC1", "via": "JA-B.d"}),
+        ("skip", {"train": "IC1"}),
+        ("short_turn", {"train": "IC1", "station": 123}),
+        ("cancel", {"train": "IC1", "extra": True}),
+        ("single_line", {"segment": "JA-B.d", "on": "yes"}),
+        ("relieve_crew", {}),
         ("status", {"compact": "yes"}),
         ("notes", {"text": "hi", "extra": 1}),
     ],
@@ -109,7 +122,7 @@ def test_read_tools_happy_paths_and_area_scoping(sample_timetable):
     ja_net = json.loads(s.call("network", {"area": "JA"}))
     corridor_net = json.loads(s.call("network", {"area": "JA-PN"}))
     assert len(ja_net["moves"]) < len(full_net["moves"])
-    assert {m["id"] for m in ja_net["moves"]} == {"JA.m1", "JA.m2", "JA.m3", "JA.m4"}
+    assert {m["id"] for m in ja_net["moves"]} == {"JA.m1", "JA.m2", "JA.m3", "JA.m4", "JA.x1", "JA.x2"}
     assert {"JA", "N", "PN"} <= {n["id"] for n in corridor_net["nodes"]}
 
     bad_net = s.call("network", {"area": "NOPE"})
@@ -449,3 +462,114 @@ def test_loop_play_episode_on_t1_with_fake_model(t1_timetable):
     assert rec_full.decision_points >= 15
     assert rec_full.invalid_calls == 0 and rec_full.refusals == 0
     assert rec_full.tokens_in > 0 and rec_full.tokens_out > 0
+
+
+def test_lane_b_six_action_tools_stubs_and_real_engine(sample_timetable):
+    """Test all 6 Lane B action tools against stub engine methods (and real Engine methods when merged)."""
+    from railway.net.engine import Engine
+    from railway.net.interlocking import Refusal
+
+    # 1. Stubbed Engine methods verify exact positional argument shapes, statuses, station normalization & refusals.
+    s = Session(sample_timetable)
+    recorded: list[tuple[str, tuple]] = []
+
+    def make_stub(method_name: str, refuse_rule: NetRule | None = None):
+        def _stub(*call_args):
+            recorded.append((method_name, call_args))
+            if refuse_rule is not None:
+                return Refusal(refuse_rule, f"stubbed {method_name} refusal")
+            return None
+
+        return _stub
+
+    s.engine.route = make_stub("route")  # type: ignore[attr-defined]
+    s.engine.skip = make_stub("skip")  # type: ignore[attr-defined]
+    s.engine.short_turn = make_stub("short_turn")  # type: ignore[attr-defined]
+    s.engine.cancel = make_stub("cancel")  # type: ignore[attr-defined]
+    s.engine.single_line = make_stub("single_line")  # type: ignore[attr-defined]
+    s.engine.relieve_crew = make_stub("relieve_crew")  # type: ignore[attr-defined]
+
+    out_route = s.call("route", {"train": "IC1", "via": ["JA-B.d", "B1"]})
+    assert out_route.startswith("GRANTED route for IC1 via JA-B.d -> B1")
+    assert s.log[-1]["status"] == "GRANTED" and s.log[-1]["rule"] is None
+
+    # Platform ID "A1" normalizes to station node ID "A" for skip and short_turn.
+    out_skip = s.call("skip", {"train": "IC1", "station": "A1"})
+    assert out_skip == "OK IC1 skipping A"
+    assert s.log[-1]["status"] == "OK"
+
+    out_turn = s.call("short_turn", {"train": "IC1", "station": "B2"})
+    assert out_turn == "OK IC1 short-turned at B"
+    assert s.log[-1]["status"] == "OK"
+
+    out_cancel = s.call("cancel", {"train": "F3"})
+    assert out_cancel == "OK F3 cancelled"
+    assert s.log[-1]["status"] == "OK"
+
+    out_sl = s.call("single_line", {"segment": "JA-B.d", "on": True})
+    assert out_sl == "OK single-line working on on JA-B.d"
+    assert s.log[-1]["status"] == "OK"
+
+    out_crew = s.call("relieve_crew", {"train": "IC1"})
+    assert out_crew == "OK crew relief set for IC1"
+    assert s.log[-1]["status"] == "OK"
+
+    assert recorded == [
+        ("route", ("IC1", ["JA-B.d", "B1"])),
+        ("skip", ("IC1", "A")),
+        ("short_turn", ("IC1", "B")),
+        ("cancel", ("F3",)),
+        ("single_line", ("JA-B.d", True)),
+        ("relieve_crew", ("IC1",)),
+    ]
+    assert [m for _, m, _ in s._applied_actions] == [
+        "route",
+        "skip",
+        "short_turn",
+        "cancel",
+        "single_line",
+        "relieve_crew",
+    ]
+
+    # Refusal propagation from Engine methods (domain rules -> REFUSED; unknown train/element -> INVALID).
+    s.engine.route = make_stub("route", NetRule.BAD_ROUTE)  # type: ignore[attr-defined]
+    s.engine.skip = make_stub("skip", NetRule.SKIP_DESTINATION)  # type: ignore[attr-defined]
+    s.engine.short_turn = make_stub("short_turn", NetRule.NO_RETURN)  # type: ignore[attr-defined]
+    s.engine.cancel = make_stub("cancel", NetRule.TRAIN_DONE)  # type: ignore[attr-defined]
+    s.engine.single_line = make_stub("single_line", NetRule.NOT_REVERSIBLE)  # type: ignore[attr-defined]
+    s.engine.relieve_crew = make_stub("relieve_crew", NetRule.NOT_CREW_POINT)  # type: ignore[attr-defined]
+
+    for tool_name, payload, expected_rule in [
+        ("route", {"train": "IC1", "via": []}, "R-BAD-ROUTE"),
+        ("skip", {"train": "IC1", "station": "C"}, "R-SKIP-DESTINATION"),
+        ("short_turn", {"train": "IC1", "station": "A"}, "R-NO-RETURN"),
+        ("cancel", {"train": "IC1"}, "R-TRAIN-DONE"),
+        ("single_line", {"segment": "PW-A.u", "on": True}, "R-NOT-REVERSIBLE"),
+        ("relieve_crew", {"train": "L4"}, "R-NOT-CREW-POINT"),
+    ]:
+        out = s.call(tool_name, payload)
+        assert out.startswith(f"REFUSED {expected_rule}:")
+        assert (s.log[-1]["status"], s.log[-1]["rule"]) == ("REFUSED", expected_rule)
+
+    # 2. Behaviour on the live Engine class (clean R-BAD-ARGS before Lane B merges; real execution once merged).
+    live = Session(sample_timetable)
+    if not hasattr(Engine, "cancel"):
+        for tool_name, payload in [
+            ("route", {"train": "IC1", "via": ["A3"]}),
+            ("skip", {"train": "IC1", "station": "A"}),
+            ("short_turn", {"train": "IC1", "station": "A"}),
+            ("cancel", {"train": "F3"}),
+            ("single_line", {"segment": "JA-B.d", "on": True}),
+            ("relieve_crew", {"train": "IC1"}),
+        ]:
+            out = live.call(tool_name, payload)
+            assert out.startswith("REFUSED R-BAD-ARGS: engine action")
+            assert (live.log[-1]["status"], live.log[-1]["rule"]) == ("INVALID", "R-BAD-ARGS")
+    else:
+        assert live.call("single_line", {"segment": "JA-B.d", "on": True}).startswith("OK")
+        assert live.call("single_line", {"segment": "PW-A.u", "on": True}).startswith("REFUSED R-NOT-REVERSIBLE")
+        assert live.call("route", {"train": "IC1", "via": ["A3"]}).startswith("GRANTED")
+        assert live.call("relieve_crew", {"train": "IC1"}).startswith("OK")
+        assert live.call("skip", {"train": "L4", "station": "N"}).startswith("REFUSED R-SKIP-DESTINATION")
+        assert live.call("short_turn", {"train": "IC1", "station": "A"}).startswith("REFUSED R-NO-RETURN")
+        assert live.call("cancel", {"train": "F3"}).startswith("OK")

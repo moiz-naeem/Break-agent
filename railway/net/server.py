@@ -96,10 +96,29 @@ def build(tt: Timetable, token: str, *, budget: int = TOOL_BUDGET) -> MCPServer:
     async def platform(train: str, station: str, n: int | str) -> str:
         return await call("platform", {"train": train, "station": station, "n": n})
 
-    # -- Extension point: Lane B service & crew actions -------------------------
-    # Wire `route(train, via)`, `skip(train, station)`, `short_turn(train, station)`,
-    # `cancel(train)`, `single_line(segment, on)` and `relieve_crew(train)` here once
-    # registered in `railway.net.session.TOOLS`.
+    @server.tool(description=describe("route"))
+    async def route(train: str, via: list[str]) -> str:
+        return await call("route", {"train": train, "via": via})
+
+    @server.tool(description=describe("skip"))
+    async def skip(train: str, station: str) -> str:
+        return await call("skip", {"train": train, "station": station})
+
+    @server.tool(description=describe("short_turn"))
+    async def short_turn(train: str, station: str) -> str:
+        return await call("short_turn", {"train": train, "station": station})
+
+    @server.tool(description=describe("cancel"))
+    async def cancel(train: str) -> str:
+        return await call("cancel", {"train": train})
+
+    @server.tool(description=describe("single_line"))
+    async def single_line(segment: str, on: bool) -> str:
+        return await call("single_line", {"segment": segment, "on": on})
+
+    @server.tool(description=describe("relieve_crew"))
+    async def relieve_crew(train: str) -> str:
+        return await call("relieve_crew", {"train": train})
 
     @server.tool(description=describe("advance_to_next_event"))
     async def advance_to_next_event() -> str:

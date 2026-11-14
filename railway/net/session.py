@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
+from functools import cached_property
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from railway.util import canonical_json, content_hash
 
@@ -14,7 +15,7 @@ from .engine import LOOKAHEAD_MIN, Engine, Row
 from .events import EventLog
 from .interlocking import Refusal
 from .manual import NOTES_MAX, TOOL_BUDGET, render_manual
-from .model import Timetable
+from .model import Platform, Timetable
 from .rules import NetRule
 
 ON_TIME_MINUTES = 5
@@ -71,22 +72,22 @@ class PlatformArgs(Args):
 
 
 class TrainArg(Args):
-    train: str
+    train: str = Field(description="Train ID (e.g. 'IC1').")
 
 
 class RouteArgs(Args):
-    train: str
-    via: list[str]
+    train: str = Field(description="Train ID to divert.")
+    via: list[str] = Field(description="Ordered track or platform/road IDs to route through (e.g. ['JA-B.d', 'B1']).")
 
 
 class StationActionArgs(Args):
-    train: str
-    station: str
+    train: str = Field(description="Train ID.")
+    station: str = Field(description="Station node ID (e.g. 'B').")
 
 
 class SingleLineArgs(Args):
-    segment: str
-    on: bool
+    segment: str = Field(description="Reversible track ID (e.g. 'JA-B.d').")
+    on: bool = Field(description="True to open bidirectional working, False to restore normal direction.")
 
 
 class CostBreakdown(BaseModel):
@@ -151,6 +152,164 @@ def _refused(rule: NetRule | str, detail: str) -> tuple[str, str, str]:
     return f"REFUSED {code}: {detail}", status, code
 
 
+def _synthesize_fallback_log(timetable: Timetable, engine: Engine) -> EventLog:
+    """Build a canonical EventLog from `engine.trains` when `engine.log` is not attached yet."""
+    net = timetable.net
+    raw: list[tuple[int, int, str, dict]] = []
+    seq = 0
+
+    for trip in sorted(timetable.trips, key=lambda t: t.train.id):
+        tid = trip.train.id
+        mv = engine.trains[tid]
+        starts_berthed = trip.entry_node is None
+        visit_offset = 1 if starts_berthed else 0
+        call_cursor = 1 if starts_berthed else 0
+        matched_calls: set[int] = {0} if (starts_berthed and mv.visits) else set()
+
+        if starts_berthed and mv.visits:
+            v0 = mv.visits[0]
+            el0 = net.element(v0.platform)
+            node0 = el0.node if isinstance(el0, Platform) else None
+            seq += 1
+            raw.append(
+                (v0.arrived, seq, "ENTER", {"train": tid, "element": v0.platform, "call": 0, "booked": trip.entry_tick})
+            )
+            if v0.departed is not None:
+                seq += 1
+                raw.append(
+                    (
+                        v0.departed,
+                        seq,
+                        "DEPART",
+                        {
+                            "train": tid,
+                            "element": v0.platform,
+                            "node": node0,
+                            "call": 0,
+                            "booked": trip.calls[0].depart,
+                        },
+                    )
+                )
+
+        last_tick = trip.entry_tick
+        for v in mv.visits[visit_offset:]:
+            el = net.element(v.platform)
+            node = el.node if isinstance(el, Platform) else None
+            matched_idx: int | None = None
+            for idx in range(call_cursor, len(trip.calls)):
+                c_el = net.element(trip.calls[idx].platform)
+                if isinstance(c_el, Platform) and c_el.node == node:
+                    matched_idx = idx
+                    call_cursor = idx + 1
+                    matched_calls.add(idx)
+                    break
+            booked_call = trip.calls[matched_idx] if matched_idx is not None else None
+            detail = (
+                {"booked_platform": booked_call.platform}
+                if (booked_call is not None and booked_call.platform != v.platform)
+                else {}
+            )
+            seq += 1
+            raw.append(
+                (
+                    v.arrived,
+                    seq,
+                    "ARRIVE",
+                    {
+                        "train": tid,
+                        "element": v.platform,
+                        "node": node,
+                        "call": matched_idx,
+                        "booked": booked_call.arrive if booked_call is not None else None,
+                        "detail": detail,
+                    },
+                )
+            )
+            last_tick = max(last_tick, v.arrived)
+            if v.departed is not None:
+                seq += 1
+                raw.append(
+                    (
+                        v.departed,
+                        seq,
+                        "DEPART",
+                        {
+                            "train": tid,
+                            "element": v.platform,
+                            "node": node,
+                            "call": matched_idx,
+                            "booked": booked_call.depart if booked_call is not None else None,
+                        },
+                    )
+                )
+                last_tick = max(last_tick, v.departed)
+
+        if mv.phase == "done" and trip.exit_node is not None:
+            seq += 1
+            exit_tick = min(engine.tick, max(last_tick, engine.tick))
+            raw.append((exit_tick, seq, "EXIT", {"train": tid, "node": trip.exit_node}))
+
+        if engine.tick >= timetable.shift_min:
+            for c_idx, call in enumerate(trip.calls):
+                if c_idx not in matched_calls:
+                    c_el = net.element(call.platform)
+                    c_node = c_el.node if isinstance(c_el, Platform) else None
+                    seq += 1
+                    raw.append(
+                        (
+                            engine.tick,
+                            seq,
+                            "CALL_MISSED",
+                            {
+                                "train": tid,
+                                "element": call.platform,
+                                "node": c_node,
+                                "call": c_idx,
+                                "booked": call.arrive,
+                                "detail": {"why": "shift_end"},
+                            },
+                        )
+                    )
+            if mv.phase != "done":
+                seq += 1
+                raw.append(
+                    (
+                        engine.tick,
+                        seq,
+                        "UNFINISHED",
+                        {"train": tid, "detail": {"freight": not trip.train.passenger}},
+                    )
+                )
+
+    if engine.tick >= timetable.shift_min:
+        raw.append((engine.tick, 0, "SHIFT_END", {}))
+
+    raw.sort(key=lambda item: (item[0], 0 if item[2] == "SHIFT_END" and item[0] == engine.tick else 1, item[1]))
+    # Keep SHIFT_END right before shift-end CALL_MISSED/UNFINISHED while preserving earlier events.
+    ordered: list[tuple[int, int, str, dict]] = []
+    shift_end_tail: list[tuple[int, int, str, dict]] = []
+    for item in sorted(raw, key=lambda x: (x[0], x[1])):
+        if (
+            engine.tick >= timetable.shift_min
+            and item[0] == engine.tick
+            and item[2]
+            in {
+                "SHIFT_END",
+                "CALL_MISSED",
+                "UNFINISHED",
+            }
+        ):
+            shift_end_tail.append(item)
+        else:
+            ordered.append(item)
+    shift_end_tail.sort(key=lambda x: (0 if x[2] == "SHIFT_END" else 1, x[1]))
+
+    log = EventLog()
+    for tick, _, kind, fields in [*ordered, *shift_end_tail]:
+        log.emit(tick, kind, **fields)  # type: ignore[arg-type]
+    return log
+
+
 def _try_lane_c_cost(timetable: Timetable, engine: Engine) -> tuple[BaseModel | None, bool]:
     """Compute cost through `railway.net.cost` (lane C) if present; `(None, False)` otherwise."""
     try:
@@ -162,7 +321,7 @@ def _try_lane_c_cost(timetable: Timetable, engine: Engine) -> tuple[BaseModel | 
 
     log = getattr(engine, "log", None)
     if log is None:
-        log = EventLog()
+        log = _synthesize_fallback_log(timetable, engine)
 
     fn = None
     for candidate in ("cost", "compute_cost", "evaluate", "score_events"):
@@ -214,8 +373,10 @@ class Session:
     ):
         self.timetable = timetable
         self.scenario = timetable  # compatibility alias for callers expecting `session.scenario`
-        self.engine = Engine(timetable.net, list(timetable.trips), timetable.shift_min)
-        self._initial_engine = formats._clone_engine(self.engine)
+        if hasattr(Engine, "from_timetable") and callable(Engine.from_timetable):
+            self.engine = Engine.from_timetable(timetable)
+        else:
+            self.engine = Engine(timetable.net, list(timetable.trips), timetable.shift_min)
         self._applied_actions: list[tuple[int, str, tuple]] = []
         self.budget = budget
         self.diagnostics = diagnostics
@@ -227,7 +388,14 @@ class Session:
         self.final: FinalResult | None = None
         self.counts: dict[str, int] = dict.fromkeys(COUNT_KEYS, 0)
         self._last_advance = 0
+        self._last_decision = None
         self._log_cursor = len(getattr(getattr(self.engine, "log", None), "events", ()))
+
+    @cached_property
+    def _initial_engine(self) -> Engine:
+        if hasattr(Engine, "from_timetable") and callable(Engine.from_timetable):
+            return Engine.from_timetable(self.timetable)
+        return Engine(self.timetable.net, list(self.timetable.trips), self.timetable.shift_min)
 
     # -- public API -----------------------------------------------------------------
 
@@ -259,6 +427,7 @@ class Session:
     def close(self) -> FinalResult:
         if self.final is None:
             self._finish_shift()
+            self._sync_log_counts()
             counts = self._current_counts()
             cost_obj, _ = _try_lane_c_cost(self.timetable, self.engine)
             if cost_obj is None:
@@ -296,15 +465,27 @@ class Session:
         """Revealed disruptions and crew warnings; wired automatically if lane B populates engine bulletins/log."""
         if hasattr(self.engine, "revealed_bulletins") and callable(self.engine.revealed_bulletins):
             return list(self.engine.revealed_bulletins())
+        items: list[dict] = []
+        seen_disruption_ids: set[str] = set()
+        if hasattr(self.engine, "bulletins") and callable(self.engine.bulletins):
+            active_ids = set(getattr(self.engine, "_active", ()))
+            for d in self.engine.bulletins():
+                dumped = d.model_dump(mode="json") if hasattr(d, "model_dump") else dict(d)
+                did = str(dumped.get("id", ""))
+                if did:
+                    seen_disruption_ids.add(did)
+                dumped.setdefault("active", did in active_ids)
+                items.append(dumped)
         log = getattr(self.engine, "log", None)
         if log is not None and hasattr(log, "events"):
             shown = {"DISRUPTION_START", "DISRUPTION_END", "CREW_WARNING", "CREW_TIMEOUT"}
-            return [
-                e.model_dump(mode="json")
-                for e in log.events
-                if e.kind in shown and e.tick <= self.engine.tick
-            ]
-        return []
+            for e in log.events:
+                if e.kind not in shown or e.tick > self.engine.tick:
+                    continue
+                if e.kind == "DISRUPTION_START" and e.detail.get("id") in seen_disruption_ids:
+                    continue
+                items.append(e.model_dump(mode="json"))
+        return items
 
     # -- internals ------------------------------------------------------------------
 
@@ -351,30 +532,33 @@ class Session:
         return (message or f"{granted} {method}"), granted, None
 
     def _snapshot_trains(self) -> dict[str, tuple[str, str, bool, list]]:
-        return {
-            tid: (mv.phase, mv.position, mv.waiting, list(mv.visits))
-            for tid, mv in self.engine.trains.items()
-        }
+        return {tid: (mv.phase, mv.position, mv.waiting, list(mv.visits)) for tid, mv in self.engine.trains.items()}
+
+    def _sync_log_counts(self) -> list[tuple[int, str]]:
+        log = getattr(self.engine, "log", None)
+        if log is None or not hasattr(log, "events"):
+            return []
+        new_events = log.events[self._log_cursor :]
+        self._log_cursor = len(log.events)
+        changes: list[tuple[int, str]] = []
+        for ev in new_events:
+            if ev.kind == "GRIDLOCK":
+                self.counts["gridlocks"] += 1
+            elif ev.kind == "CREW_TIMEOUT":
+                self.counts["crew_timeouts"] += 1
+            elif ev.kind == "CALL_MISSED":
+                self.counts["missed_calls"] += 1
+            if ev.kind in {"ACTION", "SHIFT_END"}:
+                continue
+            target = ev.element or ev.node or ""
+            who = f"{ev.train} " if ev.train else ""
+            changes.append((ev.tick, f"{who}{ev.kind.lower()} {target}".strip()))
+        return changes
 
     def _collect_changes(self, before: dict[str, tuple[str, str, bool, list]], now_tick: int) -> list[tuple[int, str]]:
         log = getattr(self.engine, "log", None)
         if log is not None and hasattr(log, "events"):
-            new_events = log.events[self._log_cursor :]
-            self._log_cursor = len(log.events)
-            changes: list[tuple[int, str]] = []
-            for ev in new_events:
-                if ev.kind == "GRIDLOCK":
-                    self.counts["gridlocks"] += 1
-                elif ev.kind == "CREW_TIMEOUT":
-                    self.counts["crew_timeouts"] += 1
-                elif ev.kind == "CALL_MISSED":
-                    self.counts["missed_calls"] += 1
-                if ev.kind in {"ACTION", "SHIFT_END"}:
-                    continue
-                target = ev.element or ev.node or ""
-                who = f"{ev.train} " if ev.train else ""
-                changes.append((ev.tick, f"{who}{ev.kind.lower()} {target}".strip()))
-            return changes
+            return self._sync_log_counts()
 
         timed: list[tuple[int, str, str]] = []
         for tid in sorted(self.engine.trains):
@@ -404,47 +588,91 @@ class Session:
 
     def _finish_shift(self) -> None:
         if self.engine.tick >= self.engine.shift_min:
+            if hasattr(self.engine, "_finish") and not getattr(self.engine, "ended", True):
+                self.engine._finish()
             return
         if hasattr(self.engine, "end_shift") and callable(self.engine.end_shift):
             self.engine.end_shift()
             return
         # Run uncontested traffic to shift_min; contested trains without agent orders remain held at signals/berths.
         eng = self.engine
-        safety_cap = eng.shift_min * (len(eng.trains) + 2) + 100
+        has_clock = hasattr(eng, "_clock")
+        has_in_place = hasattr(eng, "_in_place")
+        has_gridlock = hasattr(eng, "_gridlock")
+        has_flush = hasattr(eng, "_flush_stops")
+        safety_cap = eng.shift_min * (len(eng.trains) + 2) + 200
         for _ in range(safety_cap):
             if eng.tick >= eng.shift_min:
                 break
+            if has_clock:
+                eng._clock()
             eng._resume()
+            if has_in_place:
+                eng._in_place()
             soon = eng._wanting(LOOKAHEAD_MIN)
             conflicts = eng._conflicts(soon)
             contested = {t for c in conflicts for t in c.trains}
-            now = {t: s for t, s in eng._wanting(0).items() if t in soon and t not in contested}
+            now = {
+                t: s
+                for t, s in soon.items()
+                if t not in contested
+                and (
+                    ((mv := eng.trains[t]).phase == "running" and mv.waiting)
+                    or ((due := mv.ready_at()) is not None and due <= eng.tick)
+                )
+            }
             for tid in eng._priority(now):
                 eng._extend(eng.trains[tid], now[tid])
             eng.orders = {
                 k: o for k, o in eng.orders.items() if any(eng.trains[t].working for t in o if t in eng.trains)
             }
+            if has_gridlock:
+                eng._gridlock()
             times = [mv.next_tick for mv in eng.trains.values() if mv.next_tick is not None]
-            times += [
-                t
-                for mv in eng.trains.values()
-                if mv.train.id not in contested and (t := mv.ready_at()) is not None and t > eng.tick
-            ]
+            for mv in eng.trains.values():
+                if mv.train.id not in contested and (t := mv.ready_at()) is not None and t > eng.tick:
+                    times.append(t)
+                for attr in ("stopped_until", "crew_back"):
+                    val = getattr(mv, attr, None)
+                    if val is not None and val > eng.tick:
+                        times.append(val)
+                crew_since = getattr(mv, "crew_since", None)
+                if crew_since is not None:
+                    due = crew_since + 240 - getattr(mv, "crew_base", 0)
+                    if due > eng.tick:
+                        times.append(due)
+            sched = getattr(eng, "_schedule", None)
+            next_sched = getattr(eng, "_next_sched", 0)
+            if sched is not None and next_sched < len(sched) and sched[next_sched][0] > eng.tick:
+                times.append(sched[next_sched][0])
+            times = [t for t in times if t <= eng.shift_min]
             if not times:
-                if blocked := eng._blocked():
+                if not has_gridlock and (blocked := eng._blocked()):
                     if blocked.kind == "BLOCKED":
                         self.counts["gridlocks"] += 1
                 break
+            if has_flush:
+                eng._flush_stops()
             eng.tick = min(min(times), eng.shift_min)
+            if has_clock:
+                eng._clock()
             eng._run_transitions()
+        if has_flush:
+            eng._flush_stops()
         eng.tick = eng.shift_min
+        if has_clock:
+            eng._clock()
+        if hasattr(eng, "_finish"):
+            eng._finish()
 
     def _current_counts(self) -> dict[str, int]:
         counts = dict(self.counts)
-        if self.engine.tick >= self.engine.shift_min:
-            counts["unfinished"] = sum(1 for mv in self.engine.trains.values() if mv.phase != "done")
-        else:
-            counts["unfinished"] = sum(1 for mv in self.engine.trains.values() if mv.phase != "done")
+        counts["unfinished"] = sum(
+            1 for mv in self.engine.trains.values() if mv.phase != "done" or getattr(mv, "cancelled", False)
+        )
+        if getattr(self.engine, "log", None) is None and self.engine.tick >= self.engine.shift_min:
+            fallback_log = _synthesize_fallback_log(self.timetable, self.engine)
+            counts["missed_calls"] = len(fallback_log.of("CALL_MISSED"))
         return counts
 
     def _ops_kpis(self, counts: dict[str, int] | None = None) -> dict[str, float | int | bool]:
@@ -614,26 +842,92 @@ def _platform(s: Session, a: PlatformArgs) -> tuple[str, str, str | None]:
     )
 
 
-# -- Extension point: Lane B service & crew actions ---------------------------------
-# Once Lane B merges `Engine.route`, `Engine.skip`, `Engine.short_turn`, `Engine.cancel`,
-# `Engine.single_line` and `Engine.relieve_crew`, wire them in via `LANE_B_TOOL_SPECS`
-# (or decorate handlers with `@tool(...)`) using `Session._engine_action(...)`:
-#
-#   route(train, via)          -> RouteArgs         -> s._engine_action("route", a.train, a.via, granted="GRANTED")
-#   skip(train, station)       -> StationActionArgs -> s._engine_action("skip", a.train, a.station)
-#   short_turn(train, station) -> StationActionArgs -> s._engine_action("short_turn", a.train, a.station)
-#   cancel(train)              -> TrainArg          -> s._engine_action("cancel", a.train)
-#   single_line(segment, on)   -> SingleLineArgs    -> s._engine_action("single_line", a.segment, a.on)
-#   relieve_crew(train)        -> TrainArg          -> s._engine_action("relieve_crew", a.train)
+# -- Lane B service & crew actions --------------------------------------------------
+
+
+def _resolve_station_arg(s: Session, station: str) -> str:
+    """Normalize a platform ID (e.g. 'B1') to its station node ID ('B') when `Engine` expects a node ID."""
+    if s.timetable.net.node(station) is None:
+        el = s.timetable.net.element(station)
+        if isinstance(el, Platform):
+            return el.node
+    return station
+
 
 LANE_B_TOOL_SPECS: dict[str, tuple[type[Args], str, str]] = {
-    "route": (RouteArgs, "GRANTED", "Divert `train` via intermediate nodes or tracks."),
-    "skip": (StationActionArgs, "OK", "Skip `train`'s scheduled stop at `station`."),
-    "short_turn": (StationActionArgs, "OK", "Terminate `train` early at `station` and start its return leg there."),
+    "route": (RouteArgs, "GRANTED", "Divert `train`'s next leg via ordered track or platform IDs."),
+    "skip": (StationActionArgs, "OK", "Skip `train`'s next scheduled call at `station`."),
+    "short_turn": (
+        StationActionArgs,
+        "OK",
+        "Turn `train` back early at `station` and start its return working there.",
+    ),
     "cancel": (TrainArg, "OK", "Cancel `train` for the remainder of the shift."),
     "single_line": (SingleLineArgs, "OK", "Enable or disable bidirectional single-line working on `segment`."),
-    "relieve_crew": (TrainArg, "OK", "Start a crew relief for `train` at its current station."),
+    "relieve_crew": (
+        TrainArg,
+        "OK",
+        "Relieve `train`'s crew at its current crew-relief platform, or at the next one it calls at.",
+    ),
 }
+
+
+@tool("route", RouteArgs)
+def _route(s: Session, a: RouteArgs) -> tuple[str, str, str | None]:
+    """Divert `train`'s next leg via ordered track or platform IDs (e.g. `["JA-B.d", "B1"]`)."""
+    via = list(a.via)
+    return s._engine_action(
+        "route",
+        a.train,
+        via,
+        granted="GRANTED",
+        message=f"GRANTED route for {a.train} via {' -> '.join(via)}",
+    )
+
+
+@tool("skip", StationActionArgs)
+def _skip(s: Session, a: StationActionArgs) -> tuple[str, str, str | None]:
+    """Skip `train`'s next scheduled call at `station` (node ID, e.g. `"B"`)."""
+    station = _resolve_station_arg(s, a.station)
+    return s._engine_action("skip", a.train, station, granted="OK", message=f"OK {a.train} skipping {station}")
+
+
+@tool("short_turn", StationActionArgs)
+def _short_turn(s: Session, a: StationActionArgs) -> tuple[str, str, str | None]:
+    """Turn `train` back early at `station` (node ID) and start its return working there."""
+    station = _resolve_station_arg(s, a.station)
+    return s._engine_action(
+        "short_turn",
+        a.train,
+        station,
+        granted="OK",
+        message=f"OK {a.train} short-turned at {station}",
+    )
+
+
+@tool("cancel", TrainArg)
+def _cancel(s: Session, a: TrainArg) -> tuple[str, str, str | None]:
+    """Cancel `train` for the remainder of the shift."""
+    return s._engine_action("cancel", a.train, granted="OK", message=f"OK {a.train} cancelled")
+
+
+@tool("single_line", SingleLineArgs)
+def _single_line(s: Session, a: SingleLineArgs) -> tuple[str, str, str | None]:
+    """Enable or disable bidirectional single-line working on reversible track `segment` (e.g. `"JA-B.d"`)."""
+    state_word = "on" if a.on else "off"
+    return s._engine_action(
+        "single_line",
+        a.segment,
+        a.on,
+        granted="OK",
+        message=f"OK single-line working {state_word} on {a.segment}",
+    )
+
+
+@tool("relieve_crew", TrainArg)
+def _relieve_crew(s: Session, a: TrainArg) -> tuple[str, str, str | None]:
+    """Relieve `train`'s crew at its current crew-relief platform, or at the next one it calls at."""
+    return s._engine_action("relieve_crew", a.train, granted="OK", message=f"OK crew relief set for {a.train}")
 
 
 @tool("advance_to_next_event")
@@ -642,6 +936,7 @@ def _advance(s: Session, a: NoArgs) -> tuple[str, str, str | None]:
     since = s._last_advance
     before = s._snapshot_trains()
     decision = s.engine.advance()
+    s._last_decision = decision
     s.counts["decision_points"] += 1
     if decision.kind == "BLOCKED" and getattr(s.engine, "log", None) is None:
         s.counts["gridlocks"] += 1
