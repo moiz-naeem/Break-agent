@@ -199,6 +199,8 @@ restrictions: possession S9-S10 170-200
 
 ## 6. Reward
 
+> The v0.3 reward (§6.6) replaces §6.1 and §6.2 once the graph network is implemented.
+
 ### 6.1 Cost (weighted minutes)
 Charged as events happen (visible in `kpis()`):
 
@@ -266,6 +268,65 @@ accepts custom agents easily, they also ship as Harbor agents.
 | Call `sim` endpoints directly | Only the MCP tools and a read-only log of the agent's own actions are exposed |
 | Tamper with the score | The verifier re-scores by replaying the action log against `tests/scenario.json`, which arrives only after the agent finishes |
 | Malformed commands | Refused with a reason; no state change; counted as invalid calls |
+
+### 6.6 v0.3 reward (agreed 2026-11-14, not yet implemented)
+
+This replaces §6.1 and §6.2 when the graph network lands. Until then, §6.1 and §6.2
+describe the code. It builds on `docs/design-changes-v0.3.md`, which removes reversal
+and the terminus ×2 and anchors on `C_best`.
+
+```
+reward = max( 0, (C_greedy − C_agent) / (C_greedy − C_best) )        → reward.txt
+C      = C1 + C2 + C3 + C5            (1 unit = 100 passenger-minutes late)
+```
+
+- **0** means greedy or worse, which includes do-nothing and stop-early. **1** means the
+  best known plan. A score above 1 happens only when the agent beats the best known
+  plan. It is flagged, and that plan becomes the new `C_best`, so the reward stays in
+  [0, 1].
+- The agent is trained and evaluated on this reward. Rollouts worse than greedy all
+  score 0, so during training their unclipped value breaks ties between them.
+
+**Lateness curve**, per passenger, used by C1 and C2:
+
+```
+f(L) = max(0, L − 2) + 5·[L ≥ 15] + 10·[L ≥ 30] + 20·[L ≥ 60]
+```
+
+The 2-minute grace stops the agent chasing small jitters. The slope of 1 means each
+extra minute always costs more, so no train gets "written off". The steps mirror UK
+Delay Repay refunds (25 / 50 / 100 % of the fare at 15 / 30 / 60 min late).
+
+| Term | Charge | Why |
+|---|---|---|
+| **C1 Passenger lateness** | At each timed stop: `v × alight/100 × f(late)`, where `v` = express 1.5, local 1.0 | Each passenger is charged once, at their own stop. This replaces `w_type × pax` and the terminus ×2. `v` reflects that long-distance passengers value time more. |
+| **C2 Missed station call** | **`500 + v × (alight + board)/100 × (f(H) + 10)`** per scheduled stop not served: bypassed, misrouted, wrong terminal, or not reached by shift end | It hits both groups: people who wanted to get off, and people who wanted to get on and lose their journey. `H` = wait for the next service there. 10 = the hassle of being stranded. 500 makes skipping a last resort. |
+| **C2 Missed connection** | `v × n/100 × (f(H) + 10)` for the `n` transferring passengers | The connecting train left before the feeder arrived. |
+| **C2 Unfinished train** | 200 per train that does not finish its run, plus missed calls for its unserved stops. Freight is charged as arriving at shift end. | Stock and crew are left out of position. |
+| **C3 Freight** | `0.5 × late`, plus 50 if `late > 30` (F13 port cutoff: 400) | Customers buy a delivery window, so freight wins conflicts only near its window. |
+| **C5 Gridlock** | **1000 per gridlock**, charged when it forms | A deadlock means the plan failed. Reversal stays removed, so the trains stay stuck and their unserved stops add missed calls on top. The charge is on the deadlock, not on recovery, so staying stuck can never be cheaper. |
+| **C5 Operations** | Unplanned stop: freight 4, passenger 1. Platform change at a hub: `v × (alight + board)/100 × 2` | Energy and wear from stop-start running, which acts as a tie-breaker. Re-platforming is a cheap conflict tool, but not a free one. |
+
+**There is no crew term (C4 is dropped).** A crew timeout still blocks its section for
+45 ticks, and the delays it causes are charged through C1–C3. It is counted as a red
+flag in the clean-shift rate. Known gap: a timeout where the blockage delays nobody
+costs nothing.
+
+**What the weights imply** (checked by script):
+- Skipping a 300-passenger express stop costs 818. Arriving late there only costs more
+  after 149 minutes. At small stops, skipping is never cheaper than arriving late.
+- A blocked express that diverts and skips a stop (601) beats waiting only when the
+  blockage lasts more than 84 minutes.
+- A gridlock (1000) equals 222 minutes of delay to a full express, or two missed calls.
+- Per extra minute of waiting: full express 4.5, 150-passenger local 1.5, freight 0.5.
+
+**Scenario data needed:** passengers getting on and off at each stop; connections
+(feeder, connector, hub, passengers, minimum transfer time); the headway `H` per
+station and destination; freight window and miss cost; the published platform at hubs.
+
+**Unchanged:** freight 0.5 per minute, the F13 cutoff of 400, F17 special requests, and
+weights frozen after the pilot. Re-run the §6.5 exploit checks once this is
+implemented.
 
 ---
 
