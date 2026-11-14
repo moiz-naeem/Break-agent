@@ -22,7 +22,20 @@ from functools import lru_cache
 from math import ceil
 
 from .engine import TURNAROUND_MIN, Engine, block_minutes, move_minutes, track_minutes
-from .model import Call, Connection, Move, Network, Platform, ServiceGroup, Timetable, Track, TrainSpec, Trip
+from .model import (
+    Call,
+    Connection,
+    Disruption,
+    DisruptionKind,
+    Move,
+    Network,
+    Platform,
+    ServiceGroup,
+    Timetable,
+    Track,
+    TrainSpec,
+    Trip,
+)
 from .routing import find_route, portal_track
 from .trains import TYPES
 
@@ -430,8 +443,170 @@ def _drop_until_delivered(net: Network, trips: list[Trip], shift_min: int) -> tu
     return None
 
 
+def _draw_incident(
+    net: Network,
+    trips: tuple[Trip, ...],
+    shift_min: int,
+    rng: random.Random,
+    used_breakdowns: set[str],
+) -> dict | None:
+    """Draw one infrastructure or breakdown disruption inside `shift_min`, or None if nothing fits."""
+    if shift_min < 8:
+        return None
+    kinds: list[DisruptionKind] = []
+    live_trips = [
+        t
+        for t in trips
+        if t.train.id not in used_breakdowns
+        and (t.calls[-1].arrive or shift_min) > t.entry_tick + 4
+        and t.entry_tick + 2 < shift_min - 2
+    ]
+    if live_trips:
+        kinds.append("breakdown")
+    if net.tracks:
+        kinds += ["possession", "speed_restriction", "signal_failure"]
+    if net.moves:
+        kinds.append("points_failure")
+    if net.platforms:
+        kinds.append("platform_closed")
+    if not kinds:
+        return None
+
+    kind = rng.choice(kinds)
+    low = min(15, max(1, shift_min // 6))
+    high = max(low, shift_min - max(6, shift_min // 5))
+    start = rng.randint(low, high)
+
+    if kind == "breakdown":
+        trip = rng.choice(live_trips)
+        used_breakdowns.add(trip.train.id)
+        hi = min(shift_min - 2, (trip.calls[-1].arrive or shift_min) - 1)
+        lo = min(hi, trip.entry_tick + 2)
+        start = rng.randint(lo, hi)
+        dur = rng.randint(10, 22)
+        end = min(shift_min, max(start + 1, start + dur))
+        return {"kind": kind, "start": start, "end": end, "reveal": start, "train": trip.train.id}
+
+    if kind == "possession":
+        reversible = [t for t in net.tracks if t.reversible]
+        track = rng.choice(reversible or list(net.tracks))
+        dur = rng.randint(15, 30)
+        end = min(shift_min, max(start + 1, start + dur))
+        reveal = max(0, start - rng.randint(30, 60))
+        return {"kind": kind, "start": start, "end": end, "reveal": reveal, "elements": (track.id,)}
+
+    if kind == "speed_restriction":
+        fast = [t for t in net.tracks if t.line_speed_kmh >= 80]
+        track = rng.choice(fast or list(net.tracks))
+        speed = 40 if track.line_speed_kmh > 60 else max(20, track.line_speed_kmh // 2)
+        dur = rng.randint(20, 45)
+        end = min(shift_min, max(start + 1, start + dur))
+        reveal = max(0, start - rng.randint(30, 60))
+        return {
+            "kind": kind,
+            "start": start,
+            "end": end,
+            "reveal": reveal,
+            "elements": (track.id,),
+            "speed_kmh": speed,
+        }
+
+    if kind == "signal_failure":
+        track = rng.choice(net.tracks)
+        dur = rng.randint(15, 35)
+        end = min(shift_min, max(start + 1, start + dur))
+        return {"kind": kind, "start": start, "end": end, "reveal": start, "elements": (track.id,)}
+
+    if kind == "points_failure":
+        move = rng.choice(net.moves)
+        dur = rng.randint(12, 28)
+        end = min(shift_min, max(start + 1, start + dur))
+        return {"kind": kind, "start": start, "end": end, "reveal": start, "elements": (move.id,)}
+
+    by_node: dict[str, list[Platform]] = {}
+    for p in net.platforms:
+        by_node.setdefault(p.node, []).append(p)
+    multi = [p for group in by_node.values() if len(group) >= 2 for p in group]
+    plat = rng.choice(multi or list(net.platforms))
+    dur = rng.randint(15, 35)
+    end = min(shift_min, max(start + 1, start + dur))
+    reveal = max(0, start - 30)
+    return {"kind": "platform_closed", "start": start, "end": end, "reveal": reveal, "elements": (plat.id,)}
+
+
+def generate_disruptions(
+    timetable: Timetable,
+    seed: int | None = None,
+    density: float = 1.0,
+) -> tuple[Disruption, ...]:
+    """Deterministically draw §4.2 disruptions for `timetable` from `(seed, density)`.
+
+    `density <= 0` draws none; `density == 1.0` matches §6's preset density (~3-4 incidents on a 3 h T1 shift plus
+    late portal entries), and larger values scale both entry-delay frequency and incident count up monotonically.
+    """
+    if density < 0:
+        raise ValueError(f"disruption density must be >= 0, got {density}")
+    if density == 0:
+        return ()
+    use_seed = timetable.seed if seed is None else seed
+    rng = random.Random(f"{use_seed}:{timetable.tier}:disruptions")
+    raw: list[dict] = []
+
+    entry_prob = min(0.85, 0.25 * density)
+    for trip in sorted(timetable.trips, key=lambda t: t.train.id):
+        if trip.entry_node is None or trip.entry_tick + 2 >= timetable.shift_min:
+            continue
+        roll = rng.random()
+        max_delay = min(10, timetable.shift_min - trip.entry_tick - 1)
+        delay = rng.randint(2, max(2, max_delay))
+        if roll < entry_prob and max_delay >= 2:
+            raw.append(
+                {
+                    "kind": "late_entry",
+                    "start": trip.entry_tick,
+                    "end": trip.entry_tick + delay,
+                    "reveal": max(0, trip.entry_tick - 20),
+                    "train": trip.train.id,
+                }
+            )
+
+    target = max(1, round((timetable.shift_min / 60) * 1.2 * density))
+    used_breakdowns: set[str] = set()
+    for _ in range(target):
+        item = _draw_incident(timetable.net, timetable.trips, timetable.shift_min, rng, used_breakdowns)
+        if item is not None:
+            raw.append(item)
+
+    raw.sort(key=lambda d: (d["start"], d["kind"], d.get("train") or "", d.get("elements", ())))
+    return tuple(Disruption(id=f"D{i + 1:02d}", **d) for i, d in enumerate(raw))
+
+
+def with_disruptions(
+    timetable: Timetable,
+    seed: int | None = None,
+    density: float = 1.0,
+) -> Timetable:
+    """Return a validated copy of `timetable` populated with deterministic disruptions."""
+    disruptions = generate_disruptions(timetable, seed=seed, density=density)
+    return Timetable(
+        net=timetable.net,
+        trips=timetable.trips,
+        connections=timetable.connections,
+        shift_min=timetable.shift_min,
+        seed=timetable.seed if seed is None else seed,
+        tier=timetable.tier,
+        disruptions=disruptions,
+    )
+
+
 def generate(
-    net: Network, core: list[ServiceGroup], fill: list[ServiceGroup], shift_min: int, seed: int, tier: str
+    net: Network,
+    core: list[ServiceGroup],
+    fill: list[ServiceGroup],
+    shift_min: int,
+    seed: int,
+    tier: str,
+    disruption_density: float = 0.0,
 ) -> Timetable:
     """Build the shift: the core service, then filler paths until the busiest junction is in the band (§1.2).
 
@@ -471,7 +646,7 @@ def generate(
     else:
         raise ValueError(f"seed {seed} rejected: {off_book(engine)[0]}")
     booked = tuple(trips)
-    return Timetable(
+    timetable = Timetable(
         net=net,
         trips=booked,
         connections=_connections(net, booked, lines),
@@ -479,3 +654,8 @@ def generate(
         seed=seed,
         tier=tier,
     )
+    if disruption_density > 0:
+        return with_disruptions(timetable, seed=seed, density=disruption_density)
+    if disruption_density < 0:
+        raise ValueError(f"disruption density must be >= 0, got {disruption_density}")
+    return timetable
