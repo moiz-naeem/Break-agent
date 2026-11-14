@@ -11,6 +11,9 @@ def block_m(line_speed_kmh: int) -> int:
     return 3000 if line_speed_kmh >= 140 else 2000 if line_speed_kmh >= 100 else 1500
 
 
+CREW_RELIEF = frozenset({"A1", "A2", "A3", "B3", "C1", "C2", "C3"})
+
+
 def trunk_and_branches() -> Network:
     """T1: double-track trunk PW-A-JA-B-JB-C, terminal C, single-track branch JA-N-PN, diesel-only port spur at JB.
 
@@ -20,6 +23,12 @@ def trunk_and_branches() -> Network:
 
     JA is a flat junction: up trains turning onto the branch cross the down main. JB is a single lead: the spur's
     two directions share one turnout. B has a 750 m loop where slow trains step aside.
+
+    JA-B, the longest stretch of double track, is signalled both ways, with crossovers at JA and B, so single_line()
+    can work both directions over one track while the other is blocked. Nothing can run the wrong way until then.
+    An up train on the wrong road can still call at B1; a down train on it runs through B without calling, because
+    a move from B2 onto the up line would let up trains into the down platform.
+    Crews are relieved at A, at the freight loop B3 and at the terminal C.
     """
     nodes = [
         Node(id=i, kind=k)
@@ -30,7 +39,7 @@ def trunk_and_branches() -> Network:
     ]  # fmt: skip
     tracks = [
         Track(id=f"{a}-{b}.{s}", a=a, b=b, length_m=km * 1000, line_speed_kmh=v, electrified=True, direction=d,
-              block_m=block_m(v))
+              block_m=block_m(v), reversible=(a, b) == ("JA", "B"))
         for a, b, km, v in [("PW", "A", 12, 160), ("A", "JA", 4, 160), ("JA", "B", 15, 160), ("B", "JB", 9, 160),
                             ("JB", "C", 5, 120)]
         for s, d in (("u", "ab"), ("d", "ba"))
@@ -41,7 +50,7 @@ def trunk_and_branches() -> Network:
                                   ("JB-PORT", "JB", "PORT", 6, 60, False)]
     ]  # fmt: skip
     platforms = [
-        Platform(id=i, node=n, length_m=m, kind=k, electrified=n != "PORT")
+        Platform(id=i, node=n, length_m=m, kind=k, electrified=n != "PORT", crew_relief=i in CREW_RELIEF)
         for i, n, m, k in [
             ("A1", "A", 270, "platform"), ("A2", "A", 270, "platform"), ("A3", "A", 800, "through"),
             ("B1", "B", 270, "platform"), ("B2", "B", 270, "platform"), ("B3", "B", 750, "siding"),
@@ -59,10 +68,12 @@ def trunk_and_branches() -> Network:
         ("A.e4", "A", "A3", "A-JA.u", 60, "b"), ("A.e5", "A", "A-JA.d", "A3", 60, "b"),
         ("JA.m1", "JA", "A-JA.u", "JA-B.u", 160, None), ("JA.m2", "JA", "JA-B.d", "A-JA.d", 160, None),
         ("JA.m3", "JA", "A-JA.u", "JA-N", 80, None), ("JA.m4", "JA", "JA-N", "A-JA.d", 80, None),
+        ("JA.x1", "JA", "JA-B.u", "A-JA.d", 40, None), ("JA.x2", "JA", "A-JA.u", "JA-B.d", 40, None),  # crossovers
         ("B.w1", "B", "JA-B.u", "B1", 60, "a"), ("B.w2", "B", "JA-B.u", "B3", 40, "a"),
         ("B.w3", "B", "B2", "JA-B.d", 60, "a"),
         ("B.e1", "B", "B1", "B-JB.u", 60, "b"), ("B.e2", "B", "B3", "B-JB.u", 40, "b"),
         ("B.e3", "B", "B-JB.d", "B2", 60, "b"),
+        ("B.w4", "B", "JA-B.d", "B1", 40, "a"), ("B.x1", "B", "B-JB.d", "JA-B.u", 40, None),  # wrong-road
         ("JB.m1", "JB", "B-JB.u", "JB-C.u", 160, None), ("JB.m2", "JB", "JB-C.d", "B-JB.d", 160, None),
         ("JB.m3", "JB", "B-JB.u", "JB-PORT", 40, None), ("JB.m4", "JB", "JB-PORT", "B-JB.d", 40, None),
         ("C.a1", "C", "JB-C.u", "C1", 40, "a"), ("C.a2", "C", "JB-C.u", "C2", 40, "a"),
@@ -76,6 +87,7 @@ def trunk_and_branches() -> Network:
     # Moves sharing points conflict automatically; these cross without sharing points.
     crossings = [
         ("JA.m2", "JA.m3"),  # flat junction: up trains turning onto the branch cross the down main
+        ("JA.x1", "JA.x2"),  # the two crossovers form a scissors
         ("JB.m2", "JB.m3"),  # same at the port spur
         ("C.a2", "C.d1"), ("C.a3", "C.d1"), ("C.a3", "C.d2"),  # terminal throat: arrivals cross departures
     ]  # fmt: skip

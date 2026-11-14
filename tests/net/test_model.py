@@ -18,7 +18,7 @@ def by_id(items, item_id):
 
 
 def test_t1_template_is_valid():
-    assert (len(NET.nodes), len(NET.tracks), len(NET.platforms), len(NET.moves)) == (9, 13, 13, 36)
+    assert (len(NET.nodes), len(NET.tracks), len(NET.platforms), len(NET.moves)) == (9, 13, 13, 40)
     assert NET.element("JA-B.u").blocks == 5  # 15 km in 3 km blocks on a 160 km/h line
     assert NET.element("A-JA.u").blocks == 2  # 4 km in 3 km blocks
     assert not NET.element("JB-PORT").electrified
@@ -26,7 +26,8 @@ def test_t1_template_is_valid():
 
 
 def test_conflicts_are_derived_from_shared_points_and_crossings():
-    assert NET.conflicts("JA.m3") == ["JA.m1", "JA.m2", "JA.m4"]  # shared points with m1/m4, crossing with m2
+    # shared points with m1, m4 and the crossover x2; crossing with m2
+    assert NET.conflicts("JA.m3") == ["JA.m1", "JA.m2", "JA.m4", "JA.x2"]
     assert NET.conflicts("C.a1") == ["C.a2", "C.a3", "C.d1"]  # same throat, and the same end of C1 as C.d1
     assert "A.e1" not in NET.conflicts("A.w1")  # opposite ends of platform A1
 
