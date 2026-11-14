@@ -1,153 +1,214 @@
 {
   "accepted": [
     {
-      "c_greedy": 7718.6,
-      "c_ref": 4608.3,
-      "scenario_hash": "d75aae2e2b75c136c8dab4bad0ad9eb38569eb14e94545e5baf5b32b14c5c25d",
-      "scenario_id": "T2-8ded4ee16440",
-      "seed": 0
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 749.005,
+      "c_greedy": 3070.22,
+      "c_ref": 749.005,
+      "scenario_hash": "4cf702c66345ce6025b75ff9e4287dd5bc5d3fae98c3e703dbf04c949b4d3f66",
+      "scenario_id": "T2-5c2f59fff047",
+      "seed": 1
     },
     {
-      "c_greedy": 11561.5,
-      "c_ref": 6873.2,
-      "scenario_hash": "f319f5ee30f4aed11cf6d6bcb2d866f46a9731e6e9f6d63dbc1e144338477d8b",
-      "scenario_id": "T2-2ccf828bc4d5",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 872.045,
+      "c_greedy": 1710.2,
+      "c_ref": 872.045,
+      "scenario_hash": "34a3b432c165115f16c52ebf385ea5d7afc5b1035aa2cee26e376bcd35c2f205",
+      "scenario_id": "T2-d1f50d807960",
       "seed": 2
     },
     {
-      "c_greedy": 18241.7,
-      "c_ref": 11150.6,
-      "scenario_hash": "19294313a511177d995a889abfeab18ce907c4a0b6f8ce8a1f12d1bc9f2b48d0",
-      "scenario_id": "T2-e0c02beaa20c",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1929.825,
+      "c_greedy": 2827.73,
+      "c_ref": 1929.825,
+      "scenario_hash": "2cbf5faae4db46dad4cd92be017d37ed9b3df7b9f0347bc5b22e69bd7131a848",
+      "scenario_id": "T2-537560106741",
       "seed": 3
     },
     {
-      "c_greedy": 12617.5,
-      "c_ref": 5635.8,
-      "scenario_hash": "8b19dae1eecdc16174cec0c53d056c8efd7d92e85d0a022891ddaba244ca6bf6",
-      "scenario_id": "T2-f297e7f95f0c",
-      "seed": 4
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 3081.9,
+      "c_greedy": 4482.675,
+      "c_ref": 3081.9,
+      "scenario_hash": "2b0b595cb2aeff042fc4f8e367a4392a864c8dbe4791ef5fbebb904c6031102b",
+      "scenario_id": "T2-e1cb078dbc73",
+      "seed": 7
     },
     {
-      "c_greedy": 8814.7,
-      "c_ref": 4581.9,
-      "scenario_hash": "713c7f9692b042830f61acbe9cb25c25408557946f7318d88f498caa80094f38",
-      "scenario_id": "T2-3e56b9c37b8a",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1389.81,
+      "c_greedy": 2175.605,
+      "c_ref": 1389.81,
+      "scenario_hash": "dfdc8d75f5bf94d244a04cb41682614ba3b4df9dbc5cca499cafcc885e724e9a",
+      "scenario_id": "T2-16f531b6931e",
+      "seed": 8
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1194.915,
+      "c_greedy": 1791.145,
+      "c_ref": 1194.915,
+      "scenario_hash": "c785e8da841041afe418871870ecf7c64c3897a8afd87361bdbb667d225f00f8",
+      "scenario_id": "T2-68cd3efc75df",
       "seed": 10
     },
     {
-      "c_greedy": 10892.9,
-      "c_ref": 6784.1,
-      "scenario_hash": "01d3e983ac2ce7d3aab211e775462e9ddc431821d5a2f5fe96e04f8d01af702e",
-      "scenario_id": "T2-2851a4289c94",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1039.29,
+      "c_greedy": 1660.61,
+      "c_ref": 1039.29,
+      "scenario_hash": "927b63b851d1fd630a04bbc097f90d2eeb40d6eac86bf461a3dbc2afae40920a",
+      "scenario_id": "T2-1a844eca588e",
+      "seed": 11
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1517.415,
+      "c_greedy": 4056.91,
+      "c_ref": 1517.415,
+      "scenario_hash": "86bfdb89913e39f1d2ebcbe760a084bbdae7b69f5d1d63e4a65f6311bfa0c5d9",
+      "scenario_id": "T2-eef5aa1aba59",
       "seed": 14
     },
     {
-      "c_greedy": 13899.7,
-      "c_ref": 8860.9,
-      "scenario_hash": "3ed949dd88e0335fa5c936d56187e1d3898001433e4dfb07ee6a40633456ca8d",
-      "scenario_id": "T2-fb08f31a7aea",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1628.9,
+      "c_greedy": 2692.635,
+      "c_ref": 1628.9,
+      "scenario_hash": "e64a9876a5283a8b0d2b0ba33f51ae8911fc00537d8cdcc4cc88a4c8d7863464",
+      "scenario_id": "T2-550cbf9073a2",
+      "seed": 16
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1539.63,
+      "c_greedy": 2977.535,
+      "c_ref": 1539.63,
+      "scenario_hash": "55a9b5bc445e872d72c762a9d9514c8dadbeb9b0cc1a7211f30b7068d5c76270",
+      "scenario_id": "T2-724640f5edc7",
       "seed": 17
     },
     {
-      "c_greedy": 7999.1,
-      "c_ref": 3739.5,
-      "scenario_hash": "1db0095b1c5b82ddfdffdbbc5e9ba423afcdf04ac2a81fe8d90412b61ed1a1c6",
-      "scenario_id": "T2-ec86ae99e7b1",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1338.925,
+      "c_greedy": 2288.515,
+      "c_ref": 1338.925,
+      "scenario_hash": "b72998efb3e90f438247056b19dfe9b8b925c25e79c8b819cb4027e3e6ac1d85",
+      "scenario_id": "T2-ac32384be17a",
+      "seed": 18
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1327.525,
+      "c_greedy": 2908.54,
+      "c_ref": 1327.525,
+      "scenario_hash": "c1aee6d19a0941505b7327add448073a5d26efcb295c09638ead721c03d2b010",
+      "scenario_id": "T2-d6c6eb4c4706",
       "seed": 20
     },
     {
-      "c_greedy": 12120.8,
-      "c_ref": 7193.9,
-      "scenario_hash": "60db71e366d4d77aee312667a2374c44b7af3e6e552a63a1c1680f9ed467704f",
-      "scenario_id": "T2-78e32d0b66ab",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 794.625,
+      "c_greedy": 2014.175,
+      "c_ref": 794.625,
+      "scenario_hash": "6daad126fccd1f1c4de618def218a0593f8794dd1076c95e1fdd9979de124296",
+      "scenario_id": "T2-6b1cf8ad2824",
       "seed": 21
     },
     {
-      "c_greedy": 13683.1,
-      "c_ref": 5809.5,
-      "scenario_hash": "8d64571a8c4a070b63f9d9cd2603d2fd5f95bc547e003d1af4295d08025020d8",
-      "scenario_id": "T2-3b1611be1d87",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 592.175,
+      "c_greedy": 1973.055,
+      "c_ref": 592.175,
+      "scenario_hash": "90833ca5eaad724df90aca875c993616729fe10b3e001ec9801257858e188c8a",
+      "scenario_id": "T2-d18af4422713",
+      "seed": 22
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1276.9,
+      "c_greedy": 2257.63,
+      "c_ref": 1276.9,
+      "scenario_hash": "9ca4d762fcda27667e21fb0e4a0995801b703b8e0d42fbd9df9c468dd1acfaec",
+      "scenario_id": "T2-f12fa37f9349",
       "seed": 23
     },
     {
-      "c_greedy": 5873.7,
-      "c_ref": 3302.6,
-      "scenario_hash": "e052cd766d0db0cc40e3d8719c392c7e6d4a6ca493983fb0f3b955b16855ea2e",
-      "scenario_id": "T2-b0032c2e8127",
-      "seed": 26
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1644.33,
+      "c_greedy": 2536.76,
+      "c_ref": 1644.33,
+      "scenario_hash": "be69273cd7946fffe1e743fca2a68f866b8db3b186e1f1a43a0267f8aa624bf0",
+      "scenario_id": "T2-bfbf41ff7984",
+      "seed": 25
     },
     {
-      "c_greedy": 11700.9,
-      "c_ref": 7159.6,
-      "scenario_hash": "6c5f761b5ab50f4492c5a91dd8dbef28232bc93f98a68396545121f22ca95e7d",
-      "scenario_id": "T2-bccfd1fa3e9e",
-      "seed": 27
-    },
-    {
-      "c_greedy": 5115.1,
-      "c_ref": 3098.0,
-      "scenario_hash": "8949d9775ab4870da9ebb2afa47d97efcf1dab1b165029234823c9344ce5c604",
-      "scenario_id": "T2-4cb92be963ba",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1198.1,
+      "c_greedy": 2218.325,
+      "c_ref": 1198.1,
+      "scenario_hash": "da3902195eeab344e460b8ee039f135304751074a1586627df3e250241ce629d",
+      "scenario_id": "T2-fb47a313cd47",
       "seed": 28
     },
     {
-      "c_greedy": 19759.6,
-      "c_ref": 12556.8,
-      "scenario_hash": "7dd56987b96b7a7c15ef161a0da3dc70d30a92989dc7c0b2d031cb5e88cf3540",
-      "scenario_id": "T2-045290d05dfc",
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1469.53,
+      "c_greedy": 3025.71,
+      "c_ref": 1469.53,
+      "scenario_hash": "3faa2d0acf83196d85ad118f5c212197075b93664afeaddb5449d75039eb9af9",
+      "scenario_id": "T2-d49c24a94c60",
+      "seed": 29
+    },
+    {
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1190.375,
+      "c_greedy": 1822.2,
+      "c_ref": 1190.375,
+      "scenario_hash": "cdf23eadbbcd5267b22e1431504270f080e4652ff130349a4a9949a2e0e0c3a4",
+      "scenario_id": "T2-bcdf8e98afc6",
       "seed": 30
     },
     {
-      "c_greedy": 14066.7,
-      "c_ref": 6871.2,
-      "scenario_hash": "30b48093fb288a51cdf2e5afcf99800dc79d20bc5597c7ed32d1501cba507e6b",
-      "scenario_id": "T2-cc7595609b07",
-      "seed": 33
-    },
-    {
-      "c_greedy": 22545.2,
-      "c_ref": 13390.7,
-      "scenario_hash": "0cd1e45c5adda7da007d7eea7a3d862f8ebffd4348b6c304467377b5fc992bbb",
-      "scenario_id": "T2-b6583c58b4f9",
-      "seed": 34
-    },
-    {
-      "c_greedy": 15388.1,
-      "c_ref": 9473.5,
-      "scenario_hash": "0fd8a1b1397f0549ba40d2ec8d3bf21217c19fe7b6b02d62d7f62ef6624496e3",
-      "scenario_id": "T2-2c01669b55ab",
-      "seed": 40
-    },
-    {
-      "c_greedy": 7110.0,
-      "c_ref": 3132.6,
-      "scenario_hash": "d82fa17e3a89bef627bd73bfc27c1663470a637c0965eabb635490f81bb96c1f",
-      "scenario_id": "T2-32a4f72a1638",
-      "seed": 41
-    },
-    {
-      "c_greedy": 12775.2,
-      "c_ref": 7138.0,
-      "scenario_hash": "e0d789abec0cdc10d5de430ca031894a8b8103f383ecd373ffe27727fc810e94",
-      "scenario_id": "T2-4e2b58f5c7cb",
-      "seed": 42
-    },
-    {
-      "c_greedy": 4868.4,
-      "c_ref": 3356.6,
-      "scenario_hash": "6fe5b73bb29b6a94ec7ad36ea4e2fc48d4a3b98b63d7642c3ac9cfff3e5543c7",
-      "scenario_id": "T2-ee5d50c3439e",
-      "seed": 45
+      "best_proven": false,
+      "best_source": "reference",
+      "c_best": 1530.65,
+      "c_greedy": 2639.26,
+      "c_ref": 1530.65,
+      "scenario_hash": "b2bfb2e65d20caf6ee1fbdc7621b25e9796a1ec280a0835b3412d921a3f92f6e",
+      "scenario_id": "T2-60f691e12f90",
+      "seed": 31
     }
   ],
   "header": {
-    "generator_version": "3a98d230d6e8d6033c167fa5ccb573cfdf032c557fb966d476b2c70330cabfb1",
+    "cost_version": "998fa5f29d93a894b78912909fd6d02c096388c71a723011564cc905cca7e4cb",
+    "filter_version": 3,
+    "generator_version": "2cc362f51a287c5de96a8b891b18cd04f8e2570a7ccc96fcaad7f13e6a3cc9d2",
     "rejected_by_reason": {
-      "exploit_beats_greedy": 17,
-      "greedy_unfinished": 4,
-      "ref_not_30pct_better": 11
+      "best_not_30pct_better": 12,
+      "greedy_unfinished": 1
     },
-    "rules_version": "0.2-provisional"
+    "rules_version": "0.3-provisional"
   }
 }

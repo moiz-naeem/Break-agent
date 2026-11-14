@@ -336,12 +336,32 @@ revisit.
 - `details.json` carries the KPIs: on-time % (at most 5 minutes late), passenger delay minutes, freight
   delivered %, red flags, clean shift.
 
+**Rule changes made after measuring (2026-11-14)**
+
+- **Crew timeout 300 → 40.** At 300, crew charges were 12–49% of a whole T2 episode's cost. At 40 a timeout
+  still costs far more than a relief (a full express: about 300 including its 45-tick stop, against about 36
+  for an 8-tick relief; a freight train: about 112 against 4); only a timeout that delays nobody became cheap,
+  and it still counts as a red flag.
+- **Undelivered freight costs 1500** on top of the unfinished 200 and its lateness. Without it, dispatching
+  passengers well and abandoning every freight train beat greedy on 6 of 30 T2 candidate seeds (one would have
+  scored 0.64). After the change: 0 of 30. Same principle as the missed call: a service not delivered is
+  never cheap.
+- **Branch terminals have two platforms** (plus a goods track), and every station on a passenger branch has a
+  platform loop. With one platform, a train waiting to leave and one arriving trapped each other; the
+  reference then lost to greedy on some T2 seeds. Now it beats greedy on 39 of 40.
+
+**Anchor on tiers with events (T2, T3)**
+
+A portfolio of 32 reference variants per seed (look-ahead 60–240 ticks, 5 or 8 candidates, 4 or 6 stations
+ahead, and an *omniscient* version that plans on the true simulator, knowing every future event). It runs on
+Modal (`infra/modal/v03_seeds.py::improve`) and lowers `C_best` where a variant does better; export
+reproduces that exact plan and the verifier replays it. On one T2 seed the omniscient variant was 9% cheaper
+than the reference.
+
 **Still open**
 
-1. The size of the crew-timeout charge (300) on the new cost scale.
-2. Whether the beam search should be improved, or the reference strengthened, for the tiers with events,
-   where the reference is the only anchor.
-3. Re-run the full exploit battery (red team) and calibrate the train counts on accepted seeds.
+1. Calibrate train counts per tier on the accepted seeds.
+2. Re-run the full exploit battery (red team) on the final rules.
 
 ## 7. Open items (from the discussion)
 
