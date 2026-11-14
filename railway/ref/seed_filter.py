@@ -96,6 +96,16 @@ def evaluate_scenario(scenario, runner=run_named, best=None) -> FilterReport:
     }
 
 
+def cost_version() -> str:
+    """Hash of the cost rules (constants and formulas): changing any weight invalidates cached anchors."""
+    digest = hashlib.sha256()
+    sim = Path(__file__).resolve().parents[1] / "sim"
+    for name in ("constants.py", "cost.py"):
+        text = (sim / name).read_bytes().replace(b"\r\n", b"\n")
+        digest.update(name.encode() + b"\0" + text)
+    return digest.hexdigest()
+
+
 def generator_version() -> str:
     """Hash of the generator sources (`railway/gen/*.py`, not the CLI): a changed generator invalidates lists."""
     digest = hashlib.sha256()
@@ -132,7 +142,12 @@ def accepted_seeds(
     from railway.gen.seeds import candidate_seeds
 
     path = Path(output_dir) / f"{preset}-{set_name}.json"
-    header = {"rules_version": RULES_VERSION, "generator_version": generator_version(), "filter_version": FILTER_VERSION}
+    header = {
+        "rules_version": RULES_VERSION,
+        "generator_version": generator_version(),
+        "filter_version": FILTER_VERSION,
+        "cost_version": cost_version(),
+    }
     if path.exists():
         cached = json.loads(path.read_text(encoding="utf-8"))
         if {k: cached["header"].get(k) for k in header} == header and len(cached["accepted"]) >= count:

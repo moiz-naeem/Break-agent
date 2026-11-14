@@ -34,7 +34,7 @@ def stub(costs, gridlocks=0, unfinished=0):
     ("costs", "gridlocks", "unfinished", "reason"),
     [
         (BASE | {"reference": 70.0}, 0, 0, None),  # exactly 30% better is enough
-        (BASE | {"reference": 70.5}, 0, 0, "ref_not_30pct_better"),
+        (BASE | {"reference": 70.5}, 0, 0, "best_not_30pct_better"),
         (BASE, 1, 0, "ref_gridlock"),
         (BASE | {"Malformed": 99.0}, 0, 0, "exploit_beats_greedy"),
         (BASE | {"StopEarly": 100.0}, 0, 0, None),  # an exploit equal to greedy still scores 0
@@ -43,7 +43,8 @@ def stub(costs, gridlocks=0, unfinished=0):
     ],
 )
 def test_T06_18_filter_conditions(costs, gridlocks, unfinished, reason):
-    report = evaluate_scenario(None, runner=stub(costs, gridlocks, unfinished))
+    reference_only = lambda _sc, ref: (ref.final.cost.total, "reference", False)  # noqa: E731
+    report = evaluate_scenario(None, runner=stub(costs, gridlocks, unfinished), best=reference_only)
     assert report["accepted"] is (reason is None)
     assert report["reasons"] == ([] if reason is None else [reason])
     assert (report["c_greedy"], report["c_ref"]) == (costs["greedy"], costs["reference"])
@@ -88,7 +89,7 @@ def test_T06_21_cache_invalidation(tmp_path, monkeypatch):
 
     def fake(scenario, runner=None):
         calls.append(scenario.seed)
-        return {"accepted": True, "c_greedy": 2.0, "c_ref": 1.0, "reasons": []}
+        return {"accepted": True, "c_greedy": 2.0, "c_ref": 1.0, "c_best": 1.0, "best_source": "reference", "best_proven": False, "reasons": []}
 
     monkeypatch.setattr(seed_filter, "evaluate_scenario", fake)
     first = seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path, workers=1)
@@ -106,7 +107,7 @@ def test_T06_21b_batch_paths_agree(tmp_path, monkeypatch):
 
     def fake(scenario, runner=None):
         ok = scenario.seed in accept
-        return {"accepted": ok, "c_greedy": 2.0, "c_ref": 1.0, "reasons": [] if ok else ["ref_gridlock"]}
+        return {"accepted": ok, "c_greedy": 2.0, "c_ref": 1.0, "c_best": 1.0, "best_source": "reference", "best_proven": False, "reasons": [] if ok else ["ref_gridlock"]}
 
     monkeypatch.setattr(seed_filter, "evaluate_scenario", fake)
     monkeypatch.setattr(seed_filter, "candidate_seeds", lambda _set: iter(range(100)), raising=False)
