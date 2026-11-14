@@ -549,10 +549,40 @@ def write_report(run_name: str) -> dict:
     return summary
 
 
+def collect(run_name: str) -> int:
+    """Rebuild `rows.jsonl` from the `result.json` bundles on the transcripts volume.
+
+    For runs whose local collector died (e.g. a detached `modal run` whose terminal went away): every finished
+    episode wrote `<run>/<model>/<split>/<scenario_id>/<rep>/result.json` on the volume. Infra-error rows write
+    no bundle, so they are missing here; rerunning `run --run-name <run>` retries exactly the missing episodes.
+    """
+    vol = modal.Volume.from_name(TRANSCRIPTS_VOLUME)
+    out_root = REPO / RESULTS_DIR / run_name
+    out_root.mkdir(parents=True, exist_ok=True)
+    rows: dict[tuple, dict] = {}
+    try:
+        entries = list(vol.iterdir(run_name, recursive=True))
+    except modal.exception.NotFoundError:  # no episode of this run has finished yet
+        entries = []
+    for entry in entries:
+        if not entry.path.endswith("/result.json"):
+            continue
+        row = json.loads(b"".join(vol.read_file(entry.path)).decode("utf-8"))
+        rows[(row["model"], row["scenario_id"], int(row["rep"]))] = row
+    lines = [json.dumps(r, sort_keys=True, ensure_ascii=False) for _, r in sorted(rows.items())]
+    body = "".join(line + "\n" for line in lines)
+    (out_root / "rows.jsonl").write_text(body, encoding="utf-8", newline="\n")
+    print(f"[{run_name}] collected {len(rows)} finished episodes from {TRANSCRIPTS_VOLUME}")
+    return len(rows)
+
+
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Summarize a results/net_bench/<run> directory (no Modal needed).")
-    parser.add_argument("command", choices=["report"])
+    parser = argparse.ArgumentParser(description="Summarize a results/net_bench/<run> directory.")
+    parser.add_argument("command", choices=["report", "collect"])
     parser.add_argument("--run", required=True)
-    write_report(parser.parse_args().run)
+    cli = parser.parse_args()
+    if cli.command == "collect":
+        collect(cli.run)
+    write_report(cli.run)
