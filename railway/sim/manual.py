@@ -156,7 +156,7 @@ of time above; `alight` and `board` are the people getting off and on at a stop
 | `pax_lateness` | Arrival at a scheduled passenger stop | v × alight/100 × f(L) |
 | `missed_calls` | Shift end, per scheduled passenger stop not served (skipped, misrouted, wrong terminal, not reached, gridlocked) | {c.MISSED_CALL_FLAT} + v × (alight + board)/100 × (f(H) + {c.MISSED_CALL_HASSLE}) |
 | `missed_calls` | Shift end, per F11 connection whose connector left before feeder arrival + transfer time | v × n/100 × (f(H) + {c.MISSED_CALL_HASSLE}) |
-| `unfinished` | Shift end, per train not at its own destination terminal | {c.UNFINISHED_COST}; freight adds its lateness as if arriving at shift end |
+| `unfinished` | Shift end, per train not at its own destination terminal | {c.UNFINISHED_COST}; freight adds {c.UNDELIVERED_FREIGHT} (undelivered cargo) and its lateness as if arriving at shift end |
 | `freight_lateness` | Freight arrival at its destination | {c.W_FREIGHT} × L, plus {step} if L > {at} |
 | `crew_timeout` | F10 crew timeout | {c.TIMEOUT_COST} |
 | `gridlock` | A new gridlock forms | {c.GRIDLOCK_COST} |

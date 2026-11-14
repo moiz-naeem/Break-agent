@@ -12,6 +12,7 @@ from .constants import (
     MISSED_CALL_HASSLE,
     PAX_GRACE,
     PLATFORM_CHANGE_MINUTES,
+    UNDELIVERED_FREIGHT,
     UNFINISHED_COST,
     VALUE,
     W_FREIGHT,
@@ -78,8 +79,8 @@ def platform_change_cost(train_type: str, alight: int, board: int) -> float:
 def unfinished_cost(train, shift_ticks: int) -> float:
     """The flat charge for a train that did not finish, plus freight lateness as if arriving at shift end.
     A passenger train's unserved stops are charged separately, as missed calls."""
-    if train.type == "freight":
-        return round(UNFINISHED_COST + freight_cost(shift_ticks - train.stops[-1].arr), 6)
+    if train.type == "freight":  # its cargo is not delivered: charged like a missed delivery
+        return round(UNFINISHED_COST + UNDELIVERED_FREIGHT + freight_cost(shift_ticks - train.stops[-1].arr), 6)
     return float(UNFINISHED_COST)
 
 

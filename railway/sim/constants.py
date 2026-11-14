@@ -10,6 +10,7 @@ MISSED_CALL_FLAT = 500  # per scheduled passenger stop not served
 MISSED_CALL_HASSLE = 10  # minutes added to the wait for the next service
 DEFAULT_HEADWAY = 60  # ticks to the next service, when a stop does not state its own
 UNFINISHED_COST = 200
+UNDELIVERED_FREIGHT = 1500  # a freight train not delivered by shift end: the cargo's missed delivery
 W_FREIGHT = 0.5
 FREIGHT_LATE_STEP = (30, 50)  # freight more than 30 ticks late pays 50 more
 GRIDLOCK_COST = 1000
