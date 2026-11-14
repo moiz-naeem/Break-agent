@@ -106,15 +106,15 @@ def test_T02_26_episode_A_exact():
     assert s.advance().tick == 11
     assert s.apply(Authorize(train="E1", station="YE", track="main")).ok
     s.end_shift()
-    assert s.cost().pax_lateness == 24.0
-    assert s.cost().unfinished == 745.0  # F21 freight: 200 + 1000 x 60/240 + 295
-    assert s.cost().total == 769.0
+    assert s.cost().pax_lateness == 12.0  # E1 at YE: 3.0 x 2 x (17 - 13 - 2); every timed stop is charged the same
+    assert s.cost().unfinished == 706.0  # F21 467 + L5 239
+    assert s.cost().total == 718.0
 
 
 def test_T02_32_do_nothing_cost():
     s = sim()
     s.end_shift()
-    assert s.tick == 60 and s.cost().total == 1485.0
+    assert s.tick == 60 and s.cost().total == 1176.0
 
 
 def test_T02_29_time_cap_and_shift_end():
@@ -133,17 +133,16 @@ def test_T02_29_time_cap_and_shift_end():
 
 
 @pytest.mark.parametrize(
-    ("kind", "pax", "late", "terminal", "expected"),
+    ("kind", "pax", "late", "expected"),
     [
-        ("express", 200, 7, False, 30.0),
-        ("express", 200, 7, True, 60.0),
-        ("local", 100, 2, False, 0.0),
-        ("local", 150, 10, True, 24.0),
-        ("express", 100, -5, True, 0.0),
+        ("express", 200, 7, 30.0),
+        ("local", 100, 2, 0.0),
+        ("local", 150, 10, 12.0),
+        ("express", 100, -5, 0.0),
     ],
 )
-def test_T02_35_passenger_cost_formula(kind, pax, late, terminal, expected):
-    assert pax_cost(kind, pax, late, terminal) == expected
+def test_T02_35_passenger_cost_formula(kind, pax, late, expected):
+    assert pax_cost(kind, pax, late) == expected
 
 
 @pytest.mark.parametrize(("late", "expected"), [(10, 5.0), (-3, 0.0)])

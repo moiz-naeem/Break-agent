@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict
 
 from .constants import (
     PAX_GRACE,
-    TERMINUS_MULT,
     UNFINISHED_COST,
     UNFINISHED_FREIGHT_EXTRA,
     UNFINISHED_FREIGHT_SHIFT,
@@ -24,9 +23,9 @@ class CostBreakdown(BaseModel):
     total: float = 0.0
 
 
-def pax_cost(train_type: str, pax: int, late: int, terminus: bool = False) -> float:
+def pax_cost(train_type: str, pax: int, late: int) -> float:
     weight = W_EXPRESS if train_type == "express" else W_LOCAL
-    return round(weight * pax / 100 * max(0, late - PAX_GRACE) * (TERMINUS_MULT if terminus else 1), 6)
+    return round(weight * pax / 100 * max(0, late - PAX_GRACE), 6)
 
 
 def freight_cost(late: int) -> float:
@@ -37,7 +36,7 @@ def unfinished_cost(train, shift_ticks: int) -> float:
     final = train.stops[-1]
     late = shift_ticks - final.arr
     if train.type in {"express", "local"}:
-        return round(UNFINISHED_COST + pax_cost(train.type, train.pax, late, True), 6)
+        return round(UNFINISHED_COST + pax_cost(train.type, train.pax, late), 6)
     if train.type == "freight":
         extra = UNFINISHED_FREIGHT_EXTRA * shift_ticks / UNFINISHED_FREIGHT_SHIFT
         return round(UNFINISHED_COST + extra + freight_cost(late), 6)

@@ -63,7 +63,7 @@ def test_T06_03_never_refused():
 
 def test_T06_04_mini3_beats_greedy():
     result = run_policy(Reference(), fixture("mini3"))
-    assert result.final.cost.total < 26.0  # greedy, T05-26
+    assert result.final.cost.total < 20.0  # greedy, T05-26
     assert result.unfinished == 0
 
 
@@ -99,7 +99,7 @@ def test_T06_07_terminal_estimate():
     assert terminal_estimate(sim) == 0.0
     assert sim.advance(max_tick=20).tick == 2
     assert sim.advance(max_tick=20).tick == 20
-    assert terminal_estimate(sim) == 423.0  # E1 324 + L5 90 + F21 9 (ticket T06-07)
+    assert terminal_estimate(sim) == 297.0  # E1 216 (2 stops x 108) + L5 72 (4 x 18) + F21 9: no terminus multiplier
 
 
 def test_T06_08_evaluate_deterministic_and_ordered():

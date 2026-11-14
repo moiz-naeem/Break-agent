@@ -645,7 +645,7 @@ class Simulator:
             )
             t["arrivals"].append({"station": station, "sched": stop.arr, "actual": self.tick})
             if t["type"] in {"express", "local"}:
-                self._cost.pax_lateness += pax_cost(t["type"], t["pax"], self.tick - stop.arr, station in {"YW", "YE"})
+                self._cost.pax_lateness += pax_cost(t["type"], t["pax"], self.tick - stop.arr)
             elif t["type"] == "freight" and station in {"YW", "YE"}:
                 self._cost.freight_lateness += freight_cost(self.tick - stop.arr)
             t["restart_pending"] = False
@@ -950,7 +950,7 @@ class Simulator:
                             if stop:
                                 t["stop_idx"] = len(self._train_defs[tid].stops)
                                 t["arrivals"].append({"station": station, "sched": stop.arr, "actual": self.tick})
-                                self._cost.pax_lateness += pax_cost(t["type"], t["pax"], self.tick - stop.arr, True)
+                                self._cost.pax_lateness += pax_cost(t["type"], t["pax"], self.tick - stop.arr)
                         self._update_rotation_successor(tid)
                         reasons.append(Reason(kind="AUTHORITY_END", train=tid))
                     else:

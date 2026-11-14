@@ -58,7 +58,7 @@ def test_T03_20_relief():
     assert ("CREW_WARNING", "E1") not in reasons
     e1 = tr(s, "E1")
     assert [a.actual for a in e1.arrivals if a.station == "YE"] == [20]
-    assert s.cost().pax_lateness == 60.0  # YE: 3.0 x 2 x (7 - 2) x 2; S2 was on time
+    assert s.cost().pax_lateness == 30.0  # YE: 3.0 x 2 x (7 - 2); S2 was on time
 
 
 def test_T03_21_relief_refusals():

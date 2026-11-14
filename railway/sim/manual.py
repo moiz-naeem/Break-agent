@@ -39,8 +39,7 @@ def render_manual() -> str:
     )
     rule_rows = "\n".join(f"| `{rule.value}` | {description} |" for rule, description in RULE_DESCRIPTIONS.items())
     cost_rows = (
-        f"| `pax_lateness` | On passenger stop arrival | w × pax/100 × max(0, late − {constants.PAX_GRACE}); "
-        f"× {constants.TERMINUS_MULT} at terminus |\n"
+        f"| `pax_lateness` | On passenger stop arrival | w × pax/100 × max(0, late − {constants.PAX_GRACE}) |\n"
         f"| `freight_lateness` | Freight destination arrival | {constants.W_FREIGHT} × max(0, late) |\n"
         f"| `crew_timeout` | Crew timeout | {constants.TIMEOUT_COST} |\n"
         f"| `reversal` | Reverse granted | {constants.REVERSE_COST} |\n"

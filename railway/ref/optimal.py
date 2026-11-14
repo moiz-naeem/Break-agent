@@ -27,7 +27,7 @@ from pathlib import Path
 
 from ortools.sat.python import cp_model
 
-from railway.sim.constants import PAX_GRACE, TERMINUS_MULT, TOOL_BUDGET, TRAIN_TYPES, W_EXPRESS, W_FREIGHT, W_LOCAL
+from railway.sim.constants import PAX_GRACE, TOOL_BUDGET, TRAIN_TYPES, W_EXPRESS, W_FREIGHT, W_LOCAL
 from railway.sim.cost import unfinished_cost
 from railway.sim.timing import travel_ticks
 from railway.tools.session import Session
@@ -119,7 +119,7 @@ def solve(sc, time_limit=300.0, bound_only=False):
                 coef, grace = (W_FREIGHT if terminus else 0), 0
             elif tr.type in ("express", "local"):
                 weight = W_EXPRESS if tr.type == "express" else W_LOCAL
-                coef, grace = weight * tr.pax / 100 * (TERMINUS_MULT if terminus else 1), PAX_GRACE
+                coef, grace = weight * tr.pax / 100, PAX_GRACE
             else:
                 coef, grace = 0, 0
             if coef:

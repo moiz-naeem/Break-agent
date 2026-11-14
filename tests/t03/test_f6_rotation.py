@@ -41,8 +41,8 @@ def test_T03_07_predecessor_unfinished():
     s = rotation()
     s.end_shift()
     assert tr(s, "L6").phase == "not_entered"
-    # L6 unfinished: 200 + 1.0 x 1 x (60 - 39 - 2) x 2 = 238.0
-    assert s.cost().unfinished - base.cost().unfinished == 238.0
+    # L6 unfinished: 200 + 1.0 x 1 x (60 - 39 - 2) = 219.0
+    assert s.cost().unfinished - base.cost().unfinished == 219.0
 
 
 @pytest.mark.parametrize("patch", [{"E1": {"next_service": "L6"}}, {"L5": {"next_service": "X9"}}])

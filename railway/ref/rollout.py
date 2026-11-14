@@ -52,7 +52,7 @@ def terminal_estimate(sim) -> float:
                     if timed:
                         tick = max(tick + timed.min_dwell, timed.dep or tick)
             if definition.type in {"express", "local"}:
-                estimate += pax_cost(definition.type, definition.pax, tick - stop.arr, stop.station in {"YW", "YE"})
+                estimate += pax_cost(definition.type, definition.pax, tick - stop.arr)
             elif definition.type == "freight" and stop.station in {"YW", "YE"}:
                 estimate += freight_cost(tick - stop.arr)
             if stop.dep is not None:

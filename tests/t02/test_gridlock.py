@@ -41,9 +41,8 @@ def test_T02_27_episode_B_gridlock_and_reverse():
     assert s.advance().tick == 10
     assert s.advance().tick == 19
     assert s.state().trains[0].station == "YW"
-    assert pax_cost("express", 200, 7, False) == 30
-    assert pax_cost("express", 200, 7, True) == 60
-    assert pax_cost("local", 100, 2, False) == 0
+    assert pax_cost("express", 200, 7) == 30
+    assert pax_cost("local", 100, 2) == 0
     assert freight_cost(-3) == 0
 
 
