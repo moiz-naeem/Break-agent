@@ -1,0 +1,18 @@
+from enum import StrEnum
+
+
+class NetRule(StrEnum):
+    """Interlocking refusals for the v0.3 network; kept apart from v0.2's RuleId, whose manual is frozen."""
+
+    UNKNOWN_ELEMENT = "R-UNKNOWN-ELEMENT"
+    BAD_ROUTE = "R-BAD-ROUTE"
+    NOT_CONNECTED = "R-NOT-CONNECTED"
+    WRONG_DIRECTION = "R-WRONG-DIRECTION"
+    DIRECTION_LOCKED = "R-DIRECTION-LOCKED"
+    BLOCK_OCCUPIED = "R-BLOCK-OCCUPIED"
+    MOVE_LOCKED = "R-MOVE-LOCKED"
+    MOVE_CONFLICT = "R-MOVE-CONFLICT"
+    PLATFORM_OCCUPIED = "R-PLATFORM-OCCUPIED"
+    PLATFORM_LEN = "R-PLATFORM-LEN"
+    PLATFORM_KIND = "R-PLATFORM-KIND"
+    NOT_ELECTRIFIED = "R-NOT-ELECTRIFIED"
