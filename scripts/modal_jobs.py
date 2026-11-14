@@ -1,11 +1,12 @@
 """Measurements of the v0.3 net engine on Modal: one CPU container per seed. Needs `modal setup` once.
 
-    modal run scripts/modal_jobs.py::main                          # T1, seeds 1-8, 180 and 360 min shifts
-    modal run scripts/modal_jobs.py::main --seeds 1,2,3 --shifts 180
-    modal run scripts/modal_jobs.py::profile --seed 1 --shift 360  # cProfile of one generator call
+    modal run scripts/modal_jobs.py::main                          # T1, seeds 1-8, its default 180 min shift
+    modal run scripts/modal_jobs.py::main --tier T3                # T3, seeds 1-8, its default 360 min shift
+    modal run scripts/modal_jobs.py::main --seeds 1,2,3 --shifts 180,360
+    modal run scripts/modal_jobs.py::profile --tier T2 --seed 1    # cProfile of one generator call
 
-For each seed and shift length, `measure` generates the T1 timetable (templates.trunk_and_branches + t1_services)
-and runs the engine over it twice:
+For each seed and shift length, `measure_seed` generates the tier's timetable (templates.TIERS: its layout and its
+service groups) and runs the engine over it twice:
 
 - **none**: nobody answers. `Engine.advance` is called until SHIFT_END and every decision is left unanswered. A
   CONFLICT that is not answered is raised again at the same minute, so the run stalls there; it is stopped after
@@ -13,7 +14,8 @@ and runs the engine over it twice:
 - **planner**: every conflict is answered in timetable order, as `timetable.plan_run` does. This is the run the
   timetable was booked from, so it is the no-disruption baseline an agent's run is compared with.
 
-For both it reports wall time, decisions by kind and how many trains finished their work (phase "done").
+For both it reports wall time, decisions by kind and how many trains finished their work (phase "done"), and for
+the planner run how many ran late. A shift is clean when the planner run finishes every train with none late.
 """
 
 from __future__ import annotations
@@ -78,18 +80,19 @@ def _run(net, trips, shift: int, answer: bool) -> dict:
 
 
 @app.function(cpu=1.0, timeout=3600)
-def measure_seed(seed: int, shifts: list[int]) -> list[dict]:
-    from railway.net.templates import t1_services, trunk_and_branches
+def measure_seed(seed: int, shifts: list[int], tier: str = "T1") -> list[dict]:
+    from railway.net.templates import TIERS
     from railway.net.timetable import generate, peak_utilisation
 
-    net = trunk_and_branches()
-    core, fill = t1_services()
+    preset = TIERS[tier]
+    net = preset.network()
+    core, fill = preset.services()
     rows = []
     for shift in shifts:
         row = {"seed": seed, "shift": shift}
         started = time.perf_counter()
         try:
-            timetable = generate(net, core, fill, shift, seed, "T1")
+            timetable = generate(net, core, fill, shift, seed, tier)
         except ValueError as exc:
             rows.append({**row, "gen_s": round(time.perf_counter() - started, 2), "rejected": str(exc)})
             continue
@@ -115,11 +118,14 @@ def _fmt(run: dict) -> str:
 
 
 @app.local_entrypoint()
-def main(seeds: str = "1,2,3,4,5,6,7,8", shifts: str = "180,360"):
+def main(tier: str = "T1", seeds: str = "1,2,3,4,5,6,7,8", shifts: str = ""):
+    from railway.net.templates import TIERS
+
     seed_list = [int(s) for s in seeds.split(",")]
-    shift_list = [int(s) for s in shifts.split(",")]
-    rows = [row for result in measure_seed.map(seed_list, kwargs={"shifts": shift_list}) for row in result]
-    print("\nT1 measurements (C/U/B/I = CONFLICT/UNROUTABLE/BLOCKED/IDLE decisions; done = trains that finished)")
+    shift_list = [int(s) for s in shifts.split(",")] if shifts else [TIERS[tier].shift_min]
+    kwargs = {"shifts": shift_list, "tier": tier}
+    rows = [row for result in measure_seed.map(seed_list, kwargs=kwargs) for row in result]
+    print(f"\n{tier} measurements (C/U/B/I = CONFLICT/UNROUTABLE/BLOCKED/IDLE decisions; done = trains that finished)")
     header = f"{'seed':>4} {'shift':>5} {'gen s':>7} {'trains':>6} {'frt':>3} {'conn':>4} {'peak':>5}"
     print(f"{header}   {'no answers':<46} {'timetable-order answers'}")
     for row in sorted(rows, key=lambda r: (r["shift"], r["seed"])):
@@ -129,26 +135,39 @@ def main(seeds: str = "1,2,3,4,5,6,7,8", shifts: str = "180,360"):
             continue
         body = f"{row['trains']:>6} {row['freight']:>3} {row['connections']:>4} {row['peak']:>5.2f}"
         print(f"{lead} {body}   {_fmt(row['none']):<46} {_fmt(row['planner'])}  late {row['planner']['late']}")
+    good = [r for r in rows if "rejected" not in r]
+    if good:
+        clean = sum(r["planner"]["done"] == r["trains"] and r["planner"]["late"] == 0 for r in good)
+        trains = [r["trains"] for r in good]
+        peaks = [r["peak"] for r in good]
+        print(
+            f"\n{tier}: {len(good)}/{len(rows)} generated, {clean} clean (every train done, none late); "
+            f"trains {min(trains)}-{max(trains)}, peak {min(peaks):.2f}-{max(peaks):.2f}, "
+            f"generation {min(r['gen_s'] for r in good):.1f}-{max(r['gen_s'] for r in good):.1f} s"
+        )
 
 
 @app.function(cpu=1.0, timeout=3600)
-def profile_generate(seed: int, shift: int, top: int) -> str:
+def profile_generate(seed: int, shift: int, top: int, tier: str = "T1") -> str:
     import cProfile
     import io
     import pstats
 
-    from railway.net.templates import t1_services, trunk_and_branches
+    from railway.net.templates import TIERS
     from railway.net.timetable import generate
 
-    net = trunk_and_branches()
-    core, fill = t1_services()
+    preset = TIERS[tier]
+    net = preset.network()
+    core, fill = preset.services()
+    shift = shift or preset.shift_min
     profiler = cProfile.Profile()
     started = time.perf_counter()
     profiler.enable()
-    generate(net, core, fill, shift, seed, "T1")
+    generate(net, core, fill, shift, seed, tier)
     profiler.disable()
     out = io.StringIO()
-    out.write(f"generate(T1, seed={seed}, shift={shift}) took {time.perf_counter() - started:.1f}s under cProfile\n")
+    took = time.perf_counter() - started
+    out.write(f"generate({tier}, seed={seed}, shift={shift}) took {took:.1f}s under cProfile\n")
     stats = pstats.Stats(profiler, stream=out).strip_dirs()
     stats.sort_stats("tottime").print_stats(top)
     stats.sort_stats("cumulative").print_stats(top)
@@ -157,5 +176,5 @@ def profile_generate(seed: int, shift: int, top: int) -> str:
 
 
 @app.local_entrypoint()
-def profile(seed: int = 1, shift: int = 360, top: int = 30):
-    print(profile_generate.remote(seed, shift, top))
+def profile(tier: str = "T1", seed: int = 1, shift: int = 0, top: int = 30):
+    print(profile_generate.remote(seed, shift, top, tier))
