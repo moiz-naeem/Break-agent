@@ -121,6 +121,11 @@ def _ssl_context() -> ssl.SSLContext:
     return httpx.create_ssl_context()
 
 
+def http_timeout(timeout_s: float) -> httpx.Timeout:
+    """`timeout_s` bounds the wait for the (unstreamed) response; connecting should never take long."""
+    return httpx.Timeout(timeout_s, connect=min(30.0, timeout_s))
+
+
 def _retryable(status: int) -> bool:
     return status == 429 or status >= 500
 
@@ -285,7 +290,7 @@ class ModelClient:
             if not key:
                 raise ModelError(f"environment variable {api_key_env} is not set")
             headers["Authorization"] = f"Bearer {key}"
-        self._http = httpx.Client(headers=headers, timeout=timeout_s, verify=_ssl_context())
+        self._http = httpx.Client(headers=headers, timeout=http_timeout(timeout_s), verify=_ssl_context())
 
     def __repr__(self) -> str:  # never shows headers
         return f"ModelClient(url={self.url!r}, model={self.model!r}, provider={self.provider!r})"

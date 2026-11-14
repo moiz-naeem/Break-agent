@@ -826,6 +826,22 @@ def test_finish_reason_recorded_for_every_provider_shape():
     assert no_reason["finish_reason"] is None
 
 
+def test_benchmark_clients_wait_long_enough_for_a_full_thinking_turn(monkeypatch):
+    """Unstreamed: a 32768-token Qwen turn at ~40 tok/s takes ~14 min, so a 300 s timeout retries forever."""
+    from railway.loop.providers import BENCHMARK_MODELS, BENCHMARK_TIMEOUT_S, make_benchmark_client
+
+    for cfg in BENCHMARK_MODELS.values():
+        monkeypatch.setenv(cfg["api_key_env"], "test-key")
+    for preset_id, cfg in BENCHMARK_MODELS.items():
+        client = make_benchmark_client(preset_id)
+        try:
+            timeout = client._http.timeout
+            assert timeout.read == BENCHMARK_TIMEOUT_S >= cfg["max_tokens"] / 25, preset_id
+            assert timeout.connect == 30.0, preset_id
+        finally:
+            client.close()
+
+
 def test_net_timetable_and_lane_d_session_contract(tmp_path):
     """Verify `scenario_meta`, `extract_event_log`, and `extract_action_log` on v0.3 `Timetable` + Lane D session."""
     from railway.loop.runner import scenario_meta

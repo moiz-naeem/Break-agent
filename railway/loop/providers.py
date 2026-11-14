@@ -46,6 +46,12 @@ VERDA_NEMOTRON_URL = "https://containers.datacrunch.io/nemotron-3-5-super-vl-b30
 
 OpenAICompatClient = ModelClient
 
+# Read timeout per request. Requests are not streamed, so the response arrives only after the whole
+# generation: Qwen 3.8 27B on one H200 streams ~40-55 tok/s, so a turn that thinks to the 32768-token cap
+# takes 10-15 min. A timeout shorter than that turns every long-thinking turn into retries that restart
+# the generation from scratch and never finish.
+BENCHMARK_TIMEOUT_S = 1800.0
+
 # Canonical benchmark configurations (docs/decisions.md #8).
 BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
     "fable-high": {
@@ -55,6 +61,7 @@ BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
         "api_key_env": "ANTHROPIC_API_KEY",
         "effort": "high",
         "max_tokens": 32768,
+        "timeout_s": BENCHMARK_TIMEOUT_S,
     },
     "qwen38-think": {
         "provider": "vllm",
@@ -62,6 +69,7 @@ BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
         "model": "qwen38",
         "api_key_env": "VLLM_API_KEY",
         "max_tokens": 32768,
+        "timeout_s": BENCHMARK_TIMEOUT_S,
     },
     "gemini-carbon-high": {
         "provider": "gemini",
@@ -70,6 +78,7 @@ BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
         "api_key_env": "GEMINI_API_KEY",
         "effort": "high",
         "max_tokens": 32768,
+        "timeout_s": BENCHMARK_TIMEOUT_S,
     },
     "nemotron-super": {
         "provider": "verda",
@@ -77,6 +86,7 @@ BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
         "model": "nemotron-3.5-super-vl",
         "api_key_env": "VERDA_INFERENCE_KEY",
         "max_tokens": 32768,
+        "timeout_s": BENCHMARK_TIMEOUT_S,
     },
 }
 
@@ -272,7 +282,7 @@ class AnthropicClient:
             if not key:
                 raise ModelError(f"environment variable {api_key_env} is not set")
             headers["x-api-key"] = key
-        self._http = httpx.Client(headers=headers, timeout=timeout_s, verify=_ssl_context())
+        self._http = httpx.Client(headers=headers, timeout=mc.http_timeout(timeout_s), verify=_ssl_context())
 
     def __repr__(self) -> str:
         return f"AnthropicClient(url={self.url!r}, model={self.model!r}, effort={self.effort!r})"
@@ -615,7 +625,7 @@ class GeminiClient:
             if not key:
                 raise ModelError(f"environment variable {api_key_env} is not set")
             headers["x-goog-api-key"] = key
-        self._http = httpx.Client(headers=headers, timeout=timeout_s, verify=_ssl_context())
+        self._http = httpx.Client(headers=headers, timeout=mc.http_timeout(timeout_s), verify=_ssl_context())
 
     def __repr__(self) -> str:
         return f"GeminiClient(url={self.url!r}, model={self.model!r}, effort={self.effort!r})"
@@ -868,6 +878,7 @@ def make_benchmark_client(preset_id: str, **overrides: Any) -> AnthropicClient |
 __all__ = [
     "ANTHROPIC_MESSAGES_URL",
     "BENCHMARK_MODELS",
+    "BENCHMARK_TIMEOUT_S",
     "GEMINI_BASE_URL",
     "PRICE_TABLE",
     "QWEN_NOTHINK_URL",
