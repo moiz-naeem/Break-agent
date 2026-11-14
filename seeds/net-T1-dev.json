@@ -1,0 +1,85 @@
+{
+  "accepted": [
+    {
+      "decision_points": 31,
+      "disruptions": 10,
+      "freight_trains": 3,
+      "passenger_trains": 16,
+      "scenario_hash": "a1a4fd2e36f8039b41efcba9ce83484b56f97db2e11fb448ee6371615033d530",
+      "scenario_id": "T1-1",
+      "seed": 1,
+      "shift_min": 180,
+      "split": "dev",
+      "trains": 19
+    },
+    {
+      "decision_points": 30,
+      "disruptions": 10,
+      "freight_trains": 2,
+      "passenger_trains": 16,
+      "scenario_hash": "a8184c75e9ec860f6610988f2ead0eb257611bf1369e6bef9603e571bcf87d04",
+      "scenario_id": "T1-3",
+      "seed": 3,
+      "shift_min": 180,
+      "split": "dev",
+      "trains": 18
+    },
+    {
+      "decision_points": 31,
+      "disruptions": 11,
+      "freight_trains": 1,
+      "passenger_trains": 16,
+      "scenario_hash": "512f4474cc158923016713f1f6945189c15af7d212557d5fe540ff7acf8eeac8",
+      "scenario_id": "T1-4",
+      "seed": 4,
+      "shift_min": 180,
+      "split": "dev",
+      "trains": 17
+    },
+    {
+      "decision_points": 28,
+      "disruptions": 8,
+      "freight_trains": 2,
+      "passenger_trains": 16,
+      "scenario_hash": "d053fc5ae9ebde763cb0014d51b4b2556cfcce33b759eefc283c541505901423",
+      "scenario_id": "T1-5",
+      "seed": 5,
+      "shift_min": 180,
+      "split": "dev",
+      "trains": 18
+    },
+    {
+      "decision_points": 24,
+      "disruptions": 9,
+      "freight_trains": 1,
+      "passenger_trains": 16,
+      "scenario_hash": "675630b8424e83d853044b59dfaf9c3fc81afbf85451a00e505d6f7208052525",
+      "scenario_id": "T1-7",
+      "seed": 7,
+      "shift_min": 180,
+      "split": "dev",
+      "trains": 17
+    }
+  ],
+  "header": {
+    "accepted": 5,
+    "checks": [
+      "decision_points>=min_decisions",
+      "exploits_strictly_worse_than_booked_order"
+    ],
+    "disruption_density": 1.0,
+    "git_head": "620061f2045c342c55a359ded162b8ec3d15744a",
+    "min_decisions": 10,
+    "rejected": {
+      "exploit_hold_all_freight_not_worse": 4
+    },
+    "requested": 5,
+    "scenario_cache": "railway-scenarios:/net/T1/<seed>.json",
+    "seed_range": [
+      1,
+      10000
+    ],
+    "split": "dev",
+    "tier": "T1"
+  }
+}
