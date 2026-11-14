@@ -83,6 +83,17 @@ def test_T06_20_accepted_file(tmp_path):
         assert (report["c_greedy"], report["c_ref"]) == (entry["c_greedy"], entry["c_ref"])
 
 
+def test_generator_version_ignores_line_endings(tmp_path, monkeypatch):
+    """A CRLF checkout must hash like an LF one, or every Windows run treats the committed lists as stale."""
+    gen = tmp_path / "railway" / "gen"
+    gen.mkdir(parents=True)
+    (gen / "generator.py").write_bytes(b"a = 1\nb = 2\n")
+    monkeypatch.setattr(seed_filter, "__file__", str(tmp_path / "railway" / "ref" / "seed_filter.py"))
+    lf = seed_filter.generator_version()
+    (gen / "generator.py").write_bytes(b"a = 1\r\nb = 2\r\n")
+    assert seed_filter.generator_version() == lf
+
+
 def test_T06_21_cache_invalidation(tmp_path, monkeypatch):
     calls = []
 

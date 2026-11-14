@@ -75,12 +75,15 @@ def evaluate_scenario(scenario, runner=run_named) -> FilterReport:
 
 
 def generator_version() -> str:
-    """Hash of the generator sources (`railway/gen/*.py`, not the CLI): a changed generator invalidates lists."""
+    """Hash of the generator sources (`railway/gen/*.py`, not the CLI): a changed generator invalidates lists.
+
+    Line endings are normalised first, so a CRLF checkout (git autocrlf on Windows) hashes like an LF one.
+    """
     digest = hashlib.sha256()
     for path in sorted((Path(__file__).resolve().parents[1] / "gen").glob("*.py")):
         if path.name == "cli.py":  # commands, not scenarios
             continue
-        digest.update(path.name.encode() + b"\0" + path.read_bytes())
+        digest.update(path.name.encode() + b"\0" + path.read_bytes().replace(b"\r\n", b"\n"))
     return digest.hexdigest()
 
 
