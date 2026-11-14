@@ -34,6 +34,14 @@ class Track(NetModel):
     electrified: bool
     direction: Travel | Literal["both"]
     block_m: int = Field(default=2000, ge=500)
+    # Signalled for running the wrong way too: single_line() can open it to both directions during a blockage.
+    reversible: bool = False
+
+    @model_validator(mode="after")
+    def valid_track(self):
+        if self.reversible and self.direction == "both":
+            raise ValueError(f"track {self.id}: only a one-way track can be reversible; it already runs both ways")
+        return self
 
     @property
     def blocks(self) -> int:
@@ -54,6 +62,7 @@ class Platform(NetModel):
     length_m: int = Field(gt=0)
     kind: Literal["platform", "through", "siding"]
     electrified: bool = True
+    crew_relief: bool = False  # a crew can be relieved here (F10)
 
 
 class Move(NetModel):
@@ -107,6 +116,7 @@ class Trip(NetModel):
     entry_node: str | None = None  # portal it enters from; None means it starts standing at calls[0]
     entry_tick: int = Field(default=0, ge=0)
     exit_node: str | None = None  # portal it runs out to after its last call; None means it stays in the platform
+    crew_min: int = Field(default=0, ge=0)  # minutes its crew has already worked when the trip starts (F10)
 
     @model_validator(mode="after")
     def valid_trip(self):
@@ -156,6 +166,50 @@ class Connection(NetModel):
     def valid_connection(self):
         if self.feeder == self.connector:
             raise ValueError(f"connection at {self.node}: {self.feeder} cannot feed itself")
+        return self
+
+
+DisruptionKind = Literal[
+    "breakdown", "possession", "speed_restriction", "signal_failure", "points_failure", "platform_closed", "late_entry"
+]
+UNANNOUNCED: frozenset[str] = frozenset({"breakdown", "signal_failure", "points_failure"})  # revealed as they happen
+ON_TRACKS: frozenset[str] = frozenset({"possession", "speed_restriction", "signal_failure"})
+
+
+class Disruption(NetModel):
+    """One thing that breaks the plan (docs/network-v0.3.md §4.2), fixed by the scenario seed.
+
+    `start` to `end` is when it is in force. `reveal` is when the agent learns of it: at `start` for the unannounced
+    kinds, ahead of it for the rest. A breakdown stops `train` wherever it is at `start`, if it is in the area then.
+    A late entry moves `train`'s entry from `start` (the booked minute) to `end`. The other kinds close or slow
+    `elements`: tracks for a possession, a speed restriction or a signal failure, one move for a points failure,
+    one platform for a platform out of use.
+    """
+
+    id: str
+    kind: DisruptionKind
+    start: int = Field(ge=0)
+    end: int
+    reveal: int = Field(ge=0)
+    train: str | None = None
+    elements: tuple[str, ...] = ()
+    speed_kmh: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def valid_disruption(self):
+        if self.end <= self.start:
+            raise ValueError(f"disruption {self.id}: it must end after it starts")
+        if self.reveal > self.start or (self.kind in UNANNOUNCED and self.reveal != self.start):
+            when = "at" if self.kind in UNANNOUNCED else "by"
+            raise ValueError(f"disruption {self.id}: a {self.kind} is revealed {when} its start")
+        about_train = self.kind in {"breakdown", "late_entry"}
+        if about_train != (self.train is not None) or about_train == bool(self.elements):
+            named = "a train" if about_train else "elements"
+            raise ValueError(f"disruption {self.id}: a {self.kind} names {named} only")
+        if self.kind in {"points_failure", "platform_closed"} and len(self.elements) != 1:
+            raise ValueError(f"disruption {self.id}: a {self.kind} is on exactly one element")
+        if (self.kind == "speed_restriction") != (self.speed_kmh is not None):
+            raise ValueError(f"disruption {self.id}: a speed is given exactly for a speed restriction")
         return self
 
 
@@ -262,6 +316,7 @@ class Timetable(NetModel):
     shift_min: int = Field(gt=0)
     seed: int = 0
     tier: str = "T1"
+    disruptions: tuple[Disruption, ...] = ()
 
     @model_validator(mode="after")
     def valid_timetable(self):
@@ -281,4 +336,19 @@ class Timetable(NetModel):
                 raise ValueError(f"connection at {link.node} names unknown train {missing[0]}")
             if self.net.node(link.node) is None:
                 raise ValueError(f"connection {link.feeder}->{link.connector} is at unknown node {link.node}")
+        self._check_disruptions({t.train.id: t for t in self.trips})
         return self
+
+    def _check_disruptions(self, trips: dict[str, Trip]) -> None:
+        if len({d.id for d in self.disruptions}) != len(self.disruptions):
+            raise ValueError("two disruptions share an id")
+        wanted = {"points_failure": Move, "platform_closed": Platform}
+        for d in self.disruptions:
+            if d.train is not None and d.train not in trips:
+                raise ValueError(f"disruption {d.id} names unknown train {d.train}")
+            if d.kind == "late_entry" and (trips[d.train].entry_node is None or trips[d.train].entry_tick != d.start):
+                raise ValueError(f"disruption {d.id}: a late entry starts at the booked entry of a train from a portal")
+            kind = wanted.get(d.kind, Track)
+            for element in d.elements:
+                if not isinstance(self.net.element(element), kind):
+                    raise ValueError(f"disruption {d.id}: {element} is not a {kind.__name__.lower()}")
