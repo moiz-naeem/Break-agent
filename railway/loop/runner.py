@@ -105,7 +105,8 @@ def normalize_reward(result) -> tuple[float, float]:
     """(reward, score_unclipped) from whatever T07's `reward_from` returns (mapping, object or tuple)."""
     if isinstance(result, tuple | list):
         return float(result[0]), float(result[1])
-    return float(_get(result, "reward")), float(_get(result, "score_unclipped"))
+    normalized = _get(result, "score_normalized")  # v0.3: the reward itself is −cost; rows keep the normalised score
+    return float(normalized if normalized is not None else _get(result, "reward")), float(_get(result, "score_unclipped"))
 
 
 def make_session(scenario, *, disabled=(), diagnostics=False, session_cls=None):

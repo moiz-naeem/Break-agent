@@ -33,6 +33,7 @@ DETAIL_KEYS = {
     "best_proven",
     "norm_version",
     "score_unclipped",
+    "score_normalized",
     "reward",
     "above_best",
     "counts",
@@ -74,10 +75,14 @@ class Task:
         assert not (self.logs / "details.json").exists()
 
     def expect_reward(self, res, text: str) -> dict:
+        """reward.txt must be −cost; `text` is the expected report-only normalised score."""
         assert res.returncode == 0, res.stdout + res.stderr
-        assert self.reward_file.read_text(encoding="utf-8") == text
+        d = self.details()
+        assert self.reward_file.read_text(encoding="utf-8") == f"{-d['cost_total']:.6f}" + chr(10)
+        assert d["reward"] == round(-d["cost_total"], 6)
+        assert f"{d['score_normalized']:.6f}" + chr(10) == text
         assert not (self.logs / "reward.json").exists()
-        return self.details()
+        return d
 
 
 @pytest.fixture(scope="session")
@@ -123,7 +128,7 @@ def reference_log() -> dict:
 
 def test_T07_11f_anchor_plan_scores_one_fake_sim(task, plan_log):
     d = task.expect_reward(task.verify(plan_log), "1.000000\n")
-    assert d["score_unclipped"] == 1.0 and d["reward"] == 1.0
+    assert d["score_unclipped"] == 1.0 and d["reward"] == -task.norm["c_best"]  # reward = -cost
     assert d["above_best"] is False
 
 
@@ -169,14 +174,15 @@ def test_T07_14g_calls_after_shift_end_do_not_count(task, plan_log):
 def test_T07_15_reward_math():
     from railway.harbor.verify import reward_from
 
-    s = reward_from(1000, 500, 400)  # v0.3: no clip at the top; beating the best known plan is flagged
-    assert s.reward == pytest.approx(1.2) and s.above_best is True and s.score_unclipped == pytest.approx(1.2)
+    s = reward_from(1000, 500, 400)  # the reward is −cost; the normalised score is for reports
+    assert s.reward == -400 and s.above_best is True and s.score_unclipped == pytest.approx(1.2)
+    assert s.score_normalized == pytest.approx(1.2)  # no clip at the top
     s = reward_from(1000, 500, 1200)
-    assert s.reward == 0.0 and s.score_unclipped == pytest.approx(-0.4) and s.above_best is False
+    assert s.reward == -1200 and s.score_normalized == 0.0 and s.score_unclipped == pytest.approx(-0.4)
     s = reward_from(1000, 500, 750)
-    assert s.reward == 0.5 and s.score_unclipped == 0.5
-    assert reward_from(1000, 500, 500).reward == 1.0 and reward_from(1000, 500, 500).above_best is False
-    assert reward_from(1000, 500, 1000).reward == 0.0
+    assert s.reward == -750 and s.score_normalized == 0.5
+    assert reward_from(1000, 500, 500).score_normalized == 1.0 and reward_from(1000, 500, 500).above_best is False
+    assert reward_from(1000, 500, 1000).score_normalized == 0.0
     for bad in ((500, 500, 1), (400, 500, 1)):
         with pytest.raises(ValueError):
             reward_from(*bad)
