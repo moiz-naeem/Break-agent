@@ -19,3 +19,8 @@ def test_T04_25_seed_sets_are_ordered_and_disjoint():
         "heldout": (1_000_000, 1_010_000),
         "fresh": (2_000_000, 2**31),
     }
+
+
+def test_T04_27_fresh_never_overlaps():
+    draws = list(fresh_seeds(1000, seed=11))
+    assert len(draws) == 1000 and all(seed >= 2_000_000 for seed in draws)

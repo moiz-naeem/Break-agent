@@ -1,6 +1,6 @@
 RULES_VERSION = "0.1-provisional"
 TICK_MINUTES = 1
-TOOL_BUDGET = 400
+TOOL_BUDGET = 600  # calibrated (T05-35): greedy needs up to ~370 calls on T2; DESIGN said 400
 TIME_CAP = 60
 PAX_GRACE = 2
 TERMINUS_MULT = 2

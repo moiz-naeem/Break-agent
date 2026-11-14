@@ -1,0 +1,151 @@
+"""Deterministic belief-state dispatcher used as the scripted reference."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from railway.policies.baselines import EpisodeOver, Guard
+from railway.sim.constants import W_EXPRESS, W_FREIGHT, W_LOCAL
+from railway.sim.engine import Simulator
+from railway.sim.model import Authorize, CancelAuthority, Hold, RelieveCrew, Reverse
+from railway.sim.observe import State, StaticInfo
+from railway.tools.observe import Observer
+
+from .candidates import WAIT, candidates
+from .rollout import rollout
+
+
+@dataclass(frozen=True)
+class ToolCall:
+    tool: str
+    args: dict
+
+
+class Reference:
+    def __init__(self, horizon: int = 90, max_candidates: int = 5, lookahead_stations: int = 4):
+        self.horizon = horizon
+        self.max_candidates = max_candidates
+        self.lookahead_stations = lookahead_stations
+
+    def _priority(self, train):
+        if train.type in {"express", "local"}:
+            weight = W_EXPRESS if train.type == "express" else W_LOCAL
+            return (0, -(weight * train.pax / 100), train.id)
+        if train.type == "freight":
+            return (1, -W_FREIGHT, train.id)
+        return (2, 0, train.id)
+
+    def decide(self, static: StaticInfo, state: State) -> list[ToolCall]:
+        belief = Simulator.from_observation(static, state)
+        calls: list[ToolCall] = []
+
+        if "F10" in static.factors:
+            crew_stations = {
+                station["id"] for station in static.network.get("stations", []) if station.get("crew_station")
+            }
+            for observed in state.trains:
+                remaining = getattr(observed, "crew_remaining", None)
+                relieving_until = getattr(observed, "relief_until", None)
+                if (
+                    remaining is None
+                    or observed.phase != "at_station"
+                    or observed.station not in crew_stations
+                    or (relieving_until is not None and state.tick < relieving_until)
+                ):
+                    continue
+                ahead = ["YW", *[station.id for station in belief._scenario.network.stations], "YE"]
+                if observed.direction == "west":
+                    ahead.reverse()
+                crew_ahead = [
+                    station for station in ahead[ahead.index(observed.station) + 1 :] if station in crew_stations
+                ]
+                target = crew_ahead[0] if crew_ahead else belief._train_defs[observed.id].stops[-1].station
+                path = belief._route(observed.station, target, "main")
+                arrival = belief._project_arrival(observed.id, path)
+                if state.tick + remaining < arrival + 10:
+                    action = RelieveCrew(train=observed.id)
+                    if belief.apply(action).ok:
+                        calls.append(ToolCall("relieve_crew", {"train": observed.id}))
+
+        actionable = []
+        for observed in state.trains:
+            internal = belief._trains[observed.id]
+            if observed.phase == "finished" or observed.phase == "not_entered":
+                continue
+            if internal["hold_until"] is not None and state.tick < internal["hold_until"]:
+                continue
+            ordinary = observed.phase == "at_station" and observed.authority is None
+            extension = (
+                "F5" in static.factors
+                and observed.type == "freight"
+                and observed.authority is not None
+                and observed.authority.dest_station
+                not in {stop.station for stop in belief._train_defs[observed.id].stops}
+            )
+            if ordinary or extension:
+                actionable.append(observed)
+
+        for observed in sorted(actionable, key=self._priority):
+            options = candidates(
+                belief,
+                observed.id,
+                lookahead_stations=self.lookahead_stations,
+                max_candidates=self.max_candidates,
+            )
+            values = []
+            for option in options:
+                branch = belief.clone()
+                if option is not WAIT:
+                    branch.apply(option)
+                values.append((rollout(branch, self.horizon), option))
+            # Python's stable min preserves candidate ordering on equal values.
+            _, winner = min(values, key=lambda pair: pair[0])
+            if winner is not WAIT:
+                belief.apply(winner)
+                calls.append(
+                    ToolCall(
+                        "authorize",
+                        {
+                            "train": winner.train,
+                            "station": winner.station,
+                            "track": winner.track,
+                        },
+                    )
+                )
+        calls.append(ToolCall("advance_to_next_event", {}))
+        return calls
+
+    def evaluate(self, static: StaticInfo, state: State, call: ToolCall) -> float:
+        sim = Simulator.from_observation(static, state)
+        if call.tool == "advance_to_next_event":
+            sim.advance()
+        else:
+            action_types = {
+                "authorize": Authorize,
+                "hold": Hold,
+                "cancel_authority": CancelAuthority,
+                "relieve_crew": RelieveCrew,
+                "reverse": Reverse,
+            }
+            action_type = action_types.get(call.tool)
+            if action_type is not None:
+                try:
+                    branch = sim.clone()
+                    if branch.apply(action_type(**call.args)).ok:
+                        sim = branch
+                except (TypeError, ValueError):
+                    pass
+        # Read-only, notes, unknown tools, and refused calls leave the belief unchanged.
+        return rollout(sim, self.horizon)
+
+    def run(self, client) -> None:
+        """Observer: network + timetable once; then status -> decide -> execute, until the shift ends."""
+        try:
+            guarded = Guard(client)
+            observer = Observer(guarded)
+            while True:
+                static, state = observer.observe()
+                for call in self.decide(static, state):
+                    guarded.call(call.tool, call.args)
+        except EpisodeOver:
+            pass

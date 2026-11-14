@@ -50,6 +50,17 @@ from .rules import RuleId
 from .timing import project, travel_ticks
 
 
+def _copy_train(t: dict) -> dict:
+    copied = {
+        k: copy.deepcopy(v) if isinstance(v, (dict, list, set, tuple)) else v
+        for k, v in t.items()
+        if k not in ("arrivals", "auth")
+    }
+    copied["arrivals"] = list(t["arrivals"])  # append-only; the arrival records themselves are never mutated
+    copied["auth"] = t["auth"] and {**t["auth"], "path": list(t["auth"]["path"])}  # atomic but for its path
+    return copied
+
+
 class Simulator:
     def __init__(self, scenario: Scenario):
         self._scenario = scenario
@@ -311,8 +322,30 @@ class Simulator:
         sim._gridlock = list(state.gridlock)
         return sim
 
+    # Built from the scenario at load and never mutated: clones share them and copy only the live state.
+    _SHARED = (
+        "_scenario",
+        "_events",
+        "_rotation_predecessor",
+        "_station_ids",
+        "_station_idx",
+        "_section_by_pair",
+        "_section_by_id",
+        "_stations",
+        "_train_defs",
+    )
+
     def clone(self) -> Simulator:
-        return copy.deepcopy(self)
+        new = copy.copy(self)
+        for name, value in vars(self).items():
+            if name in self._SHARED:
+                continue
+            if name == "_trains":  # the hot path (check() clones per candidate), so copy by hand
+                value = {tid: _copy_train(t) for tid, t in value.items()}
+            else:
+                value = copy.deepcopy(value)
+            setattr(new, name, value)
+        return new
 
     def _route(self, start: str, dest: str, track: str):
         i, j = self._station_idx[start], self._station_idx[dest]
@@ -545,6 +578,9 @@ class Simulator:
             t["station"] = t["position"]
             t["track"] = "main"
             self._entered.add(t["id"])
+            self._pending_changes.append(
+                Change(tick=self.tick, kind="ENTRY", train=t["id"], text=f"{t['id']} enters at {t['station']}")
+            )
         if not t["auth"]:
             return
         ready = max(
@@ -585,6 +621,9 @@ class Simulator:
         t["section_exit"] = self.tick + duration
         t["station"] = None
         t["track"] = None
+        self._pending_changes.append(
+            Change(tick=self.tick, kind="ENTER", train=t["id"], text=f"{t['id']} enters {secid}")
+        )
 
     def _stop_at(self, t, station):
         return next((s for s in self._train_defs[t["id"]].stops if s.station == station), None)
@@ -592,6 +631,9 @@ class Simulator:
     def _arrive(self, t, station, track):
         tid = t["id"]
         arrived_section = t["section"]
+        self._pending_changes.append(
+            Change(tick=self.tick, kind="ARRIVE", train=tid, text=f"{tid} at {station}/{track}")
+        )
         t["phase"] = "at_station"
         t["station"], t["track"], t["position"] = station, track, station
         t["section"] = t["section_enter"] = t["section_exit"] = None
@@ -770,7 +812,6 @@ class Simulator:
         if tid not in self._gridlock:
             return self._refuse(RuleId.NO_GRIDLOCK, f"{tid} is not in a gridlock")
         t = self._trains[tid]
-        self._holders.pop(f"{t['station']}/{t['track']}", None)
         idx = self._station_idx[t["station"]]
         prev = self._station_ids[idx - (1 if t["direction"] == "east" else -1)]
         if prev in self._stations:
@@ -789,6 +830,10 @@ class Simulator:
         sec = self._section_by_pair.get((prev, t["station"])) or self._section_by_pair.get((t["station"], prev))
         if self._holders.get(sec.id) not in {None, tid}:
             return self._refuse(RuleId.NO_REVERSE_PATH, f"no free reverse section behind {tid}")
+        self._holders.pop(f"{t['station']}/{t['track']}", None)  # only after the checks: a refusal changes nothing
+        self._pending_changes.append(
+            Change(tick=self.tick, kind="ENTER", train=tid, text=f"{tid} reversing into {sec.id}")
+        )
         self._cost.reversal += REVERSE_COST
         t.update(
             phase="reversing",
@@ -872,11 +917,17 @@ class Simulator:
                         self._holders[f"{station}/{track}"] = tid
                     t["section"] = t["section_exit"] = t["section_enter"] = None
                     t["reversing_to"] = None
+                    self._pending_changes.append(
+                        Change(tick=self.tick, kind="ARRIVE", train=tid, text=f"{tid} at {station}/{track}")
+                    )
                     reasons.append(Reason(kind="READY", train=tid))
                 elif t["phase"] == "in_section" and t["section_exit"] == self.tick:
                     section = self._section_by_id[t["section"]]
                     station = section.east if t["direction"] == "east" else section.west
                     if station not in self._stations and t["auth"] and station == t["auth"]["dest_station"]:
+                        self._pending_changes.append(
+                            Change(tick=self.tick, kind="ARRIVE", train=tid, text=f"{tid} at {station}/main")
+                        )
                         self._holders.pop(t["section"], None)
                         t["phase"] = "at_station"
                         t["station"], t["track"], t["position"] = station, "main", station
@@ -918,6 +969,9 @@ class Simulator:
                     t["track"] = "main"
                     t["ready_tick"] = self.tick
                     self._entered.add(tid)
+                    self._pending_changes.append(
+                        Change(tick=self.tick, kind="ENTRY", train=tid, text=f"{tid} enters at {t['station']}")
+                    )
                     if not t["auth"]:
                         reasons.append(Reason(kind="READY", train=tid))
                         t["ready_reported_tick"] = self.tick

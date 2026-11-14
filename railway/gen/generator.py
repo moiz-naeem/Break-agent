@@ -51,6 +51,14 @@ def _network(config: GenConfig, seed: int):
         hi = max(lo + 1, (third + 1) * config.stations // 3)
         if not any(any(loop["length_m"] == 700 for loop in stations[i]["loops"]) for i in range(lo, hi)):
             add_long_loop(lo)
+    # A 600 m freight can only wait in a 700 m loop, and the reference (T06 §2.2) only sends a train somewhere
+    # with another fitting loop at most 3 stations on: so never leave 3 stations in a row without one.
+    gap = 0
+    for i, station in enumerate(stations):
+        gap = 0 if any(loop["length_m"] == 700 for loop in station["loops"]) else gap + 1
+        if gap == 3:
+            add_long_loop(i)
+            gap = 0
     long_stations = [i for i, st in enumerate(stations) if any(x["length_m"] == 700 for x in st["loops"])]
     for i in range(config.stations):
         if len(long_stations) >= math.ceil(config.stations / 3):
@@ -126,7 +134,7 @@ def _trains(config: GenConfig, network: dict, seed: int):
     }
     sections = network["sections"]
     stations = network["stations"]
-    output, run_lengths = [], {}
+    output = []
     for kind, tid in types:
         direction = directions[tid]
         eastbound = direction == "east"
@@ -173,11 +181,16 @@ def _trains(config: GenConfig, network: dict, seed: int):
                     }
                 )
                 relative_tick += dwell
-        run_lengths[tid] = stops[-1]["arr"]
-        latest_entry = config.shift_ticks - run_lengths[tid] - 15
+        run_length = stops[-1]["arr"]
+        latest_entry = config.shift_ticks - run_length - config.end_margin
         if latest_entry < 0:
-            raise ValueError(f"shift too short for {config.preset} run length {run_lengths[tid]}")
+            raise ValueError(f"shift too short for {config.preset} run length {run_length}")
         entry = timetable_rng.randint(0, latest_entry)
+        # Stop times are absolute ticks (the simulator's convention), offset from the entry tick.
+        for stop in stops:
+            stop["arr"] += entry
+            if stop["dep"] is not None:
+                stop["dep"] += entry
         output.append(
             {
                 "id": tid,
@@ -191,21 +204,26 @@ def _trains(config: GenConfig, network: dict, seed: int):
             }
         )
 
-    return output, run_lengths
+    return output
 
 
-def _rotations(trains: list[dict], run_lengths: dict[str, int], fraction: float):
+def run_length(train: dict) -> int:
+    """Scheduled run length; stop times are absolute, so subtract the entry tick."""
+    return train["stops"][-1]["arr"] - train["entry_tick"]
+
+
+def _rotations(trains: list[dict], fraction: float):
     count = round(len(trains) * fraction)
     links = 0
     used_successors = set()
-    arrivals = sorted(trains, key=lambda train: train["entry_tick"] + train["stops"][-1]["arr"])
+    arrivals = sorted(trains, key=lambda train: train["stops"][-1]["arr"])
     for before in arrivals:
         if links >= count:
             break
         if before["next_service"] is not None:
             continue
         yard = before["stops"][-1]["station"]
-        min_entry = before["entry_tick"] + before["stops"][-1]["arr"] + TURNAROUND
+        min_entry = before["stops"][-1]["arr"] + TURNAROUND
         after = next(
             (
                 candidate
@@ -266,7 +284,7 @@ def _events(config: GenConfig, network: dict, trains: list[dict], seed: int):
             elif kind == "breakdown":
                 train = rng.choice(trains)
                 start = train["entry_tick"] + 5
-                end = train["entry_tick"] + train["stops"][-1]["arr"] - 5
+                end = train["stops"][-1]["arr"] - 5
                 if end < start:
                     continue
                 tick = rng.randint(start, end)
@@ -300,16 +318,16 @@ def _events(config: GenConfig, network: dict, trains: list[dict], seed: int):
 
 def generate(config: GenConfig, seed: int) -> Scenario:
     network = _network(config, seed)
-    trains, run_lengths = _trains(config, network, seed)
+    trains = _trains(config, network, seed)
     if "F6" in config.factors:
-        _rotations(trains, run_lengths, config.rotation_fraction)
+        _rotations(trains, config.rotation_fraction)
     if "F10" in config.factors:
         rng = _rng(seed, "crew")
         for train in trains:
             if train["next_service"]:
                 train["crew_used_at_entry"] = 0
             elif rng.random() < config.tight_crew_fraction:
-                train["crew_used_at_entry"] = max(0, CREW_LIMIT - int(run_lengths[train["id"]] * rng.uniform(0.4, 0.8)))
+                train["crew_used_at_entry"] = max(0, CREW_LIMIT - int(run_length(train) * rng.uniform(0.4, 0.8)))
             else:
                 train["crew_used_at_entry"] = rng.randint(0, 100)
     trains.sort(key=lambda train: train["id"])

@@ -24,7 +24,7 @@ def test_T04_29_describe_summarizes_counts(tmp_path):
     result = run_cli("describe", str(output))
     assert result.returncode == 0
     assert "12 stations" in result.stdout
-    assert "14 trains" in result.stdout
+    assert f"{PRESETS['T2'].trains} trains" in result.stdout
     assert "possession=" in result.stdout and "speed_restriction=" in result.stdout
 
 

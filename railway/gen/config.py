@@ -18,6 +18,7 @@ class GenConfig(BaseModel):
     slack: float = Field(default=0.10, ge=0)
     rotation_fraction: float = Field(default=0.4, ge=0, le=1)
     tight_crew_fraction: float = Field(default=0.3, ge=0, le=1)
+    end_margin: int = Field(default=15, ge=0)  # ticks between the last scheduled arrival and the shift end
 
     @model_validator(mode="after")
     def validate_config(self):

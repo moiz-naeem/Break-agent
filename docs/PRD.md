@@ -241,7 +241,7 @@ a test pins every value.
 |---|---|---|
 | `RULES_VERSION` | `"0.1-provisional"` | Written into every scenario; verifier refuses a mismatch |
 | `TICK_MINUTES` | 1 | 1 tick = 1 minute |
-| `TOOL_BUDGET` | 400 | Tool calls per episode, all tools counted |
+| `TOOL_BUDGET` | 600 (calibrated in T05; was 400) | Tool calls per episode, all tools counted |
 | `TIME_CAP` | 60 | Max ticks between decision points |
 | `PAX_GRACE` | 2 | Ticks of lateness forgiven at each timed stop |
 | `TERMINUS_MULT` | 2 | Multiplier at the final timed stop |

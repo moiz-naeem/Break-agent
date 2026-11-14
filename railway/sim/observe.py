@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from pydantic import BaseModel, ConfigDict
 
 from .cost import CostBreakdown
@@ -76,6 +78,23 @@ class StaticInfo(LooseModel):
     shift_ticks: int
     factors: list[str]
     rules_version: str
+
+    @classmethod
+    def from_tool_json(cls, network_json: str, timetable_json: str) -> StaticInfo:
+        """Rebuild exactly what `Simulator.static_info()` returns from the `network` + `timetable` tool outputs."""
+        net, table = json.loads(network_json), json.loads(timetable_json)
+        trains = [
+            {k: v for k, v in t.items() if k not in {"length_m", "max_kmh"}}
+            | {"crew_used_at_entry": t.get("crew_used_at_entry", 0)}  # only shown when F10 is on
+            for t in table["trains"]
+        ]
+        return cls(
+            network={k: net[k] for k in ("yards", "stations", "sections")},
+            trains=trains,
+            shift_ticks=net["shift_ticks"],
+            factors=net["factors"],
+            rules_version=net["rules_version"],
+        )
 
 
 class ActionResult(LooseModel):

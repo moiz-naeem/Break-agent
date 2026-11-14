@@ -6,7 +6,8 @@ from hypothesis import strategies as st
 
 from railway.gen.generator import generate
 from railway.gen.presets import PRESETS
-from railway.sim.constants import TURNAROUND
+from railway.sim.constants import TRAIN_TYPES, TURNAROUND
+from railway.sim.engine import Simulator
 from railway.sim.timing import travel_ticks
 
 
@@ -43,13 +44,14 @@ def test_T04_16_to_24_generated_invariants(preset, seed):
     ids = {train.id for train in scenario.trains}
     successors = []
     for train in scenario.trains:
-        assert train.stops[-1].arr + train.entry_tick <= config.shift_ticks - 15
+        # Stop times are absolute ticks, as in the simulator and the mini3 fixture.
+        assert train.stops[-1].arr <= config.shift_ticks - 15
         assert train.stops[-1].station == ("YE" if train.direction == "east" else "YW")
         if train.next_service:
             successor = next(other for other in scenario.trains if other.id == train.next_service)
             successors.append(successor.id)
             assert successor.direction != train.direction
-            assert successor.entry_tick >= train.entry_tick + train.stops[-1].arr + TURNAROUND
+            assert successor.entry_tick >= train.stops[-1].arr + TURNAROUND
             assert successor.id in ids
         if "F6" not in config.factors:
             assert train.next_service is None
@@ -67,13 +69,13 @@ def test_T04_16_to_24_generated_invariants(preset, seed):
             ]
         else:
             assert train.pax == 0
-        free = sum(
-            travel_ticks(
-                section.length_m, section.line_speed_kmh, {"express": 140, "local": 100, "freight": 70}[train.type]
-            )
-            for section in scenario.network.sections
-        )
-        assert train.stops[-1].arr >= free
+        # T04-18: every stop's arr is at or after the free-run arrival from the entry tick.
+        route = scenario.network.sections if train.direction == "east" else list(reversed(scenario.network.sections))
+        free_at, tick = {}, train.entry_tick
+        for section in route:
+            tick += travel_ticks(section.length_m, section.line_speed_kmh, TRAIN_TYPES[train.type]["max_speed_kmh"])
+            free_at[section.east if train.direction == "east" else section.west] = tick
+        assert all(stop.arr >= free_at[stop.station] for stop in train.stops), train.id
 
     assert len(successors) == len(set(successors))
     if "F10" in config.factors:
@@ -106,7 +108,11 @@ def test_T04_16_to_24_generated_invariants(preset, seed):
             assert event.new_entry_tick > target.entry_tick
         elif event.kind == "breakdown":
             target = trains_by_id[event.train]
-            assert target.entry_tick + 5 <= event.tick <= target.entry_tick + target.stops[-1].arr - 5
+            assert target.entry_tick + 5 <= event.tick <= target.stops[-1].arr - 5
+    # T04-24: the do-nothing run completes with a finite, positive cost.
+    sim = Simulator.load(scenario)
+    assert sim.end_shift().done
+    assert 0 < sim.cost().total < float("inf")
 
 
 def test_T04_20_factor_off_has_no_crew_station_or_events():

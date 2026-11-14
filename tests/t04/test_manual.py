@@ -94,3 +94,34 @@ def test_T04_05_manual_lists_every_decision_reason_kind():
         "SHIFT_END",
     }
     assert all(kind in manual for kind in expected)
+
+
+TOOLS = (
+    "manual",
+    "network",
+    "timetable",
+    "status",
+    "bulletins",
+    "kpis",
+    "stringline",
+    "notes",
+    "authorize",
+    "cancel_authority",
+    "hold",
+    "relieve_crew",
+    "reverse",
+    "advance_to_next_event",
+    "end_shift",
+)
+
+
+def test_T04_06_every_tool_in_tools_section():
+    tools_section = render_manual().split("## Tools", 1)[1].split("\n## ", 1)[0]
+    for tool in TOOLS:
+        assert f"| `{tool}` |" in tools_section, tool
+
+
+def test_T04_08_deterministic_without_timestamp():
+    manual = render_manual()
+    assert manual == render_manual()
+    assert not re.search(r"\b(19|20)\d\d-\d\d-\d\d|\d\d:\d\d:\d\d", manual)

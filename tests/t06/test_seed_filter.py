@@ -1,0 +1,99 @@
+"""T06-18..21: the seed filter's four conditions, acceptance rates and the accepted-list file."""
+
+import concurrent.futures
+import json
+import os
+import subprocess
+import sys
+from types import SimpleNamespace
+
+import pytest
+
+from railway.gen.generator import generate
+from railway.gen.presets import PRESETS
+from railway.gen.seeds import candidate_seeds
+from railway.ref import seed_filter
+from railway.ref.seed_filter import POLICY_NAMES, evaluate_scenario
+from railway.sim.constants import RULES_VERSION
+from railway.util import content_hash
+
+BASE = {name: 150.0 for name in POLICY_NAMES} | {"greedy": 100.0, "reference": 60.0}
+
+
+def stub(costs, gridlocks=0, unfinished=0):
+    def run(name, _scenario):
+        counts = {"gridlocks": gridlocks if name == "reference" else 0}
+        final = SimpleNamespace(cost=SimpleNamespace(total=costs[name]), counts=counts)
+        return SimpleNamespace(final=final, unfinished=unfinished if name == "greedy" else 0)
+
+    return run
+
+
+@pytest.mark.parametrize(
+    ("costs", "gridlocks", "unfinished", "reason"),
+    [
+        (BASE | {"reference": 70.0}, 0, 0, None),  # exactly 30% better is enough
+        (BASE | {"reference": 70.5}, 0, 0, "ref_not_30pct_better"),
+        (BASE, 1, 0, "ref_gridlock"),
+        (BASE | {"Malformed": 99.0}, 0, 0, "exploit_beats_greedy"),
+        (BASE | {"StopEarly": 100.0}, 0, 0, None),  # an exploit equal to greedy still scores 0
+        (BASE, 0, 1, "greedy_unfinished"),
+        (BASE, 0, 0, None),
+    ],
+)
+def test_T06_18_filter_conditions(costs, gridlocks, unfinished, reason):
+    report = evaluate_scenario(None, runner=stub(costs, gridlocks, unfinished))
+    assert report["accepted"] is (reason is None)
+    assert report["reasons"] == ([] if reason is None else [reason])
+    assert (report["c_greedy"], report["c_ref"]) == (costs["greedy"], costs["reference"])
+    assert set(report["exploit_costs"]) == set(POLICY_NAMES) - {"greedy", "reference"}
+
+
+def _accepted(preset, seed):
+    return evaluate_scenario(generate(PRESETS[preset], seed))["accepted"]
+
+
+@pytest.mark.slow
+def test_T06_19_acceptance_rate():
+    t1 = [("T1", s) for s in candidate_seeds("dev", count=30)]
+    t2 = [("T2", s) for s in candidate_seeds("dev", count=20)]
+    with concurrent.futures.ProcessPoolExecutor(os.cpu_count()) as pool:
+        verdicts = list(pool.map(_accepted, *zip(*(t1 + t2), strict=True)))
+    rate1, rate2 = sum(verdicts[:30]), sum(verdicts[30:])
+    print(f"acceptance: T1 {rate1}/30, T2 {rate2}/20")
+    assert rate1 >= 0.3 * 30 and rate2 >= 0.3 * 20
+
+
+@pytest.mark.slow
+def test_T06_20_accepted_file(tmp_path):
+    cmd = [sys.executable, "-m", "railway.gen.cli", "accept", "--config", "T1", "--set", "dev", "--count", "5"]
+    subprocess.run(cmd, cwd=tmp_path, check=True, env=os.environ | {"PYTHONPATH": os.getcwd()})
+    data = json.loads((tmp_path / "seeds" / "T1-dev.json").read_text(encoding="utf-8"))
+    assert data["header"]["rules_version"] == RULES_VERSION
+    assert data["header"]["generator_version"] == seed_filter.generator_version()
+    entries = data["accepted"]
+    assert len(entries) == 5 and [e["seed"] for e in entries] == sorted(e["seed"] for e in entries)
+    scenarios = [generate(PRESETS["T1"], e["seed"]) for e in entries]
+    with concurrent.futures.ProcessPoolExecutor(5) as pool:
+        reports = list(pool.map(evaluate_scenario, scenarios))
+    for entry, scenario, report in zip(entries, scenarios, reports, strict=True):
+        assert content_hash(scenario.model_dump(mode="json")) == entry["scenario_hash"]
+        assert scenario.scenario_id == entry["scenario_id"]
+        assert (report["c_greedy"], report["c_ref"]) == (entry["c_greedy"], entry["c_ref"])
+
+
+def test_T06_21_cache_invalidation(tmp_path, monkeypatch):
+    calls = []
+
+    def fake(scenario, runner=None):
+        calls.append(scenario.seed)
+        return {"accepted": True, "c_greedy": 2.0, "c_ref": 1.0, "reasons": []}
+
+    monkeypatch.setattr(seed_filter, "evaluate_scenario", fake)
+    first = seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path, workers=1)
+    assert len(first) == 3 and len(calls) == 3
+    assert seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path, workers=1) == first
+    assert len(calls) == 3  # reused
+    monkeypatch.setattr(seed_filter, "generator_version", lambda: "changed")
+    assert seed_filter.accepted_seeds("T1", "dev", 3, output_dir=tmp_path, workers=1) == first
+    assert len(calls) == 6  # recomputed

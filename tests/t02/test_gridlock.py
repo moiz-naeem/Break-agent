@@ -59,6 +59,18 @@ def test_T02_28_episode_C_no_reverse_path():
     assert s.apply(Reverse(train="L2")).ok
 
 
+def test_T02_28b_refused_reverse_is_noop():
+    """Regression: a refused reverse must not release the train's own station track (T02-46)."""
+    s = load("mini3_noloops")
+    s.apply(Authorize(train="L1", station="S2", track="main"))
+    s.apply(Authorize(train="L2", station="S3", track="main"))
+    while s.state().gridlock != ["L1", "L2"]:
+        assert not s.advance().done
+    before = (dict(s._holders), s.state().model_dump(mode="json"))
+    assert s.apply(Reverse(train="L1")).rule.value == "R-NO-REVERSE-PATH"
+    assert (dict(s._holders), s.state().model_dump(mode="json")) == before
+
+
 def test_T02_16_opposing_trains_can_pass_when_a_loop_is_free():
     s = load("mini3")
     s.apply(Authorize(train="E1", station="S2", track="L1"))

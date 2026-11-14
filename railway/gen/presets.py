@@ -12,15 +12,18 @@ PRESETS = {
         trains=8,
         mix={"express": 0.25, "local": 0.5, "freight": 0.25},
         factors=CORE_FACTORS,
-        shift_ticks=120,
+        shift_ticks=240,  # calibrated (T05/T06): DESIGN's 120 left greedy unable to finish any seed
+        end_margin=60,
     ),
     "T2": GenConfig(
         preset="T2",
         stations=12,
-        trains=14,
+        trains=10,  # calibrated (T05/T06): DESIGN's 14 trains / 360 ticks left greedy unable to finish any seed
         mix={"express": 0.25, "local": 0.5, "freight": 0.25},
         factors=ALL_FACTORS,
-        shift_ticks=360,
+        shift_ticks=720,
+        end_margin=120,
+        event_density=0.5,
     ),
     "T2-S14": GenConfig(
         preset="T2-S14",
