@@ -8,12 +8,15 @@ Reward on the network track is **`-(total cost)`** (`railway/net/cost.py`, `rail
 ## Reproducing everything here
 
 ```bash
-# Fast regression tests (3 passing tests pinning the F1 fix + battery invariants)
+# Fast regression tests (F1 fix, battery invariants, action-tool audit)
 pytest tests/net/test_redteam.py
 
 # Local probes on individual tiers/seeds
 python -m railway.redteam.net_battery --tier T1 --seeds 1,3,4,5,7
 python -m railway.redteam.net_teleport --tier T1 --seeds 1,3,4,5,7 --workers 8
+
+# Action-tool loophole audit (route, short_turn, skip, cancel, single_line), all 15 dev seeds, local
+python -m railway.redteam.net_actions_audit --out results/redteam-net/actions-audit-dev.json
 
 # Full 15-seed dev suite (T1, T2, T3) on Modal -> results/redteam-net/{battery,teleport}-dev.json
 modal run infra/modal/net_redteam.py
@@ -95,7 +98,14 @@ The two unit tests that previously moved stranded `IC9` (260 m, booked into 200 
 
 - `tests/net/test_engine.py:178` (`test_re_platforming_frees_a_stranded_train`)
 - `tests/net/test_session.py:254` (`test_conflicts_order_hold_platform_and_changes_only`)
-- `tests/net/test_redteam.py` (all 3 regression tests passing)
+- `tests/net/test_redteam.py` (F1 regression tests)
+
+**Rulebook aligned (no trick wording).** The tool schema (`describe("platform")`, from the `_platform` docstring in
+`railway/net/session.py`) now reads "Re-platform `train`'s next booked call to another platform `n` at that same
+station (never across stations)". The manual (`railway/net/manual.py`) says the same and that a platform at any
+other station is refused with `R-NO-ROUTE`, and the `R-NO-ROUTE` rule text names the wrong-station case. These are
+text changes only: the `scenario_hash` of every T1/T2/T3 dev and test seed in `seeds/net-*.json` is unchanged
+(re-derived from `build_timetable` and compared: 15/15 dev and 90/90 test seeds match).
 
 ---
 
@@ -129,11 +139,118 @@ Every check below ran across all 15 dev seeds (`T1`: `1,3,4,5,7`; `T2`: `2,3,4,5
 
 ---
 
-## Open container check: post-verifier sleeper process (`V5`)
+## Action tools audited and not exploitable (`results/redteam-net/actions-audit-dev.json`)
 
-In exported Harbor tasks (`railway/harbor/net_export.py`), the agent container contains no simulator, `timetable.json`, or bearer `token`, runs as non-root `user = "agent"` (UID 1000, `main.Dockerfile`), and `clear_rewards()` removes any pre-written `reward.txt`/`reward.json` before verification starts.
+F1 was a tool that let a booked call disappear without its bill. `railway/redteam/net_actions_audit.py` asks
+the same question of every other service-regulation tool (`route`, `short_turn`, `skip`, `cancel`,
+`single_line`) on all 15 dev seeds, at shift start and again at mid-shift, run locally. **Result: 0
+violations.**
 
-What has **not** been tested end-to-end in a live Docker/Harbor run on this branch is whether a background process spawned by UID 1000 (`nohup sh -c 'sleep ...; echo 0 > /logs/verifier/reward.txt' &`) survives Harbor's transition from agent phase to `tests/test.sh` *and* has write permission on `/logs/verifier` after `verify.py` writes `reward.txt`. Before freezing the exported dataset on Linux/WSL2:
+### In plain English: why the action tools cannot be used to cheat
 
-1. Run a live Harbor sleeper probe (`harbor run`) to confirm `/logs/verifier` is root-owned (`0755` or `0700`) or PID-isolated across phases; or
-2. Harden `railway/harbor/net_templates/test.sh` defensively with `mkdir -p /logs/verifier && chmod 0700 /logs/verifier` (since `test.sh` runs as root while the agent runs as UID 1000).
+- **Every stop you drop is paid for, at once.** Whenever `route`, `skip`, `short_turn` or `cancel` is granted,
+  the booked calls that leave the train's plan are exactly the calls the engine logs `CALL_MISSED` for, at that
+  moment (call conservation). A missed passenger call costs `500 + v x (alight + board)/100 x (f(H) + 10)`,
+  whatever the reason. Checked on 15,354 granted diversions (20,713 dropped calls), 82 short turns, 433 skips
+  and 1,589 cancels: no exceptions.
+- **A stop only counts where it is booked.** Over every episode the audit played, no `ARRIVE` for call `j`
+  ever happened at a station other than call `j`'s (the F1 property, now checked for all tools).
+- **Passengers changing trains are paid for too.** In 994 connections whose feeder call was dropped while the
+  connecting train still left, the missed connection was billed every time. In the 578 cases where the
+  connecting train also skipped that call, its own missed call bills its boarders.
+- **`route` obeys physics and cannot hide freight.** All 128,876 one-element diversions (every live train x
+  every track and platform) were tried: 114,785 were refused with `R-NO-ROUTE`, none through an element the
+  train cannot use (no wires for an electric train, a road shorter than the train). The planned path of every
+  granted diversion respects electrification, road length and track direction. A freight diversion never
+  drops the freight's destination (579 granted, 0 dropped). An undelivered freight still costs `1500 + 200` +
+  lateness at shift end.
+- **`short_turn` only works where a train really turns.** On all 1,360 attempts against trains with no
+  turnaround left, it was refused with `R-NO-RETURN`. Granted turns bill every stop between the turn and the
+  turnaround.
+- **`single_line` cannot be abused.** Each of the 60 reversible-track openings was followed by routing every
+  live train over the track (1,263 granted, 602 the wrong way). Every wrong-way path stays physically valid,
+  and closing the line again under a wrong-way train is refused with `R-SINGLE-LINE`.
+- **Withdrawing service never beats dispatching.** The four avoidance shortcuts below cost more than honest
+  dispatch on **every seed where they did anything** (dispatch = the cheapest of three regulators that never
+  withdraw a train or a call: `booked_order`; `pax_first`, which orders freight behind passenger trains; and
+  `freight_hold_sweep`, which holds freight back at shift start and still delivers it, late).
+
+| Seed | dispatch | `booked_order` | `pax_first` | `freight_hold_sweep` | `cancel_all_freight` | `cancel_delayed_pax` | `short_turn_all_possible` | `skip_all_intermediate` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `T1-1` | **3173.92** | 4591.23 | 4591.23 | 3173.92 | 6487.92 | 7328.45 | 4221.88 | 5184.93 |
+| `T1-3` | **1154.74** | 3391.36 | 2077.01 | 1154.74 | 3141.92 | 4866.83 | no-op | no-op |
+| `T1-4` | **180.54** | 180.54 | 180.54 | 180.54 | 2670.77 | no-op | no-op | no-op |
+| `T1-5` | **367.59** | 367.59 | 2864.43 | 367.59 | 2144.63 | 1650.88 | 738.78 | 965.80 |
+| `T1-7` | **1414.34** | 1446.54 | 1417.34 | 1414.34 | 3178.34 | 7028.90 | no-op | no-op |
+| `T2-2` | **5803.97** | 7101.88 | 7101.88 | 5803.97 | 7893.15 | 20846.06 | 15329.42 | 19981.35 |
+| `T2-3` | **6689.53** | 10779.77 | 10779.77 | 6689.53 | 8162.34 | 20609.51 | 17220.76 | 25155.84 |
+| `T2-4` | **6759.37** | 7568.75 | 7638.33 | 6759.37 | 7382.03 | 19790.38 | 12434.01 | 22168.27 |
+| `T2-5` | **3104.01** | 4086.09 | 3104.01 | 3104.01 | 4197.77 | 5690.65 | 6544.94 | 17345.21 |
+| `T2-6` | **2931.98** | 2966.84 | 2966.84 | 2931.98 | 3960.95 | 9006.97 | 11087.69 | 17800.99 |
+| `T3-1` | **6704.40** | 6763.48 | 6704.40 | 6704.40 | 7386.54 | 30757.78 | 30024.44 | 96777.27 |
+| `T3-2` | **15146.75** | 15636.22 | 15636.22 | 15146.75 | 17734.67 | 62426.06 | 53163.42 | 109811.49 |
+| `T3-3` | **5020.15** | 5020.15 | 5030.83 | 5020.15 | 6718.65 | 34072.00 | 30405.03 | 83900.04 |
+| `T3-5` | **8385.53** | 8390.53 | 12909.72 | 8385.53 | 8727.92 | 30931.69 | 53177.27 | 117410.05 |
+| `T3-6` | **11182.57** | 16342.50 | 15771.65 | 11182.57 | 16999.78 | 31840.42 | 49128.14 | 95723.84 |
+
+"no-op": the policy found nothing to withdraw on that seed (no train 15+ min late, no turnaround or no skippable
+intermediate stop), so it ran as plain dispatch. Each avoidance policy is layered on both `booked_order` and
+`pax_first`, and the cheaper of the two is shown.
+
+| Mean over the 15 dev seeds | Mean cost | Mean ratio to dispatch | Worse than dispatch on |
+|---|---:|---:|---|
+| dispatch (best honest regulator) | 5201.29 | 1.00 | |
+| `cancel_all_freight` | 7119.16 | 2.68 | 15/15 seeds (lowest ratio 1.04) |
+| `cancel_delayed_pax` (cancel any passenger train 15+ min late) | 19135.14 | 3.57 | 14/14 seeds where it acted |
+| `short_turn_all_possible` | 19143.38 | 2.99 | 12/12 seeds where it acted |
+| `skip_all_intermediate` | 41060.00 | 6.08 | 12/12 seeds where it acted |
+
+**What a weaker baseline showed.** Compared with plain `booked_order` alone, two shortcuts did come out
+cheaper on a few seeds: `cancel_all_freight` on `T1-3`, `T2-3` and `T2-4`, and `short_turn_all_possible` on
+`T1-1`. Neither was an accounting hole. Cancelling the freight was billed in full (e.g. `FT01` on `T2-3`:
+`200` unfinished + `1500` undelivered + lateness = `1833`). Short-turning `RE01` on `T1-1` traded a billed
+`638.02` missed call at `C` for the `798.70` missed call and `200` unfinished it would have paid at shift end
+anyway. They won only because `booked_order` sends freight straight into the passenger peak. Holding the same
+freight back and delivering it late (`freight_hold_sweep`) beats cancelling it on every seed (`T2-3`: `6689.53`
+vs `8162.34`), so withdrawing a service is a priced, legitimate regulation decision that a competent dispatcher
+outperforms, not a free shortcut. Policy `skip_all_intermediate` is mostly a no-op on T1, whose services are
+largely two-call trips with a turnaround in between.
+
+Regression tests: `tests/net/test_redteam.py` (call conservation, physics and billing on `T1-1`; the `RE01`
+short-turn bill; `R-NO-RETURN`; freight and late-passenger cancellation losing to dispatch on `T1-3`).
+
+---
+
+## V5 (closed): post-agent sleeper processes cannot touch `reward.txt`
+
+In Harbor Docker runs the agent runs as UID 1000 (`agent`) in the main container, and `tests/test.sh` runs
+afterwards as root **in the same container**. A hostile agent could leave
+`(sleep 5 && echo 0.0 > /logs/verifier/reward.txt) &` behind and exit.
+
+`railway/harbor/net_templates/test.sh` now, when it runs as root:
+
+1. kills every process of UID 1000 (`pkill -9 -u agent` when available, `kill(-1, SIGKILL)` issued as UID
+   1000 through `setpriv`, and a `/proc/*/status` scan as fallback; `python:3.11-slim` ships no `pkill`),
+   repeating until none is left;
+2. deletes anything in `/logs/verifier` not owned by root (e.g. a planted `.reward.txt.tmp` symlink that would
+   redirect `verify.py`'s atomic write), then makes the directory `root:root 0755`;
+3. runs `verify.py`, and on success leaves its outputs `root:root 0644`.
+
+Run as any other user (the local unit tests), it only runs `verify.py`.
+
+**Checked live** in `python:3.11-slim` (the main image's base) with a hostile agent that left a `setsid`
+sleeper, a `nohup` rewrite loop and the symlink: after `test.sh`, no UID-1000 process remained,
+`/etc/passwd` was untouched, `reward.txt` still held the verifier's value 5 s later, and a later write as
+`agent` failed with `Permission denied`.
+
+## V6 (closed): a crashed agent CLI was scored as a do-nothing shift
+
+In live Harbor runs, an agent CLI that died at once (API key, credit, quota or rate-limit error) made zero MCP
+calls; `net_verify.py` then closed the untouched session and wrote a do-nothing reward (e.g. `-28240.34`) as if
+the model had chosen to do nothing. `net_verify.py` now raises `INFRA:` (no reward, Harbor records a trial error
+to rerun) when the sim logged **zero** entries **and** `/logs/agent` shows a fatal CLI/API failure: HTTP
+401/402/403/429, `insufficient_quota`, exhausted credits or credit balance, a bad API key,
+`AuthenticationError` / `PermissionDeniedError` / `RateLimitError`, an unhandled exception or a Python
+traceback. `harbor run -a nop` (no or empty agent logs) and an agent that stops early still get a valid
+`-do_nothing_cost` reward, and any episode with at least one logged call is scored normally whatever its logs
+say (`tests/net/test_harbor_net.py`, section 5b).

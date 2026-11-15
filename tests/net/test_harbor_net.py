@@ -34,7 +34,7 @@ from railway.harbor.net_export import (
     export_timetables,
     scenario_id_for,
 )
-from railway.harbor.net_verify import mcp_startup_failure
+from railway.harbor.net_verify import agent_cli_failure, mcp_startup_failure
 from railway.net.cost import COMPONENTS, cost
 from railway.net.events import Event, EventLog
 from railway.net.formats import NET_RULES_VERSION
@@ -668,6 +668,82 @@ def test_genuine_do_nothing_and_nonzero_calls_scored_cleanly(
             res_ok = _run_verify_cli(task_dir, logs_ok, sim_url, agent_logs_dir=fail_agent)
         assert res_ok.returncode == 0
         assert (logs_ok / "reward.txt").is_file()
+
+
+# ---------------------------------------------------------------- 5b. Crashed agent CLI vs genuine do-nothing
+
+FATAL_CLI_LINES = [
+    'ERROR 2026-11-14T12:00:02 service=llm status=401 {"error":{"type":"authentication_error"}}\n',
+    "Error: 402 Payment Required: insufficient credits on this account\n",
+    "APIError: HTTP 403 Forbidden\n",
+    'ERROR service=session error="429 Too Many Requests" giving up\n',
+    '{"error": {"code": "insufficient_quota", "message": "You exceeded your current quota"}}\n',
+    "anthropic.BadRequestError: Your credit balance is too low to access the Anthropic API.\n",
+    "openai.AuthenticationError: Incorrect API key provided\n",
+    "Traceback (most recent call last):\n  File \"agent.py\", line 3, in <module>\nKeyError: 'x'\n",
+]
+
+BENIGN_LINES = [
+    "",
+    "INFO service=mcp key=railway type=remote connected tools=14\n",
+    'INFO session prompt="...tools of the `railway` MCP server; crew timeouts..."\n',
+    "INFO agent finished: nothing to do, stopping without tool calls\n",
+    "ModuleNotFoundError: No module named 'railway'\n",
+    "INFO exit code 0 after 4012 ms\n",
+]
+
+
+@pytest.mark.parametrize("line", FATAL_CLI_LINES)
+def test_agent_cli_failure_detects_fatal_lines(tmp_path, line):
+    assert agent_cli_failure(_agent_logs(tmp_path, "fatal", line)) is not None
+
+
+@pytest.mark.parametrize("line", BENIGN_LINES)
+def test_agent_cli_failure_ignores_benign_lines(tmp_path, line):
+    assert agent_cli_failure(_agent_logs(tmp_path, "benign", line)) is None
+    assert agent_cli_failure(tmp_path / "missing_dir") is None
+
+
+@pytest.mark.parametrize(
+    "line", [FATAL_CLI_LINES[i] for i in (0, 1, 5, 7)], ids=["http401", "credits402", "balance", "traceback"]
+)
+def test_crashed_agent_cli_with_zero_calls_is_infra_not_do_nothing(exported_ds, sample_timetable, tmp_path, line):
+    task_dir = exported_ds / "T1-101"
+    token = (task_dir / "tests" / "token").read_text(encoding="utf-8").strip()
+    tt = sample_timetable.model_copy(update={"seed": 101, "tier": "T1"})
+    zero_log = _play_inproc(tt, [])
+    assert zero_log["entries"] == []
+    agent_dir = _agent_logs(tmp_path, "crashed_cli", line)
+
+    logs_dir = tmp_path / "v_crashed"
+    with _fake_sim(token, zero_log) as sim_url:
+        res = _run_verify_cli(task_dir, logs_dir, sim_url, agent_logs_dir=agent_dir)
+    assert res.returncode != 0
+    assert "INFRA: agent CLI failed before any tool call" in res.stdout
+    assert not (logs_dir / "reward.txt").exists()
+
+
+def test_nop_and_stop_early_still_scored_as_do_nothing(exported_ds, sample_timetable, tmp_path):
+    """`harbor run -a nop` (no agent logs) and a stop-early agent keep a valid do-nothing reward."""
+    task_dir = exported_ds / "T1-101"
+    token = (task_dir / "tests" / "token").read_text(encoding="utf-8").strip()
+    tt = sample_timetable.model_copy(update={"seed": 101, "tier": "T1"})
+    zero_log = _play_inproc(tt, [])
+    stop_early = _play_inproc(tt, [("end_shift", {})])
+
+    cases = {
+        "nop_no_logs": (zero_log, _agent_logs(tmp_path, "nop", None)),
+        "nop_empty_log": (zero_log, _agent_logs(tmp_path, "nop_empty", "")),
+        # >= 1 logged MCP call: the agent played, so a later API error never voids its score.
+        "stop_early_then_429": (stop_early, _agent_logs(tmp_path, "stop_early", FATAL_CLI_LINES[3])),
+    }
+    for name, (log, agent_dir) in cases.items():
+        logs_dir = tmp_path / f"v_{name}"
+        with _fake_sim(token, log) as sim_url:
+            res = _run_verify_cli(task_dir, logs_dir, sim_url, agent_logs_dir=agent_dir)
+        assert res.returncode == 0, f"{name}: {res.stdout}{res.stderr}"
+        reward = float((logs_dir / "reward.txt").read_text(encoding="utf-8"))
+        assert reward == pytest.approx(-log["final_cost"]) and reward < 0, name
 
 
 # ---------------------------------------------------------------- 6. Modal Harbor runner configuration
