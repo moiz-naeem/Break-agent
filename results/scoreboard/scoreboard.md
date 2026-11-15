@@ -7,7 +7,7 @@ _Snapshot: 2026-11-15 05:57 UTC._
 | model | id | episodes ok / expected | T1 | T2 | T3 | errors |
 |---|---|---|---|---|---|---|
 | Gemini 4 Carbon | `gemini-carbon-high` | 58 / 270 (21%) | 58 | 0 | 0 | 0 |
-| Qwen 3.8 27B (base) | `qwen38-think` | 1 / 270 (0%) | 1 | 0 | 0 | 82 |
+| Qwen 3.8 27B (base) | `qwen38-think` | 1 / 270 (0%) | 1 | 0 | 0 | 160 |
 | Qwen 3.8 27B (fine-tuned) | `qwen38-think-sft` | 0 / 30 (0%) | 0 | 0 | 0 | 0 |
 
 ### Overall score per tier

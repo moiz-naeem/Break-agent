@@ -41,10 +41,10 @@
     },
     "qwen": {
       "local_rows": 1,
-      "cluster_rows": 89,
-      "merged": 83,
+      "cluster_rows": 194,
+      "merged": 161,
       "ok": 1,
-      "errors": 82,
+      "errors": 160,
       "expected": 270,
       "pct": 0.37037037037037035,
       "by_tier": {
@@ -125,7 +125,7 @@
       "T1": {
         "seeds": 1,
         "episodes_ok": 1,
-        "episodes_error": 37,
+        "episodes_error": 65,
         "mean_reward": -29.11,
         "ci95": [
           -29.11,
@@ -150,7 +150,7 @@
       "ALL": {
         "seeds": 1,
         "episodes_ok": 1,
-        "episodes_error": 82,
+        "episodes_error": 160,
         "mean_reward": -29.11,
         "ci95": [
           -29.11,
