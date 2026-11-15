@@ -1,0 +1,2119 @@
+[
+  {
+    "seed": 0,
+    "scenario_id": "T1-77d6ddc9d9b0",
+    "c_greedy": 1746.7,
+    "c_ref": 296.7,
+    "c_ref_now": 296.7,
+    "attackers": {
+      "DoNothing": {
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      "StopEarly": {
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      "SpamAdvance": {
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      "HoldFreight": {
+        "cost": 3729.5,
+        "reward": 0.0,
+        "unclipped": -1.367448
+      },
+      "MainLineHold": {
+        "cost": 7605.0,
+        "reward": 0.0,
+        "unclipped": -4.040207
+      },
+      "Malformed": {
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      "HoldAll": {
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      "PassengersOnly": {
+        "cost": 5706.5,
+        "reward": 0.0,
+        "unclipped": -2.730897
+      },
+      "ReverseAbuse": {
+        "cost": 1746.7,
+        "reward": 0.0,
+        "unclipped": 0.0
+      }
+    },
+    "neutral": {
+      "CancelChurn": {
+        "cost": 296.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    },
+    "prefix": [
+      {
+        "k": 0,
+        "tick": 0,
+        "orders": 0.0,
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      {
+        "k": 1,
+        "tick": 6,
+        "orders": 0.0,
+        "cost": 7571.5,
+        "reward": 0.0,
+        "unclipped": -4.017103
+      },
+      {
+        "k": 2,
+        "tick": 12,
+        "orders": 0.027,
+        "cost": 5706.5,
+        "reward": 0.0,
+        "unclipped": -2.730897
+      },
+      {
+        "k": 3,
+        "tick": 29,
+        "orders": 0.027,
+        "cost": 5706.5,
+        "reward": 0.0,
+        "unclipped": -2.730897
+      },
+      {
+        "k": 4,
+        "tick": 33,
+        "orders": 0.0541,
+        "cost": 5706.5,
+        "reward": 0.0,
+        "unclipped": -2.730897
+      },
+      {
+        "k": 5,
+        "tick": 47,
+        "orders": 0.0541,
+        "cost": 5706.5,
+        "reward": 0.0,
+        "unclipped": -2.730897
+      },
+      {
+        "k": 6,
+        "tick": 52,
+        "orders": 0.1081,
+        "cost": 5763.5,
+        "reward": 0.0,
+        "unclipped": -2.770207
+      },
+      {
+        "k": 7,
+        "tick": 56,
+        "orders": 0.1351,
+        "cost": 5763.5,
+        "reward": 0.0,
+        "unclipped": -2.770207
+      },
+      {
+        "k": 8,
+        "tick": 62,
+        "orders": 0.1622,
+        "cost": 5763.5,
+        "reward": 0.0,
+        "unclipped": -2.770207
+      },
+      {
+        "k": 9,
+        "tick": 65,
+        "orders": 0.1622,
+        "cost": 5763.5,
+        "reward": 0.0,
+        "unclipped": -2.770207
+      },
+      {
+        "k": 10,
+        "tick": 66,
+        "orders": 0.2162,
+        "cost": 5792.0,
+        "reward": 0.0,
+        "unclipped": -2.789862
+      },
+      {
+        "k": 11,
+        "tick": 76,
+        "orders": 0.2432,
+        "cost": 4518.5,
+        "reward": 0.0,
+        "unclipped": -1.911586
+      },
+      {
+        "k": 12,
+        "tick": 83,
+        "orders": 0.2973,
+        "cost": 4529.9,
+        "reward": 0.0,
+        "unclipped": -1.919448
+      },
+      {
+        "k": 13,
+        "tick": 84,
+        "orders": 0.2973,
+        "cost": 4529.9,
+        "reward": 0.0,
+        "unclipped": -1.919448
+      },
+      {
+        "k": 14,
+        "tick": 90,
+        "orders": 0.3514,
+        "cost": 4547.0,
+        "reward": 0.0,
+        "unclipped": -1.931241
+      },
+      {
+        "k": 15,
+        "tick": 92,
+        "orders": 0.3784,
+        "cost": 4547.0,
+        "reward": 0.0,
+        "unclipped": -1.931241
+      },
+      {
+        "k": 16,
+        "tick": 94,
+        "orders": 0.3784,
+        "cost": 4547.0,
+        "reward": 0.0,
+        "unclipped": -1.931241
+      },
+      {
+        "k": 17,
+        "tick": 96,
+        "orders": 0.3784,
+        "cost": 4547.0,
+        "reward": 0.0,
+        "unclipped": -1.931241
+      },
+      {
+        "k": 18,
+        "tick": 98,
+        "orders": 0.4595,
+        "cost": 2565.3,
+        "reward": 0.0,
+        "unclipped": -0.564552
+      },
+      {
+        "k": 19,
+        "tick": 101,
+        "orders": 0.4595,
+        "cost": 2565.3,
+        "reward": 0.0,
+        "unclipped": -0.564552
+      },
+      {
+        "k": 20,
+        "tick": 103,
+        "orders": 0.4865,
+        "cost": 2580.3,
+        "reward": 0.0,
+        "unclipped": -0.574897
+      },
+      {
+        "k": 21,
+        "tick": 105,
+        "orders": 0.4865,
+        "cost": 2580.3,
+        "reward": 0.0,
+        "unclipped": -0.574897
+      },
+      {
+        "k": 22,
+        "tick": 108,
+        "orders": 0.5405,
+        "cost": 2584.3,
+        "reward": 0.0,
+        "unclipped": -0.577655
+      },
+      {
+        "k": 23,
+        "tick": 109,
+        "orders": 0.5405,
+        "cost": 2584.3,
+        "reward": 0.0,
+        "unclipped": -0.577655
+      },
+      {
+        "k": 24,
+        "tick": 111,
+        "orders": 0.5405,
+        "cost": 2584.3,
+        "reward": 0.0,
+        "unclipped": -0.577655
+      },
+      {
+        "k": 25,
+        "tick": 113,
+        "orders": 0.6216,
+        "cost": 2604.4,
+        "reward": 0.0,
+        "unclipped": -0.591517
+      },
+      {
+        "k": 26,
+        "tick": 116,
+        "orders": 0.6216,
+        "cost": 2604.4,
+        "reward": 0.0,
+        "unclipped": -0.591517
+      },
+      {
+        "k": 27,
+        "tick": 118,
+        "orders": 0.6216,
+        "cost": 2604.4,
+        "reward": 0.0,
+        "unclipped": -0.591517
+      },
+      {
+        "k": 28,
+        "tick": 119,
+        "orders": 0.6216,
+        "cost": 2604.4,
+        "reward": 0.0,
+        "unclipped": -0.591517
+      },
+      {
+        "k": 29,
+        "tick": 121,
+        "orders": 0.6757,
+        "cost": 2629.4,
+        "reward": 0.0,
+        "unclipped": -0.608759
+      },
+      {
+        "k": 30,
+        "tick": 126,
+        "orders": 0.7027,
+        "cost": 2635.1,
+        "reward": 0.0,
+        "unclipped": -0.61269
+      },
+      {
+        "k": 31,
+        "tick": 128,
+        "orders": 0.7568,
+        "cost": 2220.6,
+        "reward": 0.0,
+        "unclipped": -0.326828
+      },
+      {
+        "k": 32,
+        "tick": 131,
+        "orders": 0.7838,
+        "cost": 2220.6,
+        "reward": 0.0,
+        "unclipped": -0.326828
+      },
+      {
+        "k": 33,
+        "tick": 132,
+        "orders": 0.7838,
+        "cost": 2220.6,
+        "reward": 0.0,
+        "unclipped": -0.326828
+      },
+      {
+        "k": 34,
+        "tick": 133,
+        "orders": 0.7838,
+        "cost": 2220.6,
+        "reward": 0.0,
+        "unclipped": -0.326828
+      },
+      {
+        "k": 35,
+        "tick": 138,
+        "orders": 0.8649,
+        "cost": 899.2,
+        "reward": 0.584483,
+        "unclipped": 0.584483
+      },
+      {
+        "k": 36,
+        "tick": 140,
+        "orders": 0.8649,
+        "cost": 899.2,
+        "reward": 0.584483,
+        "unclipped": 0.584483
+      },
+      {
+        "k": 37,
+        "tick": 146,
+        "orders": 0.8919,
+        "cost": 901.7,
+        "reward": 0.582759,
+        "unclipped": 0.582759
+      },
+      {
+        "k": 38,
+        "tick": 149,
+        "orders": 0.9189,
+        "cost": 903.7,
+        "reward": 0.581379,
+        "unclipped": 0.581379
+      },
+      {
+        "k": 39,
+        "tick": 150,
+        "orders": 0.9459,
+        "cost": 556.7,
+        "reward": 0.82069,
+        "unclipped": 0.82069
+      },
+      {
+        "k": 40,
+        "tick": 155,
+        "orders": 0.973,
+        "cost": 558.2,
+        "reward": 0.819655,
+        "unclipped": 0.819655
+      },
+      {
+        "k": 41,
+        "tick": 156,
+        "orders": 0.973,
+        "cost": 558.2,
+        "reward": 0.819655,
+        "unclipped": 0.819655
+      },
+      {
+        "k": 42,
+        "tick": 163,
+        "orders": 0.973,
+        "cost": 558.2,
+        "reward": 0.819655,
+        "unclipped": 0.819655
+      },
+      {
+        "k": 43,
+        "tick": 174,
+        "orders": 1.0,
+        "cost": 296.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 44,
+        "tick": 234,
+        "orders": 1.0,
+        "cost": 296.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 45,
+        "tick": 240,
+        "orders": 1.0,
+        "cost": 296.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    ],
+    "failures": [],
+    "warnings": []
+  },
+  {
+    "seed": 5,
+    "scenario_id": "T1-2f06dfb68904",
+    "c_greedy": 1408.2,
+    "c_ref": 208.5,
+    "c_ref_now": 208.5,
+    "attackers": {
+      "DoNothing": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "StopEarly": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "SpamAdvance": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "HoldFreight": {
+        "cost": 4570.1,
+        "reward": 0.0,
+        "unclipped": -2.635576
+      },
+      "MainLineHold": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "Malformed": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "HoldAll": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "PassengersOnly": {
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      "ReverseAbuse": {
+        "cost": 1408.2,
+        "reward": 0.0,
+        "unclipped": 0.0
+      }
+    },
+    "neutral": {
+      "CancelChurn": {
+        "cost": 208.5,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    },
+    "prefix": [
+      {
+        "k": 0,
+        "tick": 0,
+        "orders": 0.0,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 1,
+        "tick": 11,
+        "orders": 0.0,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 2,
+        "tick": 29,
+        "orders": 0.025,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 3,
+        "tick": 35,
+        "orders": 0.05,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 4,
+        "tick": 40,
+        "orders": 0.075,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 5,
+        "tick": 45,
+        "orders": 0.1,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 6,
+        "tick": 51,
+        "orders": 0.15,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 7,
+        "tick": 52,
+        "orders": 0.175,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 8,
+        "tick": 55,
+        "orders": 0.175,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 9,
+        "tick": 56,
+        "orders": 0.175,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 10,
+        "tick": 59,
+        "orders": 0.225,
+        "cost": 8716.3,
+        "reward": 0.0,
+        "unclipped": -6.091606
+      },
+      {
+        "k": 11,
+        "tick": 63,
+        "orders": 0.275,
+        "cost": 7435.3,
+        "reward": 0.0,
+        "unclipped": -5.023839
+      },
+      {
+        "k": 12,
+        "tick": 64,
+        "orders": 0.275,
+        "cost": 7435.3,
+        "reward": 0.0,
+        "unclipped": -5.023839
+      },
+      {
+        "k": 13,
+        "tick": 65,
+        "orders": 0.275,
+        "cost": 7435.3,
+        "reward": 0.0,
+        "unclipped": -5.023839
+      },
+      {
+        "k": 14,
+        "tick": 67,
+        "orders": 0.325,
+        "cost": 7436.3,
+        "reward": 0.0,
+        "unclipped": -5.024673
+      },
+      {
+        "k": 15,
+        "tick": 70,
+        "orders": 0.325,
+        "cost": 7436.3,
+        "reward": 0.0,
+        "unclipped": -5.024673
+      },
+      {
+        "k": 16,
+        "tick": 74,
+        "orders": 0.375,
+        "cost": 7436.3,
+        "reward": 0.0,
+        "unclipped": -5.024673
+      },
+      {
+        "k": 17,
+        "tick": 75,
+        "orders": 0.375,
+        "cost": 7436.3,
+        "reward": 0.0,
+        "unclipped": -5.024673
+      },
+      {
+        "k": 18,
+        "tick": 77,
+        "orders": 0.375,
+        "cost": 7436.3,
+        "reward": 0.0,
+        "unclipped": -5.024673
+      },
+      {
+        "k": 19,
+        "tick": 79,
+        "orders": 0.425,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 20,
+        "tick": 80,
+        "orders": 0.425,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 21,
+        "tick": 84,
+        "orders": 0.475,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 22,
+        "tick": 87,
+        "orders": 0.5,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 23,
+        "tick": 92,
+        "orders": 0.525,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 24,
+        "tick": 95,
+        "orders": 0.525,
+        "cost": 4574.1,
+        "reward": 0.0,
+        "unclipped": -2.63891
+      },
+      {
+        "k": 25,
+        "tick": 99,
+        "orders": 0.6,
+        "cost": 4206.2,
+        "reward": 0.0,
+        "unclipped": -2.33225
+      },
+      {
+        "k": 26,
+        "tick": 100,
+        "orders": 0.6,
+        "cost": 4206.2,
+        "reward": 0.0,
+        "unclipped": -2.33225
+      },
+      {
+        "k": 27,
+        "tick": 101,
+        "orders": 0.625,
+        "cost": 4213.0,
+        "reward": 0.0,
+        "unclipped": -2.337918
+      },
+      {
+        "k": 28,
+        "tick": 104,
+        "orders": 0.625,
+        "cost": 4213.0,
+        "reward": 0.0,
+        "unclipped": -2.337918
+      },
+      {
+        "k": 29,
+        "tick": 106,
+        "orders": 0.675,
+        "cost": 3761.0,
+        "reward": 0.0,
+        "unclipped": -1.961157
+      },
+      {
+        "k": 30,
+        "tick": 111,
+        "orders": 0.725,
+        "cost": 3766.1,
+        "reward": 0.0,
+        "unclipped": -1.965408
+      },
+      {
+        "k": 31,
+        "tick": 113,
+        "orders": 0.725,
+        "cost": 3766.1,
+        "reward": 0.0,
+        "unclipped": -1.965408
+      },
+      {
+        "k": 32,
+        "tick": 114,
+        "orders": 0.75,
+        "cost": 3766.1,
+        "reward": 0.0,
+        "unclipped": -1.965408
+      },
+      {
+        "k": 33,
+        "tick": 115,
+        "orders": 0.775,
+        "cost": 3227.8,
+        "reward": 0.0,
+        "unclipped": -1.516713
+      },
+      {
+        "k": 34,
+        "tick": 124,
+        "orders": 0.775,
+        "cost": 3227.8,
+        "reward": 0.0,
+        "unclipped": -1.516713
+      },
+      {
+        "k": 35,
+        "tick": 126,
+        "orders": 0.8,
+        "cost": 3227.8,
+        "reward": 0.0,
+        "unclipped": -1.516713
+      },
+      {
+        "k": 36,
+        "tick": 130,
+        "orders": 0.85,
+        "cost": 3235.9,
+        "reward": 0.0,
+        "unclipped": -1.523464
+      },
+      {
+        "k": 37,
+        "tick": 132,
+        "orders": 0.85,
+        "cost": 3235.9,
+        "reward": 0.0,
+        "unclipped": -1.523464
+      },
+      {
+        "k": 38,
+        "tick": 133,
+        "orders": 0.875,
+        "cost": 3235.9,
+        "reward": 0.0,
+        "unclipped": -1.523464
+      },
+      {
+        "k": 39,
+        "tick": 137,
+        "orders": 0.875,
+        "cost": 3235.9,
+        "reward": 0.0,
+        "unclipped": -1.523464
+      },
+      {
+        "k": 40,
+        "tick": 138,
+        "orders": 0.9,
+        "cost": 3256.6,
+        "reward": 0.0,
+        "unclipped": -1.540719
+      },
+      {
+        "k": 41,
+        "tick": 140,
+        "orders": 0.9,
+        "cost": 3256.6,
+        "reward": 0.0,
+        "unclipped": -1.540719
+      },
+      {
+        "k": 42,
+        "tick": 148,
+        "orders": 0.925,
+        "cost": 2014.6,
+        "reward": 0.0,
+        "unclipped": -0.50546
+      },
+      {
+        "k": 43,
+        "tick": 156,
+        "orders": 0.975,
+        "cost": 1744.7,
+        "reward": 0.0,
+        "unclipped": -0.280487
+      },
+      {
+        "k": 44,
+        "tick": 162,
+        "orders": 0.975,
+        "cost": 1744.7,
+        "reward": 0.0,
+        "unclipped": -0.280487
+      },
+      {
+        "k": 45,
+        "tick": 169,
+        "orders": 1.0,
+        "cost": 208.5,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 46,
+        "tick": 173,
+        "orders": 1.0,
+        "cost": 208.5,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 47,
+        "tick": 233,
+        "orders": 1.0,
+        "cost": 208.5,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 48,
+        "tick": 240,
+        "orders": 1.0,
+        "cost": 208.5,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    ],
+    "failures": [],
+    "warnings": []
+  },
+  {
+    "seed": 6,
+    "scenario_id": "T1-e251f6f3e20a",
+    "c_greedy": 4809.3,
+    "c_ref": 2620.7,
+    "c_ref_now": 2620.7,
+    "attackers": {
+      "DoNothing": {
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      "StopEarly": {
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      "SpamAdvance": {
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      "HoldFreight": {
+        "cost": 7042.9,
+        "reward": 0.0,
+        "unclipped": -1.020561
+      },
+      "MainLineHold": {
+        "cost": 6803.2,
+        "reward": 0.0,
+        "unclipped": -0.911039
+      },
+      "Malformed": {
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      "HoldAll": {
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      "PassengersOnly": {
+        "cost": 7224.4,
+        "reward": 0.0,
+        "unclipped": -1.103491
+      },
+      "ReverseAbuse": {
+        "cost": 4809.3,
+        "reward": 0.0,
+        "unclipped": 0.0
+      }
+    },
+    "neutral": {
+      "CancelChurn": {
+        "cost": 2620.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    },
+    "prefix": [
+      {
+        "k": 0,
+        "tick": 0,
+        "orders": 0.0,
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      {
+        "k": 1,
+        "tick": 5,
+        "orders": 0.0,
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      {
+        "k": 2,
+        "tick": 8,
+        "orders": 0.0278,
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      {
+        "k": 3,
+        "tick": 36,
+        "orders": 0.0278,
+        "cost": 10058.9,
+        "reward": 0.0,
+        "unclipped": -2.398611
+      },
+      {
+        "k": 4,
+        "tick": 56,
+        "orders": 0.0833,
+        "cost": 10154.4,
+        "reward": 0.0,
+        "unclipped": -2.442246
+      },
+      {
+        "k": 5,
+        "tick": 65,
+        "orders": 0.1111,
+        "cost": 10374.9,
+        "reward": 0.0,
+        "unclipped": -2.542996
+      },
+      {
+        "k": 6,
+        "tick": 72,
+        "orders": 0.1389,
+        "cost": 10763.4,
+        "reward": 0.0,
+        "unclipped": -2.720506
+      },
+      {
+        "k": 7,
+        "tick": 73,
+        "orders": 0.1389,
+        "cost": 10763.4,
+        "reward": 0.0,
+        "unclipped": -2.720506
+      },
+      {
+        "k": 8,
+        "tick": 76,
+        "orders": 0.1944,
+        "cost": 7224.4,
+        "reward": 0.0,
+        "unclipped": -1.103491
+      },
+      {
+        "k": 9,
+        "tick": 81,
+        "orders": 0.1944,
+        "cost": 7224.4,
+        "reward": 0.0,
+        "unclipped": -1.103491
+      },
+      {
+        "k": 10,
+        "tick": 88,
+        "orders": 0.2222,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 11,
+        "tick": 89,
+        "orders": 0.2778,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 12,
+        "tick": 94,
+        "orders": 0.2778,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 13,
+        "tick": 100,
+        "orders": 0.3056,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 14,
+        "tick": 101,
+        "orders": 0.3333,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 15,
+        "tick": 102,
+        "orders": 0.3611,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 16,
+        "tick": 107,
+        "orders": 0.3889,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 17,
+        "tick": 109,
+        "orders": 0.4167,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 18,
+        "tick": 113,
+        "orders": 0.4167,
+        "cost": 7227.8,
+        "reward": 0.0,
+        "unclipped": -1.105044
+      },
+      {
+        "k": 19,
+        "tick": 116,
+        "orders": 0.4444,
+        "cost": 7228.6,
+        "reward": 0.0,
+        "unclipped": -1.10541
+      },
+      {
+        "k": 20,
+        "tick": 117,
+        "orders": 0.4722,
+        "cost": 5982.6,
+        "reward": 0.0,
+        "unclipped": -0.536096
+      },
+      {
+        "k": 21,
+        "tick": 118,
+        "orders": 0.4722,
+        "cost": 5982.6,
+        "reward": 0.0,
+        "unclipped": -0.536096
+      },
+      {
+        "k": 22,
+        "tick": 125,
+        "orders": 0.4722,
+        "cost": 5982.6,
+        "reward": 0.0,
+        "unclipped": -0.536096
+      },
+      {
+        "k": 23,
+        "tick": 135,
+        "orders": 0.5278,
+        "cost": 5639.4,
+        "reward": 0.0,
+        "unclipped": -0.379284
+      },
+      {
+        "k": 24,
+        "tick": 139,
+        "orders": 0.6111,
+        "cost": 5724.9,
+        "reward": 0.0,
+        "unclipped": -0.41835
+      },
+      {
+        "k": 25,
+        "tick": 141,
+        "orders": 0.6389,
+        "cost": 5724.9,
+        "reward": 0.0,
+        "unclipped": -0.41835
+      },
+      {
+        "k": 26,
+        "tick": 144,
+        "orders": 0.6389,
+        "cost": 5724.9,
+        "reward": 0.0,
+        "unclipped": -0.41835
+      },
+      {
+        "k": 27,
+        "tick": 145,
+        "orders": 0.6944,
+        "cost": 5820.1,
+        "reward": 0.0,
+        "unclipped": -0.461848
+      },
+      {
+        "k": 28,
+        "tick": 146,
+        "orders": 0.6944,
+        "cost": 5820.1,
+        "reward": 0.0,
+        "unclipped": -0.461848
+      },
+      {
+        "k": 29,
+        "tick": 148,
+        "orders": 0.7222,
+        "cost": 5934.1,
+        "reward": 0.0,
+        "unclipped": -0.513936
+      },
+      {
+        "k": 30,
+        "tick": 149,
+        "orders": 0.7222,
+        "cost": 5934.1,
+        "reward": 0.0,
+        "unclipped": -0.513936
+      },
+      {
+        "k": 31,
+        "tick": 153,
+        "orders": 0.75,
+        "cost": 6027.6,
+        "reward": 0.0,
+        "unclipped": -0.556657
+      },
+      {
+        "k": 32,
+        "tick": 155,
+        "orders": 0.7778,
+        "cost": 4118.2,
+        "reward": 0.315773,
+        "unclipped": 0.315773
+      },
+      {
+        "k": 33,
+        "tick": 160,
+        "orders": 0.8333,
+        "cost": 2977.0,
+        "reward": 0.837202,
+        "unclipped": 0.837202
+      },
+      {
+        "k": 34,
+        "tick": 161,
+        "orders": 0.8333,
+        "cost": 2977.0,
+        "reward": 0.837202,
+        "unclipped": 0.837202
+      },
+      {
+        "k": 35,
+        "tick": 163,
+        "orders": 0.8611,
+        "cost": 3067.1,
+        "reward": 0.796034,
+        "unclipped": 0.796034
+      },
+      {
+        "k": 36,
+        "tick": 166,
+        "orders": 0.8889,
+        "cost": 2717.0,
+        "reward": 0.955999,
+        "unclipped": 0.955999
+      },
+      {
+        "k": 37,
+        "tick": 172,
+        "orders": 0.9167,
+        "cost": 2805.4,
+        "reward": 0.915608,
+        "unclipped": 0.915608
+      },
+      {
+        "k": 38,
+        "tick": 174,
+        "orders": 0.9444,
+        "cost": 2892.1,
+        "reward": 0.875994,
+        "unclipped": 0.875994
+      },
+      {
+        "k": 39,
+        "tick": 179,
+        "orders": 0.9444,
+        "cost": 2892.1,
+        "reward": 0.875994,
+        "unclipped": 0.875994
+      },
+      {
+        "k": 40,
+        "tick": 183,
+        "orders": 0.9722,
+        "cost": 2977.1,
+        "reward": 0.837156,
+        "unclipped": 0.837156
+      },
+      {
+        "k": 41,
+        "tick": 186,
+        "orders": 0.9722,
+        "cost": 2977.1,
+        "reward": 0.837156,
+        "unclipped": 0.837156
+      },
+      {
+        "k": 42,
+        "tick": 194,
+        "orders": 1.0,
+        "cost": 2620.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 43,
+        "tick": 240,
+        "orders": 1.0,
+        "cost": 2620.7,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    ],
+    "failures": [],
+    "warnings": []
+  },
+  {
+    "seed": 7,
+    "scenario_id": "T1-1b572c50f316",
+    "c_greedy": 2106.2,
+    "c_ref": 1219.3,
+    "c_ref_now": 1219.3,
+    "attackers": {
+      "DoNothing": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "StopEarly": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "SpamAdvance": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "HoldFreight": {
+        "cost": 3551.5,
+        "reward": 0.0,
+        "unclipped": -1.629609
+      },
+      "MainLineHold": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "Malformed": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "HoldAll": {
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      "PassengersOnly": {
+        "cost": 5400.7,
+        "reward": 0.0,
+        "unclipped": -3.714624
+      },
+      "ReverseAbuse": {
+        "cost": 2106.2,
+        "reward": 0.0,
+        "unclipped": 0.0
+      }
+    },
+    "neutral": {
+      "CancelChurn": {
+        "cost": 1219.3,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    },
+    "prefix": [
+      {
+        "k": 0,
+        "tick": 0,
+        "orders": 0.0,
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      {
+        "k": 1,
+        "tick": 2,
+        "orders": 0.0,
+        "cost": 9850.1,
+        "reward": 0.0,
+        "unclipped": -8.731424
+      },
+      {
+        "k": 2,
+        "tick": 14,
+        "orders": 0.0294,
+        "cost": 8954.1,
+        "reward": 0.0,
+        "unclipped": -7.721164
+      },
+      {
+        "k": 3,
+        "tick": 41,
+        "orders": 0.0294,
+        "cost": 8954.1,
+        "reward": 0.0,
+        "unclipped": -7.721164
+      },
+      {
+        "k": 4,
+        "tick": 52,
+        "orders": 0.0294,
+        "cost": 8954.1,
+        "reward": 0.0,
+        "unclipped": -7.721164
+      },
+      {
+        "k": 5,
+        "tick": 57,
+        "orders": 0.0588,
+        "cost": 8954.1,
+        "reward": 0.0,
+        "unclipped": -7.721164
+      },
+      {
+        "k": 6,
+        "tick": 63,
+        "orders": 0.0588,
+        "cost": 8954.1,
+        "reward": 0.0,
+        "unclipped": -7.721164
+      },
+      {
+        "k": 7,
+        "tick": 68,
+        "orders": 0.0882,
+        "cost": 9090.9,
+        "reward": 0.0,
+        "unclipped": -7.875409
+      },
+      {
+        "k": 8,
+        "tick": 72,
+        "orders": 0.1471,
+        "cost": 9126.6,
+        "reward": 0.0,
+        "unclipped": -7.915661
+      },
+      {
+        "k": 9,
+        "tick": 75,
+        "orders": 0.1765,
+        "cost": 9161.6,
+        "reward": 0.0,
+        "unclipped": -7.955125
+      },
+      {
+        "k": 10,
+        "tick": 77,
+        "orders": 0.2059,
+        "cost": 9161.6,
+        "reward": 0.0,
+        "unclipped": -7.955125
+      },
+      {
+        "k": 11,
+        "tick": 78,
+        "orders": 0.2353,
+        "cost": 9195.9,
+        "reward": 0.0,
+        "unclipped": -7.993799
+      },
+      {
+        "k": 12,
+        "tick": 79,
+        "orders": 0.2353,
+        "cost": 9195.9,
+        "reward": 0.0,
+        "unclipped": -7.993799
+      },
+      {
+        "k": 13,
+        "tick": 82,
+        "orders": 0.2941,
+        "cost": 9498.3,
+        "reward": 0.0,
+        "unclipped": -8.334762
+      },
+      {
+        "k": 14,
+        "tick": 83,
+        "orders": 0.2941,
+        "cost": 9498.3,
+        "reward": 0.0,
+        "unclipped": -8.334762
+      },
+      {
+        "k": 15,
+        "tick": 84,
+        "orders": 0.3824,
+        "cost": 6765.1,
+        "reward": 0.0,
+        "unclipped": -5.253016
+      },
+      {
+        "k": 16,
+        "tick": 86,
+        "orders": 0.3824,
+        "cost": 6765.1,
+        "reward": 0.0,
+        "unclipped": -5.253016
+      },
+      {
+        "k": 17,
+        "tick": 87,
+        "orders": 0.3824,
+        "cost": 6765.1,
+        "reward": 0.0,
+        "unclipped": -5.253016
+      },
+      {
+        "k": 18,
+        "tick": 89,
+        "orders": 0.4118,
+        "cost": 6798.0,
+        "reward": 0.0,
+        "unclipped": -5.290112
+      },
+      {
+        "k": 19,
+        "tick": 92,
+        "orders": 0.4118,
+        "cost": 6798.0,
+        "reward": 0.0,
+        "unclipped": -5.290112
+      },
+      {
+        "k": 20,
+        "tick": 94,
+        "orders": 0.4118,
+        "cost": 6798.0,
+        "reward": 0.0,
+        "unclipped": -5.290112
+      },
+      {
+        "k": 21,
+        "tick": 99,
+        "orders": 0.4412,
+        "cost": 6830.2,
+        "reward": 0.0,
+        "unclipped": -5.326418
+      },
+      {
+        "k": 22,
+        "tick": 102,
+        "orders": 0.5294,
+        "cost": 4663.7,
+        "reward": 0.0,
+        "unclipped": -2.88364
+      },
+      {
+        "k": 23,
+        "tick": 103,
+        "orders": 0.5294,
+        "cost": 4663.7,
+        "reward": 0.0,
+        "unclipped": -2.88364
+      },
+      {
+        "k": 24,
+        "tick": 105,
+        "orders": 0.5588,
+        "cost": 4356.6,
+        "reward": 0.0,
+        "unclipped": -2.537377
+      },
+      {
+        "k": 25,
+        "tick": 109,
+        "orders": 0.5882,
+        "cost": 4375.6,
+        "reward": 0.0,
+        "unclipped": -2.5588
+      },
+      {
+        "k": 26,
+        "tick": 111,
+        "orders": 0.6176,
+        "cost": 4392.7,
+        "reward": 0.0,
+        "unclipped": -2.578081
+      },
+      {
+        "k": 27,
+        "tick": 115,
+        "orders": 0.6471,
+        "cost": 4409.8,
+        "reward": 0.0,
+        "unclipped": -2.597362
+      },
+      {
+        "k": 28,
+        "tick": 116,
+        "orders": 0.6471,
+        "cost": 4409.8,
+        "reward": 0.0,
+        "unclipped": -2.597362
+      },
+      {
+        "k": 29,
+        "tick": 117,
+        "orders": 0.6471,
+        "cost": 4409.8,
+        "reward": 0.0,
+        "unclipped": -2.597362
+      },
+      {
+        "k": 30,
+        "tick": 119,
+        "orders": 0.7059,
+        "cost": 4426.9,
+        "reward": 0.0,
+        "unclipped": -2.616642
+      },
+      {
+        "k": 31,
+        "tick": 121,
+        "orders": 0.7353,
+        "cost": 4426.9,
+        "reward": 0.0,
+        "unclipped": -2.616642
+      },
+      {
+        "k": 32,
+        "tick": 122,
+        "orders": 0.7353,
+        "cost": 4426.9,
+        "reward": 0.0,
+        "unclipped": -2.616642
+      },
+      {
+        "k": 33,
+        "tick": 124,
+        "orders": 0.7647,
+        "cost": 4466.8,
+        "reward": 0.0,
+        "unclipped": -2.66163
+      },
+      {
+        "k": 34,
+        "tick": 128,
+        "orders": 0.7647,
+        "cost": 4466.8,
+        "reward": 0.0,
+        "unclipped": -2.66163
+      },
+      {
+        "k": 35,
+        "tick": 134,
+        "orders": 0.7941,
+        "cost": 4466.8,
+        "reward": 0.0,
+        "unclipped": -2.66163
+      },
+      {
+        "k": 36,
+        "tick": 139,
+        "orders": 0.8235,
+        "cost": 4483.0,
+        "reward": 0.0,
+        "unclipped": -2.679896
+      },
+      {
+        "k": 37,
+        "tick": 140,
+        "orders": 0.8529,
+        "cost": 4498.3,
+        "reward": 0.0,
+        "unclipped": -2.697147
+      },
+      {
+        "k": 38,
+        "tick": 143,
+        "orders": 0.8824,
+        "cost": 3996.2,
+        "reward": 0.0,
+        "unclipped": -2.131018
+      },
+      {
+        "k": 39,
+        "tick": 156,
+        "orders": 0.9412,
+        "cost": 3678.3,
+        "reward": 0.0,
+        "unclipped": -1.772579
+      },
+      {
+        "k": 40,
+        "tick": 159,
+        "orders": 0.9706,
+        "cost": 2450.3,
+        "reward": 0.0,
+        "unclipped": -0.387981
+      },
+      {
+        "k": 41,
+        "tick": 160,
+        "orders": 0.9706,
+        "cost": 2450.3,
+        "reward": 0.0,
+        "unclipped": -0.387981
+      },
+      {
+        "k": 42,
+        "tick": 178,
+        "orders": 1.0,
+        "cost": 1219.3,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 43,
+        "tick": 184,
+        "orders": 1.0,
+        "cost": 1219.3,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 44,
+        "tick": 240,
+        "orders": 1.0,
+        "cost": 1219.3,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    ],
+    "failures": [],
+    "warnings": []
+  },
+  {
+    "seed": 10,
+    "scenario_id": "T1-74a29b409f31",
+    "c_greedy": 1026.3,
+    "c_ref": 447.0,
+    "c_ref_now": 447.0,
+    "attackers": {
+      "DoNothing": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "StopEarly": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "SpamAdvance": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "HoldFreight": {
+        "cost": 3236.8,
+        "reward": 0.0,
+        "unclipped": -3.815812
+      },
+      "MainLineHold": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "Malformed": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "HoldAll": {
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      "PassengersOnly": {
+        "cost": 8687.4,
+        "reward": 0.0,
+        "unclipped": -13.224754
+      },
+      "ReverseAbuse": {
+        "cost": 1026.3,
+        "reward": 0.0,
+        "unclipped": 0.0
+      }
+    },
+    "neutral": {
+      "CancelChurn": {
+        "cost": 447.0,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    },
+    "prefix": [
+      {
+        "k": 0,
+        "tick": 0,
+        "orders": 0.0,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 1,
+        "tick": 16,
+        "orders": 0.0312,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 2,
+        "tick": 25,
+        "orders": 0.0625,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 3,
+        "tick": 31,
+        "orders": 0.125,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 4,
+        "tick": 36,
+        "orders": 0.1562,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 5,
+        "tick": 38,
+        "orders": 0.1562,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 6,
+        "tick": 40,
+        "orders": 0.1562,
+        "cost": 8659.8,
+        "reward": 0.0,
+        "unclipped": -13.17711
+      },
+      {
+        "k": 7,
+        "tick": 43,
+        "orders": 0.2188,
+        "cost": 7370.3,
+        "reward": 0.0,
+        "unclipped": -10.951148
+      },
+      {
+        "k": 8,
+        "tick": 47,
+        "orders": 0.25,
+        "cost": 7370.3,
+        "reward": 0.0,
+        "unclipped": -10.951148
+      },
+      {
+        "k": 9,
+        "tick": 49,
+        "orders": 0.25,
+        "cost": 7370.3,
+        "reward": 0.0,
+        "unclipped": -10.951148
+      },
+      {
+        "k": 10,
+        "tick": 52,
+        "orders": 0.25,
+        "cost": 7370.3,
+        "reward": 0.0,
+        "unclipped": -10.951148
+      },
+      {
+        "k": 11,
+        "tick": 55,
+        "orders": 0.3125,
+        "cost": 6931.3,
+        "reward": 0.0,
+        "unclipped": -10.193337
+      },
+      {
+        "k": 12,
+        "tick": 64,
+        "orders": 0.3125,
+        "cost": 6931.3,
+        "reward": 0.0,
+        "unclipped": -10.193337
+      },
+      {
+        "k": 13,
+        "tick": 72,
+        "orders": 0.3438,
+        "cost": 6945.1,
+        "reward": 0.0,
+        "unclipped": -10.217159
+      },
+      {
+        "k": 14,
+        "tick": 83,
+        "orders": 0.4062,
+        "cost": 6370.7,
+        "reward": 0.0,
+        "unclipped": -9.225617
+      },
+      {
+        "k": 15,
+        "tick": 92,
+        "orders": 0.4375,
+        "cost": 4155.9,
+        "reward": 0.0,
+        "unclipped": -5.402382
+      },
+      {
+        "k": 16,
+        "tick": 98,
+        "orders": 0.4688,
+        "cost": 4155.9,
+        "reward": 0.0,
+        "unclipped": -5.402382
+      },
+      {
+        "k": 17,
+        "tick": 108,
+        "orders": 0.5,
+        "cost": 4214.7,
+        "reward": 0.0,
+        "unclipped": -5.503884
+      },
+      {
+        "k": 18,
+        "tick": 114,
+        "orders": 0.5,
+        "cost": 4214.7,
+        "reward": 0.0,
+        "unclipped": -5.503884
+      },
+      {
+        "k": 19,
+        "tick": 116,
+        "orders": 0.5312,
+        "cost": 4214.7,
+        "reward": 0.0,
+        "unclipped": -5.503884
+      },
+      {
+        "k": 20,
+        "tick": 117,
+        "orders": 0.5625,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 21,
+        "tick": 120,
+        "orders": 0.5938,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 22,
+        "tick": 127,
+        "orders": 0.625,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 23,
+        "tick": 128,
+        "orders": 0.6562,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 24,
+        "tick": 130,
+        "orders": 0.6562,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 25,
+        "tick": 137,
+        "orders": 0.6562,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 26,
+        "tick": 138,
+        "orders": 0.6875,
+        "cost": 4244.1,
+        "reward": 0.0,
+        "unclipped": -5.554635
+      },
+      {
+        "k": 27,
+        "tick": 147,
+        "orders": 0.7188,
+        "cost": 3796.3,
+        "reward": 0.0,
+        "unclipped": -4.781633
+      },
+      {
+        "k": 28,
+        "tick": 149,
+        "orders": 0.7812,
+        "cost": 2567.8,
+        "reward": 0.0,
+        "unclipped": -2.66097
+      },
+      {
+        "k": 29,
+        "tick": 150,
+        "orders": 0.7812,
+        "cost": 2567.8,
+        "reward": 0.0,
+        "unclipped": -2.66097
+      },
+      {
+        "k": 30,
+        "tick": 153,
+        "orders": 0.8438,
+        "cost": 678.2,
+        "reward": 0.600898,
+        "unclipped": 0.600898
+      },
+      {
+        "k": 31,
+        "tick": 155,
+        "orders": 0.8438,
+        "cost": 678.2,
+        "reward": 0.600898,
+        "unclipped": 0.600898
+      },
+      {
+        "k": 32,
+        "tick": 162,
+        "orders": 0.875,
+        "cost": 697.4,
+        "reward": 0.567754,
+        "unclipped": 0.567754
+      },
+      {
+        "k": 33,
+        "tick": 164,
+        "orders": 0.875,
+        "cost": 697.4,
+        "reward": 0.567754,
+        "unclipped": 0.567754
+      },
+      {
+        "k": 34,
+        "tick": 170,
+        "orders": 0.9062,
+        "cost": 715.4,
+        "reward": 0.536682,
+        "unclipped": 0.536682
+      },
+      {
+        "k": 35,
+        "tick": 175,
+        "orders": 0.9375,
+        "cost": 732.2,
+        "reward": 0.507682,
+        "unclipped": 0.507682
+      },
+      {
+        "k": 36,
+        "tick": 183,
+        "orders": 0.9688,
+        "cost": 762.2,
+        "reward": 0.455895,
+        "unclipped": 0.455895
+      },
+      {
+        "k": 37,
+        "tick": 184,
+        "orders": 0.9688,
+        "cost": 762.2,
+        "reward": 0.455895,
+        "unclipped": 0.455895
+      },
+      {
+        "k": 38,
+        "tick": 192,
+        "orders": 1.0,
+        "cost": 447.0,
+        "reward": 1.0,
+        "unclipped": 1.0
+      },
+      {
+        "k": 39,
+        "tick": 240,
+        "orders": 1.0,
+        "cost": 447.0,
+        "reward": 1.0,
+        "unclipped": 1.0
+      }
+    ],
+    "failures": [],
+    "warnings": []
+  }
+]
