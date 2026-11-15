@@ -160,9 +160,9 @@ run on rented GPU containers and a university cluster rather than on Modal.
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
 up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% bootstrap over seeds.
 
-> **Status (snapshot 2026-11-15 09:51 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
+> **Status (snapshot 2026-11-15 10:39 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
 > The benchmark was still running at this snapshot, so every number below is partial. Finished so far:
-> Gemini 4 Carbon 89 of 270 planned episodes (58 T1, 29 T2, 2 T3); base Qwen 20 of 270 planned episodes (18 T1, 2 T2); fine-tuned Qwen 13 of 30 planned episodes (13 T1).
+> Gemini 4 Carbon 125 of 270 planned episodes (58 T1, 31 T2, 36 T3); base Qwen 24 of 270 planned episodes (19 T1, 5 T2); fine-tuned Qwen 17 of 30 planned episodes (17 T1).
 > One episode takes about an hour of model time, which is why the counts are low. Base Qwen's earlier attempts
 > were stopped by the serving setup (context-window and "no upstreams" errors, see
 > [`docs/failure-analysis.md`](docs/failure-analysis.md)); those are infrastructure errors and are not scored.
@@ -173,8 +173,8 @@ up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% boo
 | Model | Seeds | Episodes | Mean reward [95% CI] | C1 | C2 | C3 | C4 | C5 | On time | Freight delivered | Clean shifts |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Gemini 4 Carbon (`gemini-carbon-high`) | 26 | 58 | **−1,549.9** [−2,407.2, −943.2] | 356.5 | 1,147.5 | 3.3 | 0.0 | 42.6 | 67.6 % | 78.2 % | 23.7 % |
-| Qwen 3.8 27B, base (`qwen38-think`) | 15 | 18 | **−2,495.2** [−3,906.1, −1,319.6] | 575.4 | 1,730.5 | 2.4 | 0.0 | 186.9 | 56.0 % | 93.3 % | 16.7 % |
-| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 13 | 13 | **−1,145.3** [−1,765.2, −632.2] | 482.6 | 631.4 | 6.0 | 0.0 | 25.3 | 66.5 % | 92.3 % | 15.4 % |
+| Qwen 3.8 27B, base (`qwen38-think`) | 15 | 19 | **−2,514.0** [−3,922.9, −1,347.3] | 587.3 | 1,737.1 | 2.5 | 0.0 | 187.0 | 56.0 % | 93.3 % | 16.7 % |
+| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 17 | 17 | **−1,135.1** [−1,665.7, −669.0] | 476.5 | 631.0 | 4.9 | 0.0 | 22.7 | 69.5 % | 94.1 % | 23.5 % |
 
 The three rows cover different seeds (each model has finished a different subset), so compare models only
 through the paired numbers below, not by reading down the mean column.
@@ -182,22 +182,22 @@ through the paired numbers below, not by reading down the mean column.
 For scale, on Carbon's 26 seeds: doing nothing scores **−28,618.6** and the booked-order
 oracle **−1,439.0**. Carbon beats the booked-order oracle on 10 of 26 seeds but is more than 100 points worse
 on 10, and its average is worse.
-Carbon against base Qwen, on the 13 T1 seeds both finished: Carbon −1,829.5, base Qwen −2,011.8, a difference of +182.3 (95% CI [−1,281.4, 1,620.4]); Carbon is better on 5, tied on 0, worse on 8 (not yet distinguishable from noise at this sample size).
+Carbon against base Qwen, on the 13 T1 seeds both finished: Carbon −1,829.5, base Qwen −2,033.4, a difference of +203.9 (95% CI [−1,254.7, 1,659.2]); Carbon is better on 5, tied on 0, worse on 8 (not yet distinguishable from noise at this sample size).
 
-T2 and T3: Carbon has finished 29 T2 episodes on 21 seeds (mean **−6,557.2**, 95% CI [−8,698.7, −4,721.4]) and base Qwen has finished 2 T2 episodes (mean −3,313.7). Carbon has finished 2 T3 (−12,162.2); rest still running.
+T2 and T3: Carbon has finished 31 T2 episodes on 22 seeds (mean **−6,741.1**, 95% CI [−8,834.4, −5,019.8]) and base Qwen has finished 5 T2 episodes (mean −5,863.7). Carbon has finished 36 T3 (−37,328.8); rest still running.
 
 ### Post-training
 
 The fine-tuned model is Qwen 3.8 27B after supervised fine-tuning on dispatcher traces from a stronger
 teacher, Claude Opus 5.5\*. The teacher traces were collected only on the disjoint **training** seeds (20000+),
 so no test seed was seen in training. The comparison is paired: base vs fine-tuned on the exact
-7 T1 seeds finished by all three models so far.
+8 T1 seeds finished by all three models so far.
 
 | Tier | Paired seeds | Carbon | Base Qwen | Fine-tuned Qwen | SFT − Base [95% CI] |
 |---|---|---|---|---|---|
-| T1 | 7 | −1,559.3 | −1,915.5 | **−1,323.7** | **+591.8** [−1,041.8, 2,385.0] |
+| T1 | 8 | −1,373.0 | −1,714.8 | **−1,161.9** | **+552.9** [−798.5, 2,079.2] |
 
-On those 7 paired T1 test seeds, fine-tuning improved Qwen by **+591.8** points (wins/ties/losses: 4 / 2 / 1), changed its clean-shift rate (14.3 % → 28.6 %), reduced unfinished trains (2.14 → 1.43), and closed **166.1 %** of the Carbon-to-Qwen gap (moving ahead of Carbon by 235.5 points on that subset, though the 7-seed CI still spans zero).
+On those 8 paired T1 test seeds, fine-tuning improved Qwen by **+552.9** points (wins/ties/losses: 4 / 3 / 1), changed its clean-shift rate (25.0 % → 37.5 %), reduced unfinished trains (1.94 → 1.25), and closed **161.8 %** of the Carbon-to-Qwen gap (moving ahead of Carbon by 211.2 points on that subset, though the 8-seed CI still spans zero).
 
 \* Why Opus 5.5: it is the only model for which we could collect proper reasoning traces, and we could get
 them only through the Factory Droid harness. That harness gives the model a different context from the
