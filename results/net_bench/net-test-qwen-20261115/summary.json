@@ -1,74 +1,74 @@
 {
   "qwen38-think|ALL": {
     "ci95": [
-      -29.11,
-      -14.0
+      -1879.8474999999999,
+      -21.555
     ],
     "components": {
-      "C1": 9.555,
-      "C2": 0.0,
-      "C3": 0.0,
+      "C1": 196.28400000000002,
+      "C2": 868.6200000000001,
+      "C3": 2.0,
       "C4": 0.0,
-      "C5": 12.0
+      "C5": 15.504
     },
-    "episodes": 2,
+    "episodes": 5,
     "infra_errors": 0,
-    "invalid_rate": 0.006211180124223602,
+    "invalid_rate": 0.0024096385542168677,
     "kpis": {
-      "clean_shift_rate": 1.0,
-      "freight_delivered_pct": 100.0,
-      "on_time_pct": 98.33500000000001,
-      "passenger_delay_minutes": 6207.5
+      "clean_shift_rate": 0.4,
+      "freight_delivered_pct": 90.0,
+      "on_time_pct": 87.458,
+      "passenger_delay_minutes": 22979.4
     },
-    "mean_reward": -21.555,
-    "ok": 2,
-    "refusal_rate": 0.0,
-    "seeds": 2,
+    "mean_reward": -950.70125,
+    "ok": 5,
+    "refusal_rate": 0.021686746987951807,
+    "seeds": 4,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 800908.0,
-      "out": 124229.5,
-      "reasoning": 81253.5
+      "in": 837744.6,
+      "out": 158498.8,
+      "reasoning": 138989.6
     },
-    "tool_calls_mean": 80.5,
+    "tool_calls_mean": 83.0,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 4421.4015
+    "wall_s_mean": 4890.6706
   },
   "qwen38-think|T1": {
     "ci95": [
-      -29.11,
-      -14.0
+      -1879.8474999999999,
+      -21.555
     ],
     "components": {
-      "C1": 9.555,
-      "C2": 0.0,
-      "C3": 0.0,
+      "C1": 196.28400000000002,
+      "C2": 868.6200000000001,
+      "C3": 2.0,
       "C4": 0.0,
-      "C5": 12.0
+      "C5": 15.504
     },
-    "episodes": 2,
+    "episodes": 5,
     "infra_errors": 0,
-    "invalid_rate": 0.006211180124223602,
+    "invalid_rate": 0.0024096385542168677,
     "kpis": {
-      "clean_shift_rate": 1.0,
-      "freight_delivered_pct": 100.0,
-      "on_time_pct": 98.33500000000001,
-      "passenger_delay_minutes": 6207.5
+      "clean_shift_rate": 0.4,
+      "freight_delivered_pct": 90.0,
+      "on_time_pct": 87.458,
+      "passenger_delay_minutes": 22979.4
     },
-    "mean_reward": -21.555,
-    "ok": 2,
-    "refusal_rate": 0.0,
-    "seeds": 2,
+    "mean_reward": -950.70125,
+    "ok": 5,
+    "refusal_rate": 0.021686746987951807,
+    "seeds": 4,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 800908.0,
-      "out": 124229.5,
-      "reasoning": 81253.5
+      "in": 837744.6,
+      "out": 158498.8,
+      "reasoning": 138989.6
     },
-    "tool_calls_mean": 80.5,
+    "tool_calls_mean": 83.0,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 4421.4015
+    "wall_s_mean": 4890.6706
   }
 }

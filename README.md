@@ -157,9 +157,9 @@ served from its own endpoint as `qwen38-sft`; add it to `--models` once that end
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
 up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% bootstrap over seeds.
 
-> **Status (snapshot 2026-11-15 07:40 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
+> **Status (snapshot 2026-11-15 07:54 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
 > The benchmark was still running at this snapshot, so every number below is partial. Finished so far:
-> Gemini 4 Carbon 60 of 270 planned episodes (58 T1, 2 T2); base Qwen 2 of 270 planned episodes (2 T1); fine-tuned Qwen 1 of 30 planned episodes (1 T1).
+> Gemini 4 Carbon 65 of 270 planned episodes (58 T1, 7 T2); base Qwen 5 of 270 planned episodes (5 T1); fine-tuned Qwen 1 of 30 planned episodes (1 T1).
 > One episode takes about an hour of model time, which is why the counts are low. Base Qwen's earlier attempts
 > were stopped by the serving setup (context-window and "no upstreams" errors, see
 > [`docs/failure-analysis.md`](docs/failure-analysis.md)); those are infrastructure errors and are not scored.
@@ -170,7 +170,7 @@ up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% boo
 | Model | Seeds | Episodes | Mean reward [95% CI] | C1 | C2 | C3 | C4 | C5 | On time | Freight delivered | Clean shifts |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Gemini 4 Carbon (`gemini-carbon-high`) | 26 | 58 | **−1,549.9** [−2,407.2, −943.2] | 356.5 | 1,147.5 | 3.3 | 0.0 | 42.6 | 67.6 % | 78.2 % | 23.7 % |
-| Qwen 3.8 27B, base (`qwen38-think`) | 2 | 2 | **−21.6** [−29.1, −14.0] | 9.6 | 0.0 | 0.0 | 0.0 | 12.0 | 98.3 % | 100.0 % | 100.0 % |
+| Qwen 3.8 27B, base (`qwen38-think`) | 4 | 5 | **−950.7** [−1,879.8, −21.6] | 153.3 | 780.6 | 1.2 | 0.0 | 15.6 | 90.6 % | 87.5 % | 50.0 % |
 | Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 1 | 1 | **−305.4** (1 seed) | 89.5 | 200.0 | 0.0 | 0.0 | 16.0 | 90.3 % | 100.0 % | 0.0 % |
 
 The three rows cover different seeds (each model has finished a different subset), so compare models only
@@ -179,9 +179,9 @@ through the paired numbers below, not by reading down the mean column.
 For scale, on Carbon's 26 seeds: doing nothing scores **−28,618.6** and the booked-order
 oracle **−1,439.0**. Carbon beats the booked-order oracle on 10 of 26 seeds but is more than 100 points worse
 on 10, and its average is worse.
-Carbon against base Qwen, on the 2 T1 seeds both finished: Carbon −42.8, base Qwen −21.6, a difference of −21.2 (95% CI [−40.4, −2.0]); Carbon is better on 0, tied on 0, worse on 2. That is too few paired seeds for a verdict (we ask for 5).
+Carbon against base Qwen, on the 4 T1 seeds both finished: Carbon −1,084.8, base Qwen −950.7, a difference of −134.1 (95% CI [−536.0, 154.8]); Carbon is better on 1, tied on 0, worse on 3. That is too few paired seeds for a verdict (we ask for 5).
 
-T2 and T3: Carbon has finished 2 T2 episodes on 2 seeds (mean −2,469.1). That is too few for any comparison; the rest was still running.
+T2 and T3: Carbon has finished 7 T2 episodes on 6 seeds (mean −2,952.4). That is too few for any comparison; the rest was still running.
 
 ### Post-training
 
