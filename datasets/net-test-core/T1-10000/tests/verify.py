@@ -10,7 +10,11 @@ no `norm.json`, no `c_greedy`, no `c_ref`, no `c_best`, and no normalised score.
 Outcomes:
 - clean replay -> writes `details.json`, `action_log.json`, `events.jsonl`, then `reward.txt` LAST; exit 0;
 - anything else -> prints `INFRA: ...` or `REPLAY MISMATCH: ...`, writes no reward, exits 1, so Harbor
-  records a trial error (to rerun), never a false score.
+  records a trial error (to rerun), never a false score;
+- zero MCP calls AND agent logs showing the MCP server unavailable, or a fatal CLI/API failure (HTTP
+  401/402/403/429, quota or credit exhausted, bad API key, unhandled traceback) -> `INFRA: ...`: the
+  agent never played, so the untouched shift is not scored as a do-nothing episode. A clean zero-call
+  run (`harbor run -a nop`, an agent that stops early) is still scored as do-nothing.
 """
 
 from __future__ import annotations
@@ -24,6 +28,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -42,6 +47,18 @@ SHIFT_ENDED = "R-SHIFT-ENDED"
 MAX_LOG_FILES = 2000
 MAX_LOG_BYTES = 20_000_000
 FAILURE_RE = re.compile(r"\b(unavailable|failed|failure|error|refused|timeout|timed out|unreachable)\b")
+# Fatal agent-CLI failures (auth, billing, quota, rate limit, crash). Only consulted when the sim logged
+# zero MCP calls, to tell a CLI that died before acting from a deliberate do-nothing (nop, stop early).
+FATAL_AGENT_RE = re.compile(
+    r"(?:\b(?:http|status|status[_ ]?code|statuscode|error[_ ]?code|code)\b[\"'\s:=/]*(?:401|402|403|429)\b"
+    r"|\b(?:401|402|403|429)\s+(?:unauthorized|payment required|forbidden|too many requests)\b"
+    r"|insufficient[_ ]quota|insufficient[_ ](?:credits?|balance|funds)|credit balance|out of credits"
+    r"|quota exceeded|exceeded your (?:current )?quota|billing[_ ](?:hard[_ ])?limit|spend(?:ing)? (?:cap|limit)"
+    r"|authentication[_ ]?error|permission[_ ]?denied[_ ]?error|rate[_ ]?limit[_ ]?error"
+    r"|invalid[_ ](?:x-)?api[_ -]?key|incorrect api key|api key (?:not valid|is invalid|missing)"
+    r"|traceback \(most recent call last\)|unhandled (?:exception|promise rejection|error)|fatal error)",
+    re.IGNORECASE,
+)
 
 
 class VerifyError(Exception):
@@ -174,8 +191,8 @@ def _mcp_failure_line(line: str) -> bool:
     return names_us and FAILURE_RE.search(low) is not None
 
 
-def mcp_startup_failure(agent_logs: Path) -> str | None:
-    """Return the first agent-log line saying our `railway` MCP server failed, or None."""
+def _scan_agent_logs(agent_logs: Path, match: Callable[[str], bool]) -> str | None:
+    """Return the first agent-log line for which `match(line)` is true (bounded scan), or None."""
     try:
         files = sorted(p for p in agent_logs.rglob("*") if p.is_file())[:MAX_LOG_FILES]
     except OSError:
@@ -187,9 +204,22 @@ def mcp_startup_failure(agent_logs: Path) -> str | None:
         except OSError:
             continue
         for line in text.splitlines():
-            if _mcp_failure_line(line):
+            if match(line):
                 return line.strip()[:300]
     return None
+
+
+def mcp_startup_failure(agent_logs: Path) -> str | None:
+    """Return the first agent-log line saying our `railway` MCP server failed, or None."""
+    return _scan_agent_logs(agent_logs, _mcp_failure_line)
+
+
+def agent_cli_failure(agent_logs: Path) -> str | None:
+    """Return the first agent-log line showing a fatal CLI/API/auth/credit failure, or None.
+
+    Harbor's `nop` agent and an agent that stops early leave no such line, so they are still scored.
+    """
+    return _scan_agent_logs(agent_logs, lambda line: FATAL_AGENT_RE.search(line) is not None)
 
 
 # ---------------------------------------------------------------- replay and cost
@@ -300,6 +330,10 @@ def verify(args: argparse.Namespace) -> VerifiedResult:
         line = mcp_startup_failure(Path(args.agent_logs_dir))
         if line is not None:
             raise Infra(f"agent started without MCP tools (railway server unavailable): {line}")
+    if not log["entries"]:
+        line = agent_cli_failure(Path(args.agent_logs_dir))
+        if line is not None:
+            raise Infra(f"agent CLI failed before any tool call (not a do-nothing episode): {line}")
 
     final, replayed_session = replay_episode(timetable, log)
     engine_log = getattr(replayed_session.engine, "log", None)

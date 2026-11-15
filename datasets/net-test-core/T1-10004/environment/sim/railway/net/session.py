@@ -829,7 +829,7 @@ def _hold(s: Session, a: HoldArgs) -> tuple[str, str, str | None]:
 
 @tool("platform", PlatformArgs)
 def _platform(s: Session, a: PlatformArgs) -> tuple[str, str, str | None]:
-    """Re-platform `train`'s next booked call to platform `n` at `station`."""
+    """Re-platform `train`'s next booked call to another platform `n` at that same station (never across stations)."""
     if s.engine.tick >= s.engine.shift_min:
         return _refused(NetRule.SHIFT_ENDED, "the shift is over")
     if a.train not in s.engine.trains:
