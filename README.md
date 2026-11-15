@@ -160,9 +160,9 @@ run on rented GPU containers and a university cluster rather than on Modal.
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
 up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% bootstrap over seeds.
 
-> **Status (snapshot 2026-11-15 10:39 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
+> **Status (snapshot 2026-11-15 10:54 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
 > The benchmark was still running at this snapshot, so every number below is partial. Finished so far:
-> Gemini 4 Carbon 125 of 270 planned episodes (58 T1, 31 T2, 36 T3); base Qwen 24 of 270 planned episodes (19 T1, 5 T2); fine-tuned Qwen 17 of 30 planned episodes (17 T1).
+> Gemini 4 Carbon 126 of 270 planned episodes (58 T1, 32 T2, 36 T3); base Qwen 24 of 270 planned episodes (19 T1, 5 T2); fine-tuned Qwen 17 of 30 planned episodes (17 T1).
 > One episode takes about an hour of model time, which is why the counts are low. Base Qwen's earlier attempts
 > were stopped by the serving setup (context-window and "no upstreams" errors, see
 > [`docs/failure-analysis.md`](docs/failure-analysis.md)); those are infrastructure errors and are not scored.
@@ -184,7 +184,7 @@ oracle **−1,439.0**. Carbon beats the booked-order oracle on 10 of 26 seeds bu
 on 10, and its average is worse.
 Carbon against base Qwen, on the 13 T1 seeds both finished: Carbon −1,829.5, base Qwen −2,033.4, a difference of +203.9 (95% CI [−1,254.7, 1,659.2]); Carbon is better on 5, tied on 0, worse on 8 (not yet distinguishable from noise at this sample size).
 
-T2 and T3: Carbon has finished 31 T2 episodes on 22 seeds (mean **−6,741.1**, 95% CI [−8,834.4, −5,019.8]) and base Qwen has finished 5 T2 episodes (mean −5,863.7). Carbon has finished 36 T3 (−37,328.8); rest still running.
+T2 and T3: Carbon has finished 32 T2 episodes on 23 seeds (mean **−7,102.8**, 95% CI [−9,156.2, −5,299.8]) and base Qwen has finished 5 T2 episodes (mean −5,863.7). Carbon has finished 36 T3 (−37,328.8); rest still running.
 
 ### Post-training
 
