@@ -43,7 +43,10 @@ RULE_DESCRIPTIONS: dict[NetRule, str] = {
     NetRule.UNKNOWN_TRAIN: "Train identifier does not exist in this shift.",
     NetRule.ALREADY_RUNNING: "Action requires a berthed or offstage train with remaining plan, not running or done.",
     NetRule.HOLD_PAST: "Hold target tick must be strictly greater than the current tick.",
-    NetRule.NO_ROUTE: "No admissible physical route connects the train's position and facing to that platform.",
+    NetRule.NO_ROUTE: (
+        "No admissible physical route connects the train's position and facing to that platform, "
+        "or the target platform is not at the station of the train's next booked call."
+    ),
     NetRule.SHIFT_ENDED: "The shift has already ended; no further calls or actions can take effect.",
     NetRule.BAD_ARGS: "Unknown tool, disabled tool, or malformed/unexpected arguments.",
     NetRule.BUDGET: "Tool call budget reached; the shift closes immediately.",
@@ -232,9 +235,10 @@ You settle contention with:
    track ID (`JA-N`), or a node ID (`JA`) to order every move and platform at that node.
 2. `hold(train, until)`: hold an offstage or berthed train until `t = until` (e.g. to protect
    a passenger connection or keep a slow train in a loop while a fast service overtakes).
-3. `platform(train, station, n)`: re-allocate the train's next booked call to platform `n`
-   at `station` (e.g. `station="C", n=2` or `n="C2"`), freeing a busy bay or clearing an
-   `UNROUTABLE` train.
+3. `platform(train, station, n)`: re-allocate the train's next booked call to another
+   platform `n` at that same station (e.g. `station="C", n=2` or `n="C2"` for a call booked
+   at `C`), freeing a busy bay or clearing an `UNROUTABLE` train. It never moves a call to a
+   different station: a platform at any other station is refused (`{NetRule.NO_ROUTE.value}`).
 4. Service and crew regulation during disruptions: `route(train, via)` diverts a train's next
    leg through ordered track or platform IDs (after `single_line(segment, on=True)` if using a
    reversible track the wrong way); `skip(train, station)` runs past a booked stop;

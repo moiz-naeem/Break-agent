@@ -1,0 +1,1304 @@
+{
+  "summary": {
+    "seeds": 15,
+    "by_tier": {
+      "T1": {
+        "dispatch": {
+          "mean_cost": 1258.23
+        },
+        "booked_order": {
+          "mean_cost": 1995.45,
+          "mean_ratio_vs_dispatch": 1.481,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "pax_first": {
+          "mean_cost": 2226.11,
+          "mean_ratio_vs_dispatch": 2.608,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "freight_hold_sweep": {
+          "mean_cost": 1258.23,
+          "mean_ratio_vs_dispatch": 1.0,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "cancel_all_freight": {
+          "mean_cost": 3524.72,
+          "mean_ratio_vs_dispatch": 5.528,
+          "min_ratio_vs_dispatch": 2.044,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "cancel_delayed_pax": {
+          "mean_cost": 4211.12,
+          "mean_ratio_vs_dispatch": 3.397,
+          "min_ratio_vs_dispatch": 1.0,
+          "strictly_worse_on": "4/4 seeds where it acted",
+          "no_op_seeds": 1
+        },
+        "short_turn_all_possible": {
+          "mean_cost": 1727.11,
+          "mean_ratio_vs_dispatch": 1.428,
+          "min_ratio_vs_dispatch": 1.0,
+          "strictly_worse_on": "2/2 seeds where it acted",
+          "no_op_seeds": 3
+        },
+        "skip_all_intermediate": {
+          "mean_cost": 1965.12,
+          "mean_ratio_vs_dispatch": 1.612,
+          "min_ratio_vs_dispatch": 1.0,
+          "strictly_worse_on": "2/2 seeds where it acted",
+          "no_op_seeds": 3
+        }
+      },
+      "T2": {
+        "dispatch": {
+          "mean_cost": 5057.77
+        },
+        "booked_order": {
+          "mean_cost": 6500.66,
+          "mean_ratio_vs_dispatch": 1.257,
+          "min_ratio_vs_dispatch": 1.012
+        },
+        "pax_first": {
+          "mean_cost": 6318.16,
+          "mean_ratio_vs_dispatch": 1.195,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "freight_hold_sweep": {
+          "mean_cost": 5057.77,
+          "mean_ratio_vs_dispatch": 1.0,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "cancel_all_freight": {
+          "mean_cost": 6319.25,
+          "mean_ratio_vs_dispatch": 1.275,
+          "min_ratio_vs_dispatch": 1.092,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "cancel_delayed_pax": {
+          "mean_cost": 15188.71,
+          "mean_ratio_vs_dispatch": 2.901,
+          "min_ratio_vs_dispatch": 1.833,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "short_turn_all_possible": {
+          "mean_cost": 12523.36,
+          "mean_ratio_vs_dispatch": 2.589,
+          "min_ratio_vs_dispatch": 1.84,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "skip_all_intermediate": {
+          "mean_cost": 20490.33,
+          "mean_ratio_vs_dispatch": 4.428,
+          "min_ratio_vs_dispatch": 3.28,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        }
+      },
+      "T3": {
+        "dispatch": {
+          "mean_cost": 9287.88
+        },
+        "booked_order": {
+          "mean_cost": 10430.57,
+          "mean_ratio_vs_dispatch": 1.101,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "pax_first": {
+          "mean_cost": 11210.56,
+          "mean_ratio_vs_dispatch": 1.197,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "freight_hold_sweep": {
+          "mean_cost": 9287.88,
+          "mean_ratio_vs_dispatch": 1.0,
+          "min_ratio_vs_dispatch": 1.0
+        },
+        "cancel_all_freight": {
+          "mean_cost": 11513.51,
+          "mean_ratio_vs_dispatch": 1.234,
+          "min_ratio_vs_dispatch": 1.041,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "cancel_delayed_pax": {
+          "mean_cost": 38005.59,
+          "mean_ratio_vs_dispatch": 4.406,
+          "min_ratio_vs_dispatch": 2.847,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "short_turn_all_possible": {
+          "mean_cost": 43179.66,
+          "mean_ratio_vs_dispatch": 4.956,
+          "min_ratio_vs_dispatch": 3.51,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        },
+        "skip_all_intermediate": {
+          "mean_cost": 100724.54,
+          "mean_ratio_vs_dispatch": 12.192,
+          "min_ratio_vs_dispatch": 7.25,
+          "strictly_worse_on": "5/5 seeds where it acted",
+          "no_op_seeds": 0
+        }
+      }
+    },
+    "all": {
+      "dispatch": {
+        "mean_cost": 5201.29
+      },
+      "booked_order": {
+        "mean_cost": 6308.9,
+        "mean_ratio_vs_dispatch": 1.279,
+        "min_ratio_vs_dispatch": 1.0
+      },
+      "pax_first": {
+        "mean_cost": 6584.94,
+        "mean_ratio_vs_dispatch": 1.667,
+        "min_ratio_vs_dispatch": 1.0
+      },
+      "freight_hold_sweep": {
+        "mean_cost": 5201.29,
+        "mean_ratio_vs_dispatch": 1.0,
+        "min_ratio_vs_dispatch": 1.0
+      },
+      "cancel_all_freight": {
+        "mean_cost": 7119.16,
+        "mean_ratio_vs_dispatch": 2.679,
+        "min_ratio_vs_dispatch": 1.041,
+        "strictly_worse_on": "15/15 seeds where it acted",
+        "no_op_seeds": 0
+      },
+      "cancel_delayed_pax": {
+        "mean_cost": 19135.14,
+        "mean_ratio_vs_dispatch": 3.568,
+        "min_ratio_vs_dispatch": 1.0,
+        "strictly_worse_on": "14/14 seeds where it acted",
+        "no_op_seeds": 1
+      },
+      "short_turn_all_possible": {
+        "mean_cost": 19143.38,
+        "mean_ratio_vs_dispatch": 2.991,
+        "min_ratio_vs_dispatch": 1.0,
+        "strictly_worse_on": "12/12 seeds where it acted",
+        "no_op_seeds": 3
+      },
+      "skip_all_intermediate": {
+        "mean_cost": 41060.0,
+        "mean_ratio_vs_dispatch": 6.078,
+        "min_ratio_vs_dispatch": 1.0,
+        "strictly_worse_on": "12/12 seeds where it acted",
+        "no_op_seeds": 3
+      }
+    },
+    "counts": {
+      "cancel:calls_dropped": 4827,
+      "cancel:granted": 1589,
+      "connections_broken_by_action": 994,
+      "connections_dropped_with_connector_missed": 578,
+      "pax_calls_missed": 3422,
+      "route:attempts": 128876,
+      "route:calls_dropped": 20713,
+      "route:freight_granted": 579,
+      "route:granted": 15354,
+      "route:pax_diversions_dropping_calls": 11987,
+      "route:playouts": 60,
+      "route:refused:R-NO-ROUTE": 114785,
+      "short_turn:attempts": 3573,
+      "short_turn:calls_dropped": 82,
+      "short_turn:granted": 82,
+      "short_turn:no_return_attempts": 1360,
+      "single_line:opened": 60,
+      "single_line:routes_granted": 1263,
+      "single_line:wrong_way_routes": 602,
+      "skip:calls_dropped": 433,
+      "skip:granted": 433
+    },
+    "violations": 0,
+    "every_avoidance_policy_strictly_loses": true,
+    "avoidance_wins": []
+  },
+  "rows": [
+    {
+      "tier": "T1",
+      "seed": 1,
+      "dispatch": 3173.92,
+      "freight_hold_best": {
+        "until": 80,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 4591.23,
+        "pax_first": 4591.23,
+        "freight_hold_sweep": 3173.92,
+        "cancel_all_freight": 6487.92,
+        "cancel_delayed_pax": 7328.45,
+        "short_turn_all_possible": 4221.88,
+        "skip_all_intermediate": 5184.93
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 6487.92,
+          "pax_first": 6487.92
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 7328.45,
+          "pax_first": 7328.45
+        },
+        "short_turn_all_possible": {
+          "booked_order": 4221.88,
+          "pax_first": 4221.88
+        },
+        "skip_all_intermediate": {
+          "booked_order": 5184.93,
+          "pax_first": 5184.93
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 4,
+        "short_turn_all_possible": 1,
+        "skip_all_intermediate": 1
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 60,
+        "cancel:granted": 33,
+        "connections_broken_by_action": 2,
+        "connections_dropped_with_connector_missed": 2,
+        "pax_calls_missed": 33,
+        "route:attempts": 884,
+        "route:calls_dropped": 213,
+        "route:freight_granted": 24,
+        "route:granted": 206,
+        "route:pax_diversions_dropping_calls": 165,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 689,
+        "short_turn:attempts": 56,
+        "short_turn:calls_dropped": 2,
+        "short_turn:granted": 2,
+        "short_turn:no_return_attempts": 43,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 11,
+        "single_line:wrong_way_routes": 4,
+        "skip:calls_dropped": 1,
+        "skip:granted": 1
+      },
+      "violations": [],
+      "secs": 26.8
+    },
+    {
+      "tier": "T1",
+      "seed": 3,
+      "dispatch": 1154.745,
+      "freight_hold_best": {
+        "until": 70,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 3391.365,
+        "pax_first": 2077.005,
+        "freight_hold_sweep": 1154.745,
+        "cancel_all_freight": 3141.92,
+        "cancel_delayed_pax": 4866.83,
+        "short_turn_all_possible": 2077.005,
+        "skip_all_intermediate": 2077.005
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 3141.92,
+          "pax_first": 4775.68
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 6407.48,
+          "pax_first": 4866.83
+        },
+        "short_turn_all_possible": {
+          "booked_order": 3391.365,
+          "pax_first": 2077.005
+        },
+        "skip_all_intermediate": {
+          "booked_order": 3391.365,
+          "pax_first": 2077.005
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 3,
+        "short_turn_all_possible": 0,
+        "skip_all_intermediate": 0
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": "no-op",
+        "skip_all_intermediate": "no-op"
+      },
+      "counts": {
+        "cancel:calls_dropped": 48,
+        "cancel:granted": 28,
+        "pax_calls_missed": 23,
+        "route:attempts": 832,
+        "route:calls_dropped": 184,
+        "route:freight_granted": 12,
+        "route:granted": 180,
+        "route:pax_diversions_dropping_calls": 147,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 657,
+        "short_turn:attempts": 48,
+        "short_turn:no_return_attempts": 38,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 5,
+        "single_line:wrong_way_routes": 2
+      },
+      "violations": [],
+      "secs": 30.0
+    },
+    {
+      "tier": "T1",
+      "seed": 4,
+      "dispatch": 180.54,
+      "freight_hold_best": {
+        "until": 10,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 180.54,
+        "pax_first": 180.54,
+        "freight_hold_sweep": 180.54,
+        "cancel_all_freight": 2670.77,
+        "cancel_delayed_pax": 180.54,
+        "short_turn_all_possible": 180.54,
+        "skip_all_intermediate": 180.54
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 2670.77,
+          "pax_first": 2670.77
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 180.54,
+          "pax_first": 180.54
+        },
+        "short_turn_all_possible": {
+          "booked_order": 180.54,
+          "pax_first": 180.54
+        },
+        "skip_all_intermediate": {
+          "booked_order": 180.54,
+          "pax_first": 180.54
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 0,
+        "short_turn_all_possible": 0,
+        "skip_all_intermediate": 0
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": "no-op",
+        "short_turn_all_possible": "no-op",
+        "skip_all_intermediate": "no-op"
+      },
+      "counts": {
+        "cancel:calls_dropped": 45,
+        "cancel:granted": 27,
+        "pax_calls_missed": 4,
+        "route:attempts": 780,
+        "route:calls_dropped": 185,
+        "route:freight_granted": 7,
+        "route:granted": 173,
+        "route:pax_diversions_dropping_calls": 152,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 614,
+        "short_turn:attempts": 45,
+        "short_turn:no_return_attempts": 37,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 7,
+        "single_line:wrong_way_routes": 3
+      },
+      "violations": [],
+      "secs": 28.8
+    },
+    {
+      "tier": "T1",
+      "seed": 5,
+      "dispatch": 367.59,
+      "freight_hold_best": {
+        "until": 10,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 367.59,
+        "pax_first": 2864.43,
+        "freight_hold_sweep": 367.59,
+        "cancel_all_freight": 2144.63,
+        "cancel_delayed_pax": 1650.88,
+        "short_turn_all_possible": 738.78,
+        "skip_all_intermediate": 965.8
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 2144.63,
+          "pax_first": 4811.11
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 1650.88,
+          "pax_first": 5245.46
+        },
+        "short_turn_all_possible": {
+          "booked_order": 738.78,
+          "pax_first": 3234.62
+        },
+        "skip_all_intermediate": {
+          "booked_order": 965.8,
+          "pax_first": 3462.64
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 2,
+        "short_turn_all_possible": 1,
+        "skip_all_intermediate": 1
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 53,
+        "cancel:granted": 29,
+        "pax_calls_missed": 13,
+        "route:attempts": 832,
+        "route:calls_dropped": 201,
+        "route:freight_granted": 14,
+        "route:granted": 186,
+        "route:pax_diversions_dropping_calls": 159,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 654,
+        "short_turn:attempts": 49,
+        "short_turn:calls_dropped": 2,
+        "short_turn:granted": 2,
+        "short_turn:no_return_attempts": 38,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 8,
+        "single_line:wrong_way_routes": 3,
+        "skip:calls_dropped": 1,
+        "skip:granted": 1
+      },
+      "violations": [],
+      "secs": 20.4
+    },
+    {
+      "tier": "T1",
+      "seed": 7,
+      "dispatch": 1414.335,
+      "freight_hold_best": {
+        "until": 80,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 1446.535,
+        "pax_first": 1417.335,
+        "freight_hold_sweep": 1414.335,
+        "cancel_all_freight": 3178.335,
+        "cancel_delayed_pax": 7028.895,
+        "short_turn_all_possible": 1417.335,
+        "skip_all_intermediate": 1417.335
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 3178.335,
+          "pax_first": 3178.335
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 7048.195,
+          "pax_first": 7028.895
+        },
+        "short_turn_all_possible": {
+          "booked_order": 1446.535,
+          "pax_first": 1417.335
+        },
+        "skip_all_intermediate": {
+          "booked_order": 1446.535,
+          "pax_first": 1417.335
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 5,
+        "short_turn_all_possible": 0,
+        "skip_all_intermediate": 0
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": "no-op",
+        "skip_all_intermediate": "no-op"
+      },
+      "counts": {
+        "cancel:calls_dropped": 47,
+        "cancel:granted": 28,
+        "connections_broken_by_action": 4,
+        "connections_dropped_with_connector_missed": 2,
+        "pax_calls_missed": 20,
+        "route:attempts": 780,
+        "route:calls_dropped": 193,
+        "route:freight_granted": 10,
+        "route:granted": 184,
+        "route:pax_diversions_dropping_calls": 157,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 604,
+        "short_turn:attempts": 47,
+        "short_turn:no_return_attempts": 39,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 8,
+        "single_line:wrong_way_routes": 3
+      },
+      "violations": [],
+      "secs": 24.6
+    },
+    {
+      "tier": "T2",
+      "seed": 2,
+      "dispatch": 5803.965,
+      "freight_hold_best": {
+        "until": 52,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 7101.875,
+        "pax_first": 7101.875,
+        "freight_hold_sweep": 5803.965,
+        "cancel_all_freight": 7893.155,
+        "cancel_delayed_pax": 20846.055,
+        "short_turn_all_possible": 15329.415,
+        "skip_all_intermediate": 19981.355
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 7893.155,
+          "pax_first": 7893.155
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 20846.055,
+          "pax_first": 20846.055
+        },
+        "short_turn_all_possible": {
+          "booked_order": 15329.415,
+          "pax_first": 15329.415
+        },
+        "skip_all_intermediate": {
+          "booked_order": 19981.355,
+          "pax_first": 19981.355
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 17,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 24
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 255,
+        "cancel:granted": 97,
+        "connections_broken_by_action": 58,
+        "connections_dropped_with_connector_missed": 24,
+        "pax_calls_missed": 134,
+        "route:attempts": 5824,
+        "route:calls_dropped": 938,
+        "route:freight_granted": 9,
+        "route:granted": 821,
+        "route:pax_diversions_dropping_calls": 594,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 5111,
+        "short_turn:attempts": 194,
+        "short_turn:calls_dropped": 8,
+        "short_turn:granted": 8,
+        "short_turn:no_return_attempts": 92,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 108,
+        "single_line:wrong_way_routes": 49,
+        "skip:calls_dropped": 28,
+        "skip:granted": 28
+      },
+      "violations": [],
+      "secs": 159.4
+    },
+    {
+      "tier": "T2",
+      "seed": 3,
+      "dispatch": 6689.535,
+      "freight_hold_best": {
+        "until": 130,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 10779.775,
+        "pax_first": 10779.775,
+        "freight_hold_sweep": 6689.535,
+        "cancel_all_freight": 8162.335,
+        "cancel_delayed_pax": 20609.505,
+        "short_turn_all_possible": 17220.755,
+        "skip_all_intermediate": 25155.84
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 8162.335,
+          "pax_first": 8162.335
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 20609.505,
+          "pax_first": 20609.505
+        },
+        "short_turn_all_possible": {
+          "booked_order": 17220.755,
+          "pax_first": 17220.755
+        },
+        "skip_all_intermediate": {
+          "booked_order": 25155.84,
+          "pax_first": 25155.84
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 13,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 24
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 261,
+        "cancel:granted": 104,
+        "connections_broken_by_action": 50,
+        "connections_dropped_with_connector_missed": 28,
+        "pax_calls_missed": 181,
+        "route:attempts": 6048,
+        "route:calls_dropped": 955,
+        "route:freight_granted": 35,
+        "route:granted": 854,
+        "route:pax_diversions_dropping_calls": 596,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 5308,
+        "short_turn:attempts": 203,
+        "short_turn:calls_dropped": 7,
+        "short_turn:granted": 7,
+        "short_turn:no_return_attempts": 100,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 114,
+        "single_line:wrong_way_routes": 52,
+        "skip:calls_dropped": 27,
+        "skip:granted": 27
+      },
+      "violations": [],
+      "secs": 153.2
+    },
+    {
+      "tier": "T2",
+      "seed": 4,
+      "dispatch": 6759.37,
+      "freight_hold_best": {
+        "until": 117,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 7568.75,
+        "pax_first": 7638.33,
+        "freight_hold_sweep": 6759.37,
+        "cancel_all_freight": 7382.03,
+        "cancel_delayed_pax": 19790.375,
+        "short_turn_all_possible": 12434.01,
+        "skip_all_intermediate": 22168.27
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 7382.03,
+          "pax_first": 7382.03
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 19790.375,
+          "pax_first": 26457.37
+        },
+        "short_turn_all_possible": {
+          "booked_order": 12434.01,
+          "pax_first": 12530.53
+        },
+        "skip_all_intermediate": {
+          "booked_order": 22573.45,
+          "pax_first": 22168.27
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 19,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 24
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 262,
+        "cancel:granted": 101,
+        "connections_broken_by_action": 66,
+        "connections_dropped_with_connector_missed": 20,
+        "pax_calls_missed": 153,
+        "route:attempts": 5824,
+        "route:calls_dropped": 976,
+        "route:freight_granted": 24,
+        "route:granted": 851,
+        "route:pax_diversions_dropping_calls": 604,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 5089,
+        "short_turn:attempts": 202,
+        "short_turn:calls_dropped": 7,
+        "short_turn:granted": 7,
+        "short_turn:no_return_attempts": 97,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 116,
+        "single_line:wrong_way_routes": 52,
+        "skip:calls_dropped": 28,
+        "skip:granted": 28
+      },
+      "violations": [],
+      "secs": 153.4
+    },
+    {
+      "tier": "T2",
+      "seed": 5,
+      "dispatch": 3104.01,
+      "freight_hold_best": {
+        "until": 13,
+        "ordering": "pax_first"
+      },
+      "costs": {
+        "booked_order": 4086.09,
+        "pax_first": 3104.01,
+        "freight_hold_sweep": 3104.01,
+        "cancel_all_freight": 4197.77,
+        "cancel_delayed_pax": 5690.655,
+        "short_turn_all_possible": 6544.945,
+        "skip_all_intermediate": 17345.21
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 5100.59,
+          "pax_first": 4197.77
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 13119.155,
+          "pax_first": 5690.655
+        },
+        "short_turn_all_possible": {
+          "booked_order": 8408.615,
+          "pax_first": 6544.945
+        },
+        "skip_all_intermediate": {
+          "booked_order": 18082.67,
+          "pax_first": 17345.21
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 8,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 22
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 238,
+        "cancel:granted": 95,
+        "connections_broken_by_action": 43,
+        "connections_dropped_with_connector_missed": 20,
+        "pax_calls_missed": 81,
+        "route:attempts": 5488,
+        "route:calls_dropped": 894,
+        "route:freight_granted": 26,
+        "route:granted": 812,
+        "route:pax_diversions_dropping_calls": 556,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 4788,
+        "short_turn:attempts": 186,
+        "short_turn:calls_dropped": 8,
+        "short_turn:granted": 8,
+        "short_turn:no_return_attempts": 92,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 112,
+        "single_line:wrong_way_routes": 51,
+        "skip:calls_dropped": 26,
+        "skip:granted": 26
+      },
+      "violations": [],
+      "secs": 125.6
+    },
+    {
+      "tier": "T2",
+      "seed": 6,
+      "dispatch": 2931.98,
+      "freight_hold_best": {
+        "until": 78,
+        "ordering": "pax_first"
+      },
+      "costs": {
+        "booked_order": 2966.835,
+        "pax_first": 2966.835,
+        "freight_hold_sweep": 2931.98,
+        "cancel_all_freight": 3960.955,
+        "cancel_delayed_pax": 9006.965,
+        "short_turn_all_possible": 11087.695,
+        "skip_all_intermediate": 17800.995
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 3960.955,
+          "pax_first": 3960.955
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 9006.965,
+          "pax_first": 9006.965
+        },
+        "short_turn_all_possible": {
+          "booked_order": 11087.695,
+          "pax_first": 11087.695
+        },
+        "skip_all_intermediate": {
+          "booked_order": 17800.995,
+          "pax_first": 17800.995
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 4,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 27
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 269,
+        "cancel:granted": 102,
+        "connections_broken_by_action": 56,
+        "connections_dropped_with_connector_missed": 18,
+        "pax_calls_missed": 98,
+        "route:attempts": 5936,
+        "route:calls_dropped": 985,
+        "route:freight_granted": 24,
+        "route:granted": 851,
+        "route:pax_diversions_dropping_calls": 610,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 5199,
+        "short_turn:attempts": 209,
+        "short_turn:calls_dropped": 7,
+        "short_turn:granted": 7,
+        "short_turn:no_return_attempts": 97,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 114,
+        "single_line:wrong_way_routes": 53,
+        "skip:calls_dropped": 32,
+        "skip:granted": 32
+      },
+      "violations": [],
+      "secs": 88.5
+    },
+    {
+      "tier": "T3",
+      "seed": 1,
+      "dispatch": 6704.4,
+      "freight_hold_best": {
+        "until": 20,
+        "ordering": "pax_first"
+      },
+      "costs": {
+        "booked_order": 6763.475,
+        "pax_first": 6704.4,
+        "freight_hold_sweep": 6704.4,
+        "cancel_all_freight": 7386.54,
+        "cancel_delayed_pax": 30757.78,
+        "short_turn_all_possible": 30024.445,
+        "skip_all_intermediate": 96777.275
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 8036.79,
+          "pax_first": 7386.54
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 30757.78,
+          "pax_first": 30821.99
+        },
+        "short_turn_all_possible": {
+          "booked_order": 30024.445,
+          "pax_first": 30333.31
+        },
+        "skip_all_intermediate": {
+          "booked_order": 96777.275,
+          "pax_first": 100432.235
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 15,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 118
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 642,
+        "cancel:granted": 189,
+        "connections_broken_by_action": 138,
+        "connections_dropped_with_connector_missed": 77,
+        "pax_calls_missed": 432,
+        "route:attempts": 19404,
+        "route:calls_dropped": 2935,
+        "route:freight_granted": 78,
+        "route:granted": 2036,
+        "route:pax_diversions_dropping_calls": 1634,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 17498,
+        "short_turn:attempts": 461,
+        "short_turn:calls_dropped": 6,
+        "short_turn:granted": 6,
+        "short_turn:no_return_attempts": 137,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 130,
+        "single_line:wrong_way_routes": 65,
+        "skip:calls_dropped": 56,
+        "skip:granted": 56
+      },
+      "violations": [],
+      "secs": 616.4
+    },
+    {
+      "tier": "T3",
+      "seed": 2,
+      "dispatch": 15146.75,
+      "freight_hold_best": {
+        "until": 100,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 15636.22,
+        "pax_first": 15636.22,
+        "freight_hold_sweep": 15146.75,
+        "cancel_all_freight": 17734.675,
+        "cancel_delayed_pax": 62426.055,
+        "short_turn_all_possible": 53163.42,
+        "skip_all_intermediate": 109811.495
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 17734.675,
+          "pax_first": 17746.59
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 62426.055,
+          "pax_first": 62426.055
+        },
+        "short_turn_all_possible": {
+          "booked_order": 53163.42,
+          "pax_first": 53163.42
+        },
+        "skip_all_intermediate": {
+          "booked_order": 109811.495,
+          "pax_first": 109811.495
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 31,
+        "short_turn_all_possible": 8,
+        "skip_all_intermediate": 130
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 685,
+        "cancel:granted": 193,
+        "connections_broken_by_action": 150,
+        "connections_dropped_with_connector_missed": 130,
+        "pax_calls_missed": 660,
+        "route:attempts": 19502,
+        "route:calls_dropped": 3207,
+        "route:freight_granted": 59,
+        "route:granted": 2155,
+        "route:pax_diversions_dropping_calls": 1755,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 17491,
+        "short_turn:attempts": 482,
+        "short_turn:calls_dropped": 11,
+        "short_turn:granted": 11,
+        "short_turn:no_return_attempts": 143,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 144,
+        "single_line:wrong_way_routes": 72,
+        "skip:calls_dropped": 60,
+        "skip:granted": 60
+      },
+      "violations": [],
+      "secs": 627.2
+    },
+    {
+      "tier": "T3",
+      "seed": 3,
+      "dispatch": 5020.145,
+      "freight_hold_best": {
+        "until": 20,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 5020.145,
+        "pax_first": 5030.83,
+        "freight_hold_sweep": 5020.145,
+        "cancel_all_freight": 6718.65,
+        "cancel_delayed_pax": 34071.995,
+        "short_turn_all_possible": 30405.035,
+        "skip_all_intermediate": 83900.045
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 6718.65,
+          "pax_first": 10665.74
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 34658.58,
+          "pax_first": 34071.995
+        },
+        "short_turn_all_possible": {
+          "booked_order": 30405.035,
+          "pax_first": 30583.06
+        },
+        "skip_all_intermediate": {
+          "booked_order": 83900.045,
+          "pax_first": 84452.625
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 14,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 114
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 630,
+        "cancel:granted": 185,
+        "connections_broken_by_action": 161,
+        "connections_dropped_with_connector_missed": 62,
+        "pax_calls_missed": 419,
+        "route:attempts": 18816,
+        "route:calls_dropped": 2821,
+        "route:freight_granted": 99,
+        "route:granted": 1938,
+        "route:pax_diversions_dropping_calls": 1535,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 17002,
+        "short_turn:attempts": 453,
+        "short_turn:calls_dropped": 5,
+        "short_turn:granted": 5,
+        "short_turn:no_return_attempts": 136,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 124,
+        "single_line:wrong_way_routes": 62,
+        "skip:calls_dropped": 54,
+        "skip:granted": 54
+      },
+      "violations": [],
+      "secs": 606.6
+    },
+    {
+      "tier": "T3",
+      "seed": 5,
+      "dispatch": 8385.53,
+      "freight_hold_best": {
+        "until": 180,
+        "ordering": "booked_order"
+      },
+      "costs": {
+        "booked_order": 8390.53,
+        "pax_first": 12909.715,
+        "freight_hold_sweep": 8385.53,
+        "cancel_all_freight": 8727.915,
+        "cancel_delayed_pax": 30931.69,
+        "short_turn_all_possible": 53177.27,
+        "skip_all_intermediate": 117410.05
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 8727.915,
+          "pax_first": 14139.185
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 30931.69,
+          "pax_first": 47823.57
+        },
+        "short_turn_all_possible": {
+          "booked_order": 53177.27,
+          "pax_first": 57495.595
+        },
+        "skip_all_intermediate": {
+          "booked_order": 118405.545,
+          "pax_first": 117410.05
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 28,
+        "short_turn_all_possible": 9,
+        "skip_all_intermediate": 134
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 702,
+        "cancel:granted": 200,
+        "connections_broken_by_action": 133,
+        "connections_dropped_with_connector_missed": 109,
+        "pax_calls_missed": 577,
+        "route:attempts": 19992,
+        "route:calls_dropped": 3178,
+        "route:freight_granted": 91,
+        "route:granted": 2186,
+        "route:pax_diversions_dropping_calls": 1761,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 17946,
+        "short_turn:attempts": 489,
+        "short_turn:calls_dropped": 13,
+        "short_turn:granted": 13,
+        "short_turn:no_return_attempts": 142,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 140,
+        "single_line:wrong_way_routes": 70,
+        "skip:calls_dropped": 64,
+        "skip:granted": 64
+      },
+      "violations": [],
+      "secs": 640.4
+    },
+    {
+      "tier": "T3",
+      "seed": 6,
+      "dispatch": 11182.565,
+      "freight_hold_best": {
+        "until": 80,
+        "ordering": "pax_first"
+      },
+      "costs": {
+        "booked_order": 16342.495,
+        "pax_first": 15771.645,
+        "freight_hold_sweep": 11182.565,
+        "cancel_all_freight": 16999.78,
+        "cancel_delayed_pax": 31840.415,
+        "short_turn_all_possible": 49128.14,
+        "skip_all_intermediate": 95723.835
+      },
+      "avoidance_by_base": {
+        "cancel_all_freight": {
+          "booked_order": 16999.78,
+          "pax_first": 17058.15
+        },
+        "cancel_delayed_pax": {
+          "booked_order": 35750.535,
+          "pax_first": 31840.415
+        },
+        "short_turn_all_possible": {
+          "booked_order": 49697.45,
+          "pax_first": 49128.14
+        },
+        "skip_all_intermediate": {
+          "booked_order": 95723.835,
+          "pax_first": 96190.485
+        }
+      },
+      "avoidance_actions": {
+        "cancel_all_freight": 1,
+        "cancel_delayed_pax": 16,
+        "short_turn_all_possible": 5,
+        "skip_all_intermediate": 120
+      },
+      "avoidance_loses": {
+        "cancel_all_freight": true,
+        "cancel_delayed_pax": true,
+        "short_turn_all_possible": true,
+        "skip_all_intermediate": true
+      },
+      "counts": {
+        "cancel:calls_dropped": 630,
+        "cancel:granted": 178,
+        "connections_broken_by_action": 133,
+        "connections_dropped_with_connector_missed": 86,
+        "pax_calls_missed": 594,
+        "route:attempts": 17934,
+        "route:calls_dropped": 2848,
+        "route:freight_granted": 67,
+        "route:granted": 1921,
+        "route:pax_diversions_dropping_calls": 1562,
+        "route:playouts": 4,
+        "route:refused:R-NO-ROUTE": 16135,
+        "short_turn:attempts": 449,
+        "short_turn:calls_dropped": 6,
+        "short_turn:granted": 6,
+        "short_turn:no_return_attempts": 129,
+        "single_line:opened": 4,
+        "single_line:routes_granted": 122,
+        "single_line:wrong_way_routes": 61,
+        "skip:calls_dropped": 56,
+        "skip:granted": 56
+      },
+      "violations": [],
+      "secs": 578.7
+    }
+  ]
+}
