@@ -1,0 +1,74 @@
+{
+  "qwen38-think-sft|ALL": {
+    "ci95": [
+      -305.45,
+      -305.45
+    ],
+    "components": {
+      "C1": 89.45,
+      "C2": 200.0,
+      "C3": 0.0,
+      "C4": 0.0,
+      "C5": 16.0
+    },
+    "episodes": 1,
+    "infra_errors": 0,
+    "invalid_rate": 0.0,
+    "kpis": {
+      "clean_shift_rate": 0.0,
+      "freight_delivered_pct": 100.0,
+      "on_time_pct": 90.32,
+      "passenger_delay_minutes": 12523.0
+    },
+    "mean_reward": -305.45,
+    "ok": 1,
+    "refusal_rate": 0.0,
+    "seeds": 1,
+    "tokens_mean": {
+      "cached": 0.0,
+      "in": 626089.0,
+      "out": 53371.0,
+      "reasoning": 50435.0
+    },
+    "tool_calls_mean": 68.0,
+    "usd_mean": 0.0,
+    "usd_total": 0.0,
+    "wall_s_mean": 2865.911
+  },
+  "qwen38-think-sft|T1": {
+    "ci95": [
+      -305.45,
+      -305.45
+    ],
+    "components": {
+      "C1": 89.45,
+      "C2": 200.0,
+      "C3": 0.0,
+      "C4": 0.0,
+      "C5": 16.0
+    },
+    "episodes": 1,
+    "infra_errors": 0,
+    "invalid_rate": 0.0,
+    "kpis": {
+      "clean_shift_rate": 0.0,
+      "freight_delivered_pct": 100.0,
+      "on_time_pct": 90.32,
+      "passenger_delay_minutes": 12523.0
+    },
+    "mean_reward": -305.45,
+    "ok": 1,
+    "refusal_rate": 0.0,
+    "seeds": 1,
+    "tokens_mean": {
+      "cached": 0.0,
+      "in": 626089.0,
+      "out": 53371.0,
+      "reasoning": 50435.0
+    },
+    "tool_calls_mean": 68.0,
+    "usd_mean": 0.0,
+    "usd_total": 0.0,
+    "wall_s_mean": 2865.911
+  }
+}

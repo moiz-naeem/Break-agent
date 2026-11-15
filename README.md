@@ -157,37 +157,49 @@ served from its own endpoint as `qwen38-sft`; add it to `--models` once that end
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
 up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% bootstrap over seeds.
 
-> **Status (snapshot 2026-11-15, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).** The benchmark
-> is still running. Gemini 4 Carbon has finished 58 T1 episodes across 26 seeds. Base Qwen has finished 1 episode; its
-> earlier attempts were stopped by the serving setup (context-window and "no upstreams" errors, see
-> [`docs/failure-analysis.md`](docs/failure-analysis.md)), which are infrastructure errors and are not scored.
-> The fine-tuned Qwen has no finished episode yet. Cells marked "running" are not results.
+> **Status (snapshot 2026-11-15 07:40 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
+> The benchmark was still running at this snapshot, so every number below is partial. Finished so far:
+> Gemini 4 Carbon 60 of 270 planned episodes (58 T1, 2 T2); base Qwen 2 of 270 planned episodes (2 T1); fine-tuned Qwen 1 of 30 planned episodes (1 T1).
+> One episode takes about an hour of model time, which is why the counts are low. Base Qwen's earlier attempts
+> were stopped by the serving setup (context-window and "no upstreams" errors, see
+> [`docs/failure-analysis.md`](docs/failure-analysis.md)); those are infrastructure errors and are not scored.
+> Cells marked "running" are not results.
 
 ### T1 held-out test seeds
 
 | Model | Seeds | Episodes | Mean reward [95% CI] | C1 | C2 | C3 | C4 | C5 | On time | Freight delivered | Clean shifts |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Gemini 4 Carbon (`gemini-carbon-high`) | 26 | 58 | **−1,549.9** [−2,407.2, −943.2] | 356.5 | 1,147.5 | 3.3 | 0.0 | 42.6 | 67.6 % | 78.2 % | 23.7 % |
-| Qwen 3.8 27B, base (`qwen38-think`) | 1 | 1 | −29.1 (T1-10035 only) | 19.1 | 0.0 | 0.0 | 0.0 | 10.0 | 96.7 % | 100 % | 100 % |
-| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 0 | 0 | running | | | | | | | | |
+| Qwen 3.8 27B, base (`qwen38-think`) | 2 | 2 | **−21.6** [−29.1, −14.0] | 9.6 | 0.0 | 0.0 | 0.0 | 12.0 | 98.3 % | 100.0 % | 100.0 % |
+| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 1 | 1 | **−305.4** (1 seed) | 89.5 | 200.0 | 0.0 | 0.0 | 16.0 | 90.3 % | 100.0 % | 0.0 % |
 
-For scale, on the same 26 seeds: doing nothing scores **−28,618.6** and the booked-order oracle **−1,439.0**.
-Carbon beats the booked-order oracle on 10 of 26 seeds but is more than 100 points worse on 10, and its
-average is worse. On T1-10035, the one seed every model has finished, the base Qwen (−29.1) ties the oracle
-and beats Carbon's average over three tries (−69.5).
+The three rows cover different seeds (each model has finished a different subset), so compare models only
+through the paired numbers below, not by reading down the mean column.
 
-T2 and T3: running for all three models.
+For scale, on Carbon's 26 seeds: doing nothing scores **−28,618.6** and the booked-order
+oracle **−1,439.0**. Carbon beats the booked-order oracle on 10 of 26 seeds but is more than 100 points worse
+on 10, and its average is worse.
+Carbon against base Qwen, on the 2 T1 seeds both finished: Carbon −42.8, base Qwen −21.6, a difference of −21.2 (95% CI [−40.4, −2.0]); Carbon is better on 0, tied on 0, worse on 2. That is too few paired seeds for a verdict (we ask for 5).
+
+T2 and T3: Carbon has finished 2 T2 episodes on 2 seeds (mean −2,469.1). That is too few for any comparison; the rest was still running.
 
 ### Post-training
 
 The fine-tuned model is Qwen 3.8 27B after supervised fine-tuning on dispatcher traces from a stronger
-teacher. Its teacher traces (Claude Opus) were collected only on the disjoint **training** seeds (20000+), so
-no test seed was seen in training. The comparison will be paired: base vs fine-tuned on exactly the seeds both
+teacher, Claude Opus 5.5\*. The teacher traces were collected only on the disjoint **training** seeds (20000+),
+so no test seed was seen in training. The comparison is paired: base vs fine-tuned on exactly the seeds both
 finished.
 
 | Tier | Paired seeds | Base Qwen | Fine-tuned Qwen | Difference [95% CI] |
 |---|---|---|---|---|
 | T1 | 0 | running | running | running |
+
+Fine-tuned Qwen has finished 1 T1 episode (mean −305.4, row above), but none on a seed base Qwen has also finished, so there is no paired difference yet.
+
+\* Why Opus 5.5: it is the only model for which we could collect proper reasoning traces, and we could get
+them only through the Factory Droid harness. That harness gives the model a different context from the
+benchmark loop the three models above run in, so Opus 5.5 is the source of the training data only. It is not
+a benchmark entry, it has no row in these tables, and no score of its own should be compared with them.
 
 ## Where agents fall short, and why
 
