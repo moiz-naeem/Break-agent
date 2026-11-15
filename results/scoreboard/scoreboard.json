@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-15 05:41 UTC",
+  "generated_utc": "2026-11-15 05:57 UTC",
   "sources": {
     "local": "D:\\Hoai Anh\\Aalto\\Hobbies\\Afterquery-net\\results\\net_bench",
     "cluster": "kosh"
@@ -41,10 +41,10 @@
     },
     "qwen": {
       "local_rows": 1,
-      "cluster_rows": 1,
-      "merged": 1,
+      "cluster_rows": 89,
+      "merged": 83,
       "ok": 1,
-      "errors": 0,
+      "errors": 82,
       "expected": 270,
       "pct": 0.37037037037037035,
       "by_tier": {
@@ -125,7 +125,7 @@
       "T1": {
         "seeds": 1,
         "episodes_ok": 1,
-        "episodes_error": 0,
+        "episodes_error": 37,
         "mean_reward": -29.11,
         "ci95": [
           -29.11,
@@ -150,7 +150,7 @@
       "ALL": {
         "seeds": 1,
         "episodes_ok": 1,
-        "episodes_error": 0,
+        "episodes_error": 82,
         "mean_reward": -29.11,
         "ci95": [
           -29.11,
