@@ -1,0 +1,228 @@
+{
+  "generated_utc": "2026-11-15 05:57 UTC",
+  "sources": {
+    "local": "D:\\Hoai Anh\\Aalto\\Hobbies\\Afterquery-net\\results\\net_bench",
+    "cluster": "kosh"
+  },
+  "lineup": {
+    "carbon": {
+      "run": "net-test-carbon-20261115",
+      "label": "Gemini 4 Carbon",
+      "id": "gemini-carbon-high",
+      "expected": 270
+    },
+    "qwen": {
+      "run": "net-test-qwen-20261115",
+      "label": "Qwen 3.8 27B (base)",
+      "id": "qwen38-think",
+      "expected": 270
+    },
+    "sft": {
+      "run": "net-test-qwen-sft-20261115",
+      "label": "Qwen 3.8 27B (fine-tuned)",
+      "id": "qwen38-think-sft",
+      "expected": 30
+    }
+  },
+  "progress": {
+    "carbon": {
+      "local_rows": 58,
+      "cluster_rows": 58,
+      "merged": 58,
+      "ok": 58,
+      "errors": 0,
+      "expected": 270,
+      "pct": 21.48148148148148,
+      "by_tier": {
+        "T1": 58,
+        "T2": 0,
+        "T3": 0
+      }
+    },
+    "qwen": {
+      "local_rows": 1,
+      "cluster_rows": 194,
+      "merged": 161,
+      "ok": 1,
+      "errors": 160,
+      "expected": 270,
+      "pct": 0.37037037037037035,
+      "by_tier": {
+        "T1": 1,
+        "T2": 0,
+        "T3": 0
+      }
+    },
+    "sft": {
+      "local_rows": 0,
+      "cluster_rows": 0,
+      "merged": 0,
+      "ok": 0,
+      "errors": 0,
+      "expected": 30,
+      "pct": 0.0,
+      "by_tier": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 0
+      }
+    }
+  },
+  "overall": {
+    "carbon": {
+      "T1": {
+        "seeds": 26,
+        "episodes_ok": 58,
+        "episodes_error": 0,
+        "mean_reward": -1549.9495833333333,
+        "ci95": [
+          -2407.2185576923075,
+          -943.2198397435898
+        ],
+        "within_seed_std": 311.95540112470314,
+        "seeds_with_reps": 21,
+        "C1": 356.47381410256406,
+        "C2": 1147.5151282051281,
+        "C3": 3.3141025641025643,
+        "C4": 0.0,
+        "C5": 42.64653846153846,
+        "on_time_pct": 67.57076923076923,
+        "passenger_delay_minutes": 37174.269230769234,
+        "freight_delivered_pct": 78.20519230769231,
+        "clean_shift": 23.717948717948715,
+        "gridlocks": 0.02564102564102564,
+        "unfinished": 1.7435897435897436,
+        "do_nothing_reward": -28618.618846153844,
+        "cost_usd": 251.264805
+      },
+      "ALL": {
+        "seeds": 26,
+        "episodes_ok": 58,
+        "episodes_error": 0,
+        "mean_reward": -1549.9495833333333,
+        "ci95": [
+          -2407.2185576923075,
+          -943.2198397435898
+        ],
+        "within_seed_std": 311.95540112470314,
+        "seeds_with_reps": 21,
+        "C1": 356.47381410256406,
+        "C2": 1147.5151282051281,
+        "C3": 3.3141025641025643,
+        "C4": 0.0,
+        "C5": 42.64653846153846,
+        "on_time_pct": 67.57076923076923,
+        "passenger_delay_minutes": 37174.269230769234,
+        "freight_delivered_pct": 78.20519230769231,
+        "clean_shift": 23.717948717948715,
+        "gridlocks": 0.02564102564102564,
+        "unfinished": 1.7435897435897436,
+        "do_nothing_reward": -28618.618846153844,
+        "cost_usd": 251.264805
+      }
+    },
+    "qwen": {
+      "T1": {
+        "seeds": 1,
+        "episodes_ok": 1,
+        "episodes_error": 65,
+        "mean_reward": -29.11,
+        "ci95": [
+          -29.11,
+          -29.11
+        ],
+        "within_seed_std": null,
+        "seeds_with_reps": 0,
+        "C1": 19.11,
+        "C2": 0.0,
+        "C3": 0.0,
+        "C4": 0.0,
+        "C5": 10.0,
+        "on_time_pct": 96.67,
+        "passenger_delay_minutes": 12415.0,
+        "freight_delivered_pct": 100.0,
+        "clean_shift": 100.0,
+        "gridlocks": 0.0,
+        "unfinished": 0.0,
+        "do_nothing_reward": -26918.7,
+        "cost_usd": 0.0
+      },
+      "ALL": {
+        "seeds": 1,
+        "episodes_ok": 1,
+        "episodes_error": 160,
+        "mean_reward": -29.11,
+        "ci95": [
+          -29.11,
+          -29.11
+        ],
+        "within_seed_std": null,
+        "seeds_with_reps": 0,
+        "C1": 19.11,
+        "C2": 0.0,
+        "C3": 0.0,
+        "C4": 0.0,
+        "C5": 10.0,
+        "on_time_pct": 96.67,
+        "passenger_delay_minutes": 12415.0,
+        "freight_delivered_pct": 100.0,
+        "clean_shift": 100.0,
+        "gridlocks": 0.0,
+        "unfinished": 0.0,
+        "do_nothing_reward": -26918.7,
+        "cost_usd": 0.0
+      }
+    },
+    "sft": {}
+  },
+  "head_to_head": {
+    "T1": {
+      "seeds": 1,
+      "mean_a": -69.54333333333334,
+      "mean_b": -29.11,
+      "mean_diff": -40.43333333333334,
+      "ci95": [
+        -40.43333333333334,
+        -40.43333333333334
+      ],
+      "wins": 0,
+      "ties": 0,
+      "losses": 1
+    },
+    "ALL": {
+      "seeds": 1,
+      "mean_a": -69.54333333333334,
+      "mean_b": -29.11,
+      "mean_diff": -40.43333333333334,
+      "ci95": [
+        -40.43333333333334,
+        -40.43333333333334
+      ],
+      "wins": 0,
+      "ties": 0,
+      "losses": 1
+    }
+  },
+  "integrity": {
+    "carbon": {
+      "non_test_split": 0,
+      "scenario_hash_mismatch": [],
+      "unknown_scenarios": []
+    },
+    "qwen": {
+      "non_test_split": 0,
+      "scenario_hash_mismatch": [],
+      "unknown_scenarios": []
+    },
+    "sft": {
+      "non_test_split": 0,
+      "scenario_hash_mismatch": [],
+      "unknown_scenarios": []
+    }
+  },
+  "post_training": {
+    "seeds": 0,
+    "seed_list": []
+  },
+  "sft_vs_base_all_t1": null
+}
