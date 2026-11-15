@@ -6,7 +6,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 # Pre-installed so Harbor skips OpenCode's install step, which the network allowlist blocks.
 RUN npm i -g opencode-ai@1.19.5 && opencode --version
-# Exactly the sim image's pins (from uv.lock): the verifier replays here and must match the live server.
+{{TEACHER}}# Exactly the sim image's pins (from uv.lock): the verifier replays here and must match the live server.
 RUN pip install --no-cache-dir \
 {{PINS}}
 RUN useradd -m -u 1000 agent

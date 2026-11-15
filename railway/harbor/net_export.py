@@ -46,6 +46,26 @@ DEFAULT_PROVIDER_HOSTS = (
     "api.deepseek.com",
 )
 
+# Teacher image only (`ExportOptions(droid=True)`): the hosts `droid exec` contacts with FACTORY_API_KEY auth
+# (measured through a logging proxy on Modal: api, prem, telemetry), plus app and relay.
+FACTORY_HOSTS = ("api.factory.ai", "prem.factory.ai", "app.factory.ai", "relay.factory.ai", "telemetry.factory.ai")
+# Harbor 0.26's acp_runner.py imports `acp.text_block`, which agent-client-protocol 1.0 removed.
+ACP_CLIENT_PIN = "agent-client-protocol==0.12.1"
+# Baked into the teacher image so Harbor's ACP agent needs no install step behind the network allowlist
+# (`infra/modal/_harbor_droid_agent.py` skips it). Droid comes from Factory's installer; the runner venv
+# is Python 3.12 at the paths Harbor's AcpAgent uses.
+DROID_DOCKERFILE_BLOCK = f"""# Teacher runs: Factory Droid over ACP (Harbor AcpAgent paths), installed at build time.
+ENV DROID_DISABLE_AUTO_UPDATE=true FACTORY_DROID_AUTO_UPDATE_ENABLED=false
+RUN curl -fsSL https://app.factory.ai/cli | sh \\
+ && install -m 0755 /root/.local/bin/droid /usr/local/bin/droid && droid --version
+RUN pip install --no-cache-dir uv \\
+ && UV_PYTHON_INSTALL_DIR=/opt/harbor-acp-python uv python install 3.12 \\
+ && UV_PYTHON_INSTALL_DIR=/opt/harbor-acp-python uv venv --python 3.12 /opt/harbor-acp-venv \\
+ && uv pip install --python /opt/harbor-acp-venv/bin/python "{ACP_CLIENT_PIN}" \\
+ && chmod -R a+rX /opt/harbor-acp-python /opt/harbor-acp-venv \\
+ && /opt/harbor-acp-venv/bin/python -c "from acp import text_block, spawn_agent_process"
+"""
+
 VENDOR_MODULES = ("__init__.py", "util.py")
 SIM_PACKAGES = ("net",)
 TESTS_PACKAGES = ("net",)
@@ -70,6 +90,7 @@ class ExportOptions:
     agent_timeout: int = 3600
     verifier_timeout: int = 600
     probe: bool = False
+    droid: bool = False  # teacher image: Droid + ACP runner baked in, Factory hosts allowed
 
     def __post_init__(self) -> None:
         if self.agent_user not in ("agent", "root"):
@@ -165,6 +186,8 @@ def render_instruction() -> str:
 
 def allowed_hosts(opts: ExportOptions) -> list[str]:
     hosts = ["sim", *(DEFAULT_PROVIDER_HOSTS if opts.default_hosts else ()), *opts.allow_hosts]
+    if opts.droid:
+        hosts += FACTORY_HOSTS
     return list(dict.fromkeys(hosts))
 
 
@@ -181,8 +204,12 @@ def render_task_toml(opts: ExportOptions) -> str:
     )
 
 
-def render_main_dockerfile(pins: list[str]) -> str:
-    return _fill(_template("main.Dockerfile"), PINS=" \\\n".join(f"    {p}" for p in pins))
+def render_main_dockerfile(pins: list[str], *, droid: bool = False) -> str:
+    return _fill(
+        _template("main.Dockerfile"),
+        PINS=" \\\n".join(f"    {p}" for p in pins),
+        TEACHER=DROID_DOCKERFILE_BLOCK if droid else "",
+    )
 
 
 # ---------------------------------------------------------------- writing
@@ -248,7 +275,7 @@ def export_task(
     _write(task_dir / "task.toml", render_task_toml(opts))
 
     env = task_dir / "environment"
-    _write(env / "Dockerfile", render_main_dockerfile(pins))
+    _write(env / "Dockerfile", render_main_dockerfile(pins, droid=opts.droid))
     _write(env / "docker-compose.yaml", _template("docker-compose.yaml"))
     _write(env / "sim" / "Dockerfile", _template("sim.Dockerfile"))
     _write(env / "sim" / "requirements.txt", "\n".join(pins) + "\n")

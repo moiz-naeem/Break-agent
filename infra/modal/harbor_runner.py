@@ -166,7 +166,18 @@ MODEL_PRESETS: dict[str, RunnerPreset] = {
         effort=None,
         api_key_env="VERDA_INFERENCE_KEY",
     ),
+    # Post-training teacher (not a benchmark row: different harness). Droid over ACP, image built with
+    # `ExportOptions(droid=True)`; FACTORY_API_KEY reaches the orchestrator as a Modal secret.
+    "opus55-droid": RunnerPreset(
+        agent="droid",
+        model="factory/claude-opus-5-5",
+        effort="high",
+        api_key_env="FACTORY_API_KEY",
+    ),
 }
+
+DROID_AGENT_IMPORT = "infra.modal._harbor_droid_agent:DroidAcpAgent"
+FACTORY_SECRET = "factory-key"  # Modal secret holding FACTORY_API_KEY (used when it is not in the local env)
 
 PROVIDER_KEY_ENV: dict[str, str] = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -223,6 +234,13 @@ def build_agent_config(
         raise ValueError(f"agent {agent!r} requires --model <provider/model>")
     provider = model.split("/", 1)[0]
     key_name = api_key_env or PROVIDER_KEY_ENV.get(provider)
+    if agent == "droid":
+        # The key is read from the orchestrator's environment by the agent class (never in the job config).
+        return (
+            {"import_path": DROID_AGENT_IMPORT, "model_name": model, "kwargs": {"effort": effort}},
+            key_name or "FACTORY_API_KEY",
+            None,
+        )
     kwargs: dict[str, Any] = {}
     if agent == "opencode":
         kwargs["opencode_config"] = build_opencode_config()
@@ -404,9 +422,28 @@ def execute_harbor_job(
             seeds = export_spec.get("seeds", [1])
             shift_min = int(export_spec.get("shift_min", 180))
             probe = bool(export_spec.get("probe", False))
-            items = [(scenario_id_for(tt := generate_timetable(tier, int(s), shift_min)), tt) for s in seeds]
+            hashes: dict = export_spec.get("hashes") or {}
+            if export_spec.get("builder") == "seedlist":
+                # The scenarios of the seed lists and the benchmark (with disruptions), checked by hash.
+                from railway.net.exploits import build_timetable
+                from railway.util import content_hash
+
+                items = []
+                for s in seeds:
+                    tt = build_timetable(tier, int(s))
+                    want = hashes.get(str(s))
+                    if want and content_hash(tt.model_dump(mode="json")) != want:
+                        raise RuntimeError(f"{tier}-{s}: generator output differs from the seed list; regenerate seeds")
+                    items.append((scenario_id_for(tt), tt))
+            else:
+                items = [(scenario_id_for(tt := generate_timetable(tier, int(s), shift_min)), tt) for s in seeds]
             staged = tmp / f"{tier.lower()}-modal-export"
-            export_timetables(items, staged, ExportOptions(probe=probe), meta={"tier": tier, "set": "modal"})
+            opts = ExportOptions(
+                probe=probe,
+                droid=bool(export_spec.get("droid", False)),
+                agent_timeout=int(export_spec.get("agent_timeout", 3600)),
+            )
+            export_timetables(items, staged, opts, meta={"tier": tier, "set": export_spec.get("set", "modal")})
         else:
             raise ValueError("either task_archive or export_spec must be provided")
 
@@ -493,6 +530,10 @@ def run_job_on_modal(
     n_attempts: int = 1,
     agent_timeout_sec: int | None = None,
     download_dir: Path | None = None,
+    builder: str = "generate",
+    hashes: dict[str, str] | None = None,
+    set_name: str = "modal",
+    task_agent_timeout: int = 3600,
 ) -> tuple[dict[str, Any], Path | None]:
     """Execute a Harbor job on Modal, commit to `railway-harbor-logs`, and optionally download locally."""
     agent_cfg, needed_key, warm_url = build_agent_config(
@@ -502,7 +543,16 @@ def run_job_on_modal(
         effort=effort,
         api_key_env=api_key_env,
     )
-    secrets_dict = load_secret_env([needed_key] if needed_key else [])
+    is_droid = agent_cfg.get("import_path") == DROID_AGENT_IMPORT
+    secrets: list = []
+    try:
+        secrets_dict = load_secret_env([needed_key] if needed_key else [])
+        if secrets_dict:
+            secrets.append(modal.Secret.from_dict(secrets_dict))
+    except RuntimeError:
+        if not is_droid:
+            raise
+        secrets.append(modal.Secret.from_name(FACTORY_SECRET))  # FACTORY_API_KEY stored on Modal only
     warm_modal_if_needed(warm_url)
 
     task_archive = _pack_dir(task_path.resolve()) if task_path is not None else None
@@ -514,12 +564,15 @@ def run_job_on_modal(
             "seeds": seeds or [1],
             "shift_min": shift_min,
             "probe": probe,
+            "builder": builder,
+            "hashes": hashes or {},
+            "droid": is_droid,
+            "set": set_name,
+            "agent_timeout": task_agent_timeout,
         }
     )
 
-    fn = execute_harbor_job.with_options(
-        secrets=[modal.Secret.from_dict(secrets_dict)] if secrets_dict else [],
-    )
+    fn = execute_harbor_job.with_options(secrets=secrets)
     summary, archive_bytes = fn.remote(
         task_archive=task_archive,
         export_spec=export_spec,
@@ -579,6 +632,81 @@ def run(
     print(json.dumps(summary, indent=2))
     if local_dir is not None:
         print(f"Downloaded Harbor job logs -> {local_dir}")
+
+
+def seedlist_entries(tier: str, split: str) -> list[dict[str, Any]]:
+    path = ROOT / "seeds" / f"net-{tier}-{split}.json"
+    if not path.is_file():
+        raise FileNotFoundError(f"{path} missing: generate it with infra/modal/net_seeds.py first")
+    return json.loads(path.read_text(encoding="utf-8"))["accepted"]
+
+
+@app.local_entrypoint()
+def teacher(
+    preset: str = "opus55-droid",
+    tier: str = "T1",
+    split: str = "train",
+    count: int = 4,
+    offset: int = 0,
+    reps: int = 1,
+    batch: int = 8,
+    job_name: str = "",
+    task_agent_timeout: int = 3 * 3600,
+    include_val: bool = False,
+    download_dir: str = "jobs/harbor",
+) -> None:
+    """Teacher episodes on seed-list scenarios (with disruptions), one Harbor job per batch, batches in parallel.
+
+    Train seeds that `railway.train.env.is_val_seed` marks as validation are skipped unless `--include-val`.
+    Each batch runs all its trials at once (`n_concurrent = batch * reps`), so a batch takes about one
+    episode and fits the orchestrator's 4 h limit.
+    """
+    from railway.train.env import is_val_seed
+
+    rows = seedlist_entries(tier, split)
+    if split == "train" and not include_val:
+        rows = [r for r in rows if not is_val_seed(int(r["seed"]))]
+    rows = rows[offset : offset + count]
+    if not rows:
+        raise SystemExit("no seeds selected")
+    agent_cfg, needed_key, _ = build_agent_config(preset=preset)
+    is_droid = agent_cfg.get("import_path") == DROID_AGENT_IMPORT
+    try:
+        secrets = [modal.Secret.from_dict(load_secret_env([needed_key]))] if needed_key else []
+    except RuntimeError:
+        if not is_droid:
+            raise
+        secrets = [modal.Secret.from_name(FACTORY_SECRET)]
+    base = job_name or f"teacher-{preset}-{tier}-{split}-{int(time.time())}"
+    fn = execute_harbor_job.with_options(secrets=secrets)
+    calls = []
+    for b in range(0, len(rows), batch):
+        part = rows[b : b + batch]
+        spec = {
+            "tier": tier,
+            "seeds": [int(r["seed"]) for r in part],
+            "builder": "seedlist",
+            "hashes": {str(r["seed"]): r["scenario_hash"] for r in part},
+            "droid": is_droid,
+            "set": split,
+            "agent_timeout": task_agent_timeout,
+        }
+        jname = f"{base}-b{b // batch:03d}"
+        calls.append((jname, part, fn.spawn(
+            task_archive=None, export_spec=spec, job_name=jname, agent_cfg=agent_cfg,
+            n_concurrent=len(part) * reps, n_attempts=reps,
+        )))  # fmt: skip
+        print(f"SPAWNED {jname}: seeds {[r['seed'] for r in part]} x{reps}", flush=True)
+    dl_root = ROOT / download_dir
+    for jname, _part, call in calls:
+        try:
+            summary, archive_bytes = call.get()
+        except Exception as exc:  # noqa: BLE001 - one failed batch must not lose the others
+            print(f"FAILED {jname}: {type(exc).__name__}: {exc}", flush=True)
+            continue
+        local = _unpack_bytes(archive_bytes, dl_root)
+        ok = sum(1 for t in summary["trials"] if t["reward"] is not None)
+        print(f"DONE {jname}: {ok}/{len(summary['trials'])} trials with reward -> {local}", flush=True)
 
 
 @app.local_entrypoint()
