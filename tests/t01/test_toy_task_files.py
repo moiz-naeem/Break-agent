@@ -3,7 +3,7 @@ import tomllib
 
 from tests.helpers import REPO
 
-TASK = REPO / "spike" / "toy-task"
+TASK = REPO / "archive" / "spike" / "toy-task"
 
 
 def test_T01_16_task_layout():

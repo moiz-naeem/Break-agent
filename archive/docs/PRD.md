@@ -4,7 +4,7 @@
 |---|---|
 | Version | 1.0 (derived from DESIGN.md v0.2) |
 | Date | 2026-11-14 |
-| Source of truth for *why* | [DESIGN.md](../DESIGN.md) |
+| Source of truth for *why* | [DESIGN.md](../../DESIGN.md) |
 | Source of truth for *what to build and how to check it* | this file + [tickets/](tickets/) |
 | Team | 3 people (A, B, C) plus AI coding agents |
 | Deadline | 48 hours from kick-off |

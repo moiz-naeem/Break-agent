@@ -19,7 +19,7 @@ from tests.t07.conftest import REAL_EXPORT_MODULES, has_module, require_modules,
 
 pytestmark = pytest.mark.harbor
 
-MINI = REPO / "datasets" / "t1-dev-mini"
+MINI = REPO / "archive" / "datasets" / "t1-dev-mini"
 
 
 def _ok(trials, reward: float) -> None:
@@ -38,7 +38,7 @@ def _export(out: Path, preset: str = "T1", count: int = 1, **opts) -> list[Path]
 
 
 def test_T07_H1_oracle_all_tasks():
-    assert MINI.is_dir(), "datasets/t1-dev-mini is exported in T07 (needs T06 accepted lists)"
+    assert MINI.is_dir(), "archive/datasets/t1-dev-mini is exported in T07 (needs T06 accepted lists)"
     trials = harbor_run(MINI, "oracle")
     assert len(trials) == 3
     _ok(trials, 1.0)

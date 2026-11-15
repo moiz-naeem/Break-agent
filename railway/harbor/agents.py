@@ -3,7 +3,7 @@
 - `railway.harbor.agents:NetStopEarlyAgent` (v0.3 network tasks, `datasets/net-*`): runs the oracle client
   `net_templates/solve.py --stop-at 30` in the main container: it dispatches in booked order over MCP for the
   first 30 minutes, then ends the shift.
-- `railway.harbor.agents:StopEarlyAgent` (v0.2 single-track tasks, `datasets/t1-dev-mini`): uploads a vendored
+- `railway.harbor.agents:StopEarlyAgent` (v0.2 single-track tasks, `archive/datasets/t1-dev-mini`): uploads a vendored
   `railway` (sim, tools, policies) into the main container for this trial only (it is never part of the image)
   and plays `StopEarly` through the task's MCP server, like any agent would.
 """

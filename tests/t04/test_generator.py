@@ -14,7 +14,7 @@ from railway.util import canonical_json
 
 def test_T04_10_presets_exist():
     assert {"T1", "T2", "T2-S14", "T3"} <= set(PRESETS)
-    # T1/T2 recalibrated in T05/T06 (DESIGN said 8/8/120 and 12/14/360); see docs/gates/T06.md.
+    # T1/T2 recalibrated in T05/T06 (DESIGN said 8/8/120 and 12/14/360); see archive/docs/gates/T06.md.
     assert (PRESETS["T1"].stations, PRESETS["T1"].trains, PRESETS["T1"].shift_ticks) == (8, 8, 240)
     assert (PRESETS["T2"].stations, PRESETS["T2"].trains, PRESETS["T2"].shift_ticks) == (12, 10, 720)
     assert (PRESETS["T2-S14"].stations, PRESETS["T2-S14"].trains) == (14, 16)

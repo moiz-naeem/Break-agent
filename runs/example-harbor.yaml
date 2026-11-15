@@ -7,7 +7,7 @@ model:
   harbor_model: openrouter/qwen/qwen-2.5-7b-instruct   # the `harbor run -m` value
 temperature: null
 max_tokens: 1024
-dataset: datasets/t1-dev-mini
+dataset: archive/datasets/t1-dev-mini
 reps: 3
 concurrency: 4
 tools_disabled: []

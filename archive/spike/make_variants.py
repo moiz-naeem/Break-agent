@@ -1,4 +1,7 @@
-"""Regenerate the spike task variants from spike/toy-task (run: uv run python spike/make_variants.py)."""
+"""Regenerate the spike task variants from archive/spike/toy-task.
+
+Run: uv run python archive/spike/make_variants.py
+"""
 import shutil
 from pathlib import Path
 

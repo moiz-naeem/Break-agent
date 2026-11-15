@@ -7,7 +7,7 @@ from mcp import Client
 
 from tests.helpers import REPO, start_server
 
-SERVER = REPO / "spike" / "toy-task" / "environment" / "sim" / "server.py"
+SERVER = REPO / "archive" / "spike" / "toy-task" / "environment" / "sim" / "server.py"
 TOKEN = "t" * 64
 
 

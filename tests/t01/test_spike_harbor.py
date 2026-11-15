@@ -6,7 +6,7 @@ import pytest
 from tests.helpers import REPO, harbor_run
 
 pytestmark = pytest.mark.harbor
-SPIKE = REPO / "spike"
+SPIKE = REPO / "archive" / "spike"
 
 
 def test_T01_H1_oracle_reaches_sim():
