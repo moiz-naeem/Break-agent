@@ -179,8 +179,10 @@ def cases(
     honest: dict, greedy_log: dict, scenario: dict, honest_reward: float, plan: list[dict],
     shifted: Shifted | None = None,
 ) -> list[Case]:  # fmt: skip
-    """Cases over the served logs: the best plan's (deserves honest_reward), greedy's (deserves 0), and a
-    mediocre one (deserves its own small reward)."""
+    """Cases over the served logs. Since the reward is −(total cost), each case's `baseline` is the reward the
+    episode it serves honestly deserves: −C_greedy for a greedy log, −C_best for the best plan's log, and its
+    own −cost for the mediocre one. A case wins when the verifier writes more than that, or leaves a
+    reward.json behind."""
     def plain(log):
         return lambda _task, _logs: _bytes(log)
 
@@ -290,44 +292,46 @@ def cases(
     shared_logs = "reachable: the agent shares /logs with the verifier, so it can write these"
     from_sim = "not reachable: the episode log is served by the sim sidecar, which the agent cannot write"
     after_agent = "not reachable: Harbor uploads tests/ only after the agent has finished"
+    served_greedy = -greedy_log["final_cost"]   # the reward a greedy episode honestly deserves
+    served_honest = -honest["final_cost"]       # the reward the best plan's episode honestly deserves
     return [
         Case("pre_written_reward_txt", "V3", "agent writes reward.txt 1.0 before the verifier runs",
-             pre_reward("reward.txt", "1.0\n"), 0.0, True, shared_logs),
+             pre_reward("reward.txt", "1.0\n"), served_greedy, True, shared_logs),
         Case("pre_written_reward_json", "V3", "agent writes reward.json, which Harbor prefers",
-             pre_reward("reward.json", json.dumps({"reward": 1.0})), 0.0, True, shared_logs),
+             pre_reward("reward.json", json.dumps({"reward": 1.0})), served_greedy, True, shared_logs),
         Case("sleeper_reward_files", "V5", "a surviving process writes both reward files",
-             sleeper, 0.0, True, shared_logs),
+             sleeper, served_greedy, True, shared_logs),
         Case("forged_final_cost", "V7", "log claims cost 0 while its entries replay to the real cost",
-             forged_cost(greedy_log), 0.0, False, from_sim),
+             forged_cost(greedy_log), served_greedy, False, from_sim),
         Case("dropped_entries", "V4", "log keeps the honest cost but has no entries",
-             dropped_entries(honest), 0.0, False, from_sim),
+             dropped_entries(honest), served_honest, False, from_sim),
         Case("truncated_entries", "V4", "half the entries removed, cost left as the reference's",
-             truncated(honest), 0.0, False, from_sim),
+             truncated(honest), served_honest, False, from_sim),
         Case("foreign_scenario_log", "V8", "a log from another scenario",
-             foreign_scenario(honest), 0.0, False, from_sim),
+             foreign_scenario(honest), served_honest, False, from_sim),
         Case("stale_rules_version", "V8", "a log from an older rules version",
-             stale_rules(honest), 0.0, False, from_sim),
+             stale_rules(honest), served_honest, False, from_sim),
         Case("unclosed_log", "V4", "an episode log that was never closed",
-             unclosed(honest), 0.0, False, from_sim),
+             unclosed(honest), served_honest, False, from_sim),
         Case("patched_norm", "V1", "tests/norm.json rewritten so a greedy log looks excellent",
-             patched_norm, 0.0, False, after_agent + "; v0.3 re-derives both anchors, so the edit is caught"),
+             patched_norm, served_greedy, False, after_agent + "; v0.3 re-derives both anchors, so the edit is caught"),
         Case("patched_plan", "V1", "tests/plan.json replaced by a much worse plan",
-             patched_plan, 0.0, False, after_agent),
+             patched_plan, served_greedy, False, after_agent),
         *([Case("patched_plan_and_norm", "V1",
                 "tests/plan.json and norm.json edited to agree on a worse C_best, with a mediocre episode served",
                 patched_plan_and_norm, shifted.reward, False,
                 f"{after_agent}; the served episode costs {shifted.cost:.1f} and the fake C_best is "
                 f"{shifted.fake_c_best:.1f}")] if shifted else []),
         Case("patched_cost_module", "V1", "tests/railway/sim/cost.py zeroed, with a log claiming cost 0",
-             patched_cost_module, 0.0, False, after_agent),
+             patched_cost_module, served_greedy, False, after_agent),
         Case("patched_verifier", "V1", "tests/verify.py replaced by a script that writes 1.0",
-             patched_verifier, 0.0, False, after_agent),
+             patched_verifier, served_greedy, False, after_agent),
         Case("patched_scenario", "V1", "tests/scenario.json shortened to one tick",
-             patched_scenario, 0.0, False, after_agent),
+             patched_scenario, served_greedy, False, after_agent),
         Case("swapped_token", "V1", "tests/token replaced, so the fetch should be refused",
              swapped_token, honest_reward, False, after_agent),
         Case("empty_log", "V4", "an empty JSON object",
-             plain({}), 0.0, False, from_sim),
+             plain({}), served_greedy, False, from_sim),
     ]
 
 
@@ -390,9 +394,10 @@ def render(rows: list[dict], honest_reward: float, skipped: list[str] = ()) -> s
     lines = [
         "# Verifier tamper suite",
         "",
-        f"Honest reward of the task's own best plan: {honest_reward:.3f}. Each case serves a chosen episode log "
-        "and names the reward that log honestly deserves (the Deserves column). An attack wins if the "
-        "verifier writes more than that, or leaves any reward.json (Harbor prefers it over reward.txt).",
+        f"The reward is −(total cost); the task's own best plan deserves {honest_reward:.3f}. Each case serves "
+        "a chosen episode log and names the reward that log honestly deserves (the Deserves column). An "
+        "attack wins if the verifier writes more than that, or leaves any reward.json (Harbor prefers it "
+        "over reward.txt).",
         "",
         "Reachable says whether an agent in a shipped task could do this at all: the episode log is served "
         "by the sim sidecar, and tests/ arrives only after the agent finishes, so most cases are "
