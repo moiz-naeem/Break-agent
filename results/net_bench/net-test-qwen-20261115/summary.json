@@ -1,75 +1,75 @@
 {
   "qwen38-think|ALL": {
     "ci95": [
-      -4489.174444444445,
-      -1794.4056944444444
+      -4986.381578947368,
+      -2052.866052631579
     ],
     "components": {
-      "C1": 913.3979166666667,
-      "C2": 2110.9702083333336,
-      "C3": 2.5208333333333335,
+      "C1": 877.306,
+      "C2": 2391.7458,
+      "C3": 2.42,
       "C4": 0.0,
-      "C5": 222.72833333333335
+      "C5": 255.5584
     },
-    "episodes": 24,
+    "episodes": 25,
     "infra_errors": 0,
-    "invalid_rate": 0.0036518563603164943,
+    "invalid_rate": 0.0035149384885764497,
     "kpis": {
-      "clean_shift_rate": 0.125,
-      "freight_delivered_pct": 95.83333333333333,
-      "on_time_pct": 59.7125,
-      "passenger_delay_minutes": 87808.95833333333
+      "clean_shift_rate": 0.12,
+      "freight_delivered_pct": 96.0,
+      "on_time_pct": 60.123999999999995,
+      "passenger_delay_minutes": 84370.6
     },
-    "mean_reward": -3072.246111111111,
-    "ok": 24,
-    "refusal_rate": 0.014607425441265977,
-    "seeds": 18,
+    "mean_reward": -3446.5984210526317,
+    "ok": 25,
+    "refusal_rate": 0.01698886936145284,
+    "seeds": 19,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 1517320.0833333333,
-      "out": 304871.3333333333,
-      "reasoning": 294643.4583333333
+      "in": 1512573.76,
+      "out": 307983.12,
+      "reasoning": 297782.64
     },
-    "tool_calls_mean": 136.91666666666666,
+    "tool_calls_mean": 136.56,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 8054.42075
+    "wall_s_mean": 8392.483520000002
   },
   "qwen38-think|T1": {
     "ci95": [
-      -3946.636,
-      -1388.5776666666668
+      -4550.2290625000005,
+      -1575.1325
     ],
     "components": {
-      "C1": 564.3907894736842,
-      "C2": 1697.7378947368422,
-      "C3": 2.6315789473684212,
+      "C1": 536.7262499999999,
+      "C2": 2069.3689999999997,
+      "C3": 2.5,
       "C4": 0.0,
-      "C5": 177.70947368421054
+      "C5": 220.998
     },
-    "episodes": 19,
+    "episodes": 20,
     "infra_errors": 0,
-    "invalid_rate": 0.003244997295835587,
+    "invalid_rate": 0.0030349013657056147,
     "kpis": {
-      "clean_shift_rate": 0.15789473684210525,
-      "freight_delivered_pct": 94.73684210526316,
-      "on_time_pct": 57.231578947368426,
-      "passenger_delay_minutes": 50513.31578947369
+      "clean_shift_rate": 0.15,
+      "freight_delivered_pct": 95.0,
+      "on_time_pct": 57.870000000000005,
+      "passenger_delay_minutes": 48080.15
     },
-    "mean_reward": -2513.950333333333,
-    "ok": 19,
-    "refusal_rate": 0.017306652244456464,
-    "seeds": 15,
+    "mean_reward": -2993.3871875,
+    "ok": 20,
+    "refusal_rate": 0.021244309559939303,
+    "seeds": 16,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 1044444.5789473684,
-      "out": 236256.8947368421,
-      "reasoning": 227286.8947368421
+      "in": 1062155.45,
+      "out": 243577.35,
+      "reasoning": 234578.7
     },
-    "tool_calls_mean": 97.3157894736842,
+    "tool_calls_mean": 98.85,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 7215.716473684211
+    "wall_s_mean": 7680.23015
   },
   "qwen38-think|T2": {
     "ci95": [
