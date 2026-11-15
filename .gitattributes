@@ -1,6 +1,6 @@
 # Scripts run inside Linux containers: never convert to CRLF.
 *.sh text eol=lf
-spike/**/token text eol=lf
+archive/spike/**/token text eol=lf
 Dockerfile text eol=lf
 *.yaml text eol=lf
 *.toml text eol=lf
