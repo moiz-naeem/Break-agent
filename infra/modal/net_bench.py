@@ -56,7 +56,8 @@ FALLBACK_MODELS: dict[str, dict] = {
     "qwen38-think": {"provider": "vllm", "base_url": "https://hoaianh517--railway-qwen-think.us-east.modal.direct/v1",
                      "model": "qwen38", "api_key_env": "VLLM_API_KEY", "max_tokens": 32768},
     "gemini-carbon-high": {"provider": "gemini", "base_url": "https://generativelanguage.googleapis.com/v1beta",
-                           "model": "gemini-4-carbon", "api_key_env": "GEMINI_API_KEY", "max_tokens": 32768},
+                           "model": "gemini-4-carbon", "api_key_env": "GEMINI_API_KEY",
+                           "thinking_budget": 4096, "max_tokens": 32768},
     "nemotron-super": {"provider": "verda",
                        "base_url": "https://containers.datacrunch.io/nemotron-3-5-super-vl-b300/v1",
                        "model": "nemotron-3.5-super-vl", "api_key_env": "VERDA_INFERENCE_KEY", "max_tokens": 32768},
@@ -284,8 +285,10 @@ def play_job(job: dict) -> dict:
         }
         bundle = Path(row.get("transcript_dir") or bundle)
         row["transcript_dir"] = str(bundle)
-        _write_missing_bundle_files(bundle, session, row)
         traj = trajectory(session)
+        _write_missing_bundle_files(bundle, session, row)
+        if traj is not None and not (bundle / "trajectory.json").exists():
+            (bundle / "trajectory.json").write_text(json.dumps(traj, sort_keys=True) + "\n", encoding="utf-8")
     except Exception as exc:  # noqa: BLE001 - infra errors are reported, never scored
         row = {**base, "status": "error", "error": f"{type(exc).__name__}: {exc}"}
         traj = trajectory(session) if session is not None else None
@@ -307,6 +310,65 @@ def run_episode(job: dict) -> dict:
     out = play_job(job)
     transcripts.commit()
     return out
+
+
+@app.function(
+    cpu=1,
+    memory=1024,
+    timeout=24 * 3600,
+    volumes={TRANSCRIPTS_MOUNT: transcripts},
+)
+def orchestrate_cloud(run_name: str, jobs: list[dict]) -> dict:
+    """Server-side orchestrator so `modal run --detach ...::launch_cloud` survives if the laptop disconnects."""
+    _setup()
+    for url in sorted({model_preset(j["model"]).get("base_url", "") for j in jobs}):
+        warm_if_needed(url)
+    print(f"[{run_name}] cloud orchestrator dispatching {len(jobs)} episodes", flush=True)
+    ok = errors = 0
+    for res in run_episode.map(jobs, order_outputs=False):
+        row = res["row"]
+        if row.get("status") == "ok":
+            ok += 1
+            tail = f"reward={row.get('reward')}"
+        else:
+            errors += 1
+            tail = f"ERROR {row.get('error')}"
+            err_dir = _bundle_dir(
+                {
+                    "run": run_name,
+                    "model": row["model"],
+                    "split": row["split"],
+                    "scenario_id": row["scenario_id"],
+                    "rep": row["rep"],
+                }
+            )
+            err_dir.mkdir(parents=True, exist_ok=True)
+            (err_dir / "error.json").write_text(json.dumps(row, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            transcripts.commit()
+        msg = f"[{run_name}] ({ok + errors}/{len(jobs)}) {row['model']} {row['scenario_id']} r{row['rep']}: {tail}"
+        print(msg, flush=True)
+    return {"run": run_name, "total": len(jobs), "ok": ok, "errors": errors}
+
+
+@app.local_entrypoint()
+def launch_cloud(
+    models: str = ",".join(DEFAULT_MODELS),
+    tiers: str = "T1",
+    split: str = "test",
+    seeds: int = 0,
+    reps: int = 1,
+    run_name: str = "",
+):
+    """Spawn `orchestrate_cloud` inside Modal (`--detach`) so `.map()` runs 100% in the cloud."""
+    name = run_name or _default_run(f"net-{split}")
+    collect(name)  # skip any episodes already saved on the volume
+    jobs = build_jobs(name, _split_list(models), _split_list(tiers), split, seeds, reps)
+    if not jobs:
+        print(f"[{name}] all episodes already complete")
+        write_report(name)
+        return
+    call = orchestrate_cloud.spawn(name, jobs)
+    print(f"[{name}] spawned cloud orchestrator {call.object_id} for {len(jobs)} episodes", flush=True)
 
 
 # -- local side ----------------------------------------------------------------------------------------

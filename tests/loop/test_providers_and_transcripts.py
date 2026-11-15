@@ -541,6 +541,21 @@ def test_gemini_thought_signatures_passed_back_unchanged_in_episode(mini3, tmp_p
     fn_resp_part = req2["contents"][2]["parts"][0]
     assert fn_resp_part["functionResponse"]["name"] == "kpis"
 
+    # Benchmark preset `gemini-carbon-high` uses thinkingBudget=4096 + maxOutputTokens=32768 (no thinkingLevel),
+    # leaving 28,672 output tokens of headroom after thinking so a tool call can never be truncated.
+    from railway.loop.providers import make_benchmark_client
+
+    monkeypatch.setenv("GEMINI_API_KEY", "dummy-gem-key")
+    bench_gem = make_benchmark_client("gemini-carbon-high")
+    assert isinstance(bench_gem, GeminiClient)
+    assert bench_gem.max_tokens == 32768
+    assert bench_gem.thinking_budget == 4096
+    assert bench_gem.effort is None
+    body = bench_gem.request_body([{"role": "user", "content": "hi"}], [])
+    assert body["generationConfig"]["maxOutputTokens"] == 32768
+    assert body["generationConfig"]["thinkingConfig"] == {"includeThoughts": True, "thinkingBudget": 4096}
+    bench_gem.close()
+
 
 # --- 3. Transcript bundle always written (no transcript_path) + EventLog + SFT roundtrip ----------
 

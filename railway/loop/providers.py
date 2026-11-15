@@ -76,7 +76,8 @@ BENCHMARK_MODELS: dict[str, dict[str, Any]] = {
         "base_url": GEMINI_BASE_URL,
         "model": "gemini-4-carbon",
         "api_key_env": "GEMINI_API_KEY",
-        "effort": "high",
+        "effort": None,
+        "thinking_budget": 4096,
         "max_tokens": 32768,
         "timeout_s": BENCHMARK_TIMEOUT_S,
     },
@@ -597,6 +598,7 @@ class GeminiClient:
         api_key_env: str | None = "GEMINI_API_KEY",
         *,
         effort: str | None = "high",
+        thinking_budget: int | None = None,
         include_thoughts: bool = True,
         temperature: float | None = None,
         max_tokens: int = 32768,
@@ -610,7 +612,8 @@ class GeminiClient:
         self.model = model
         self.url = f"{self.base_url}/models/{model}:generateContent"
         self.api_key_env = api_key_env
-        self.effort = effort
+        self.effort = None if thinking_budget is not None else effort
+        self.thinking_budget = thinking_budget
         self.include_thoughts = include_thoughts
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -639,6 +642,8 @@ class GeminiClient:
             "include_thoughts": self.include_thoughts,
             "max_tokens": self.max_tokens,
         }
+        if self.thinking_budget is not None:
+            out["thinking_budget"] = self.thinking_budget
         if self.temperature is not None:
             out["temperature"] = self.temperature
         return out
@@ -725,7 +730,9 @@ class GeminiClient:
         if self.temperature is not None:
             gen_cfg["temperature"] = self.temperature
         thinking_cfg: dict[str, Any] = {"includeThoughts": self.include_thoughts}
-        if self.effort:
+        if self.thinking_budget is not None:
+            thinking_cfg["thinkingBudget"] = self.thinking_budget
+        elif self.effort:
             thinking_cfg["thinkingLevel"] = self.effort
         gen_cfg["thinkingConfig"] = thinking_cfg
 
@@ -813,6 +820,7 @@ def make_client(
     *,
     provider: str | None = None,
     effort: str | None = None,
+    thinking_budget: int | None = None,
     thinking_mode: str = "adaptive",
     include_thoughts: bool = True,
     temperature: float | None = None,
@@ -843,6 +851,7 @@ def make_client(
             model=model,
             api_key_env=api_key_env,
             effort=effort,
+            thinking_budget=thinking_budget,
             include_thoughts=include_thoughts,
             temperature=temperature,
             max_tokens=max_tokens,
