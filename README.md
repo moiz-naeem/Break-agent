@@ -16,7 +16,7 @@ same actions, the same reward, which the verifier re-checks by replaying the age
 |---|---|
 | Tiers | T1 Trunk & Branches (180 min), T2 Converging Hub (240 min), T3 Two-Hub Corridor (360 min) |
 | Harbor datasets | [`datasets/net-dev-mini`](datasets/net-dev-mini) (3 tasks), [`datasets/net-test-core`](datasets/net-test-core) (15 held-out tasks) |
-| Seeds | dev 1–9999, held-out test 10000–19999, training 20000+ (`seeds/net-T*-{dev,test}.json`, hash-checked) |
+| Seeds | dev 1–9999, held-out test 10000–19999, training 20000+ (`seeds/net-T*-{dev,test,train}.json`, hash-checked) |
 | Design | [`docs/network-v0.3.md`](docs/network-v0.3.md), cost function [`docs/net-cost.md`](docs/net-cost.md), changes from v0.2 [`docs/design-changes-v0.3.md`](docs/design-changes-v0.3.md) |
 
 ## Why railway network dispatching, and what an agent learns here
@@ -152,6 +152,9 @@ Rows land in `results/net_bench/<run-name>/rows.jsonl` with a `summary.md` table
 served from its own endpoint as `qwen38-sft`; add it to `--models` once that endpoint is registered in
 `railway/loop/providers.py`.
 
+The rows published below came from this same benchmark loop (`railway/loop`; every row says `harness: loop`),
+run on rented GPU containers and a university cluster rather than on Modal.
+
 ## Benchmark and post-training results
 
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
@@ -200,6 +203,23 @@ Fine-tuned Qwen has finished 1 T1 episode (mean −305.4, row above), but none o
 them only through the Factory Droid harness. That harness gives the model a different context from the
 benchmark loop the three models above run in, so Opus 5.5 is the source of the training data only. It is not
 a benchmark entry, it has no row in these tables, and no score of its own should be compared with them.
+
+## How the fine-tuned model was trained
+
+- **Method.** Supervised fine-tuning of a LoRA adapter (rank 16) on Qwen 3.8 27B: 6 optimizer steps of 8 samples
+  each, learning rate 5e-5. Each sample is one teacher turn with the exact prompt and tools the benchmark loop
+  sends, so training and evaluation see the same input format. Only turns with exactly one tool call are used.
+- **Teacher data.** Dispatcher episodes played by Claude Opus 5.5 through Harbor with the Factory Droid agent
+  (`infra/modal/_harbor_droid_agent.py`), on the training seeds only (`seeds/net-T*-train.json`, 20000+).
+  `railway/train/env.py` refuses other seeds by default.
+- **Code.** `railway/train/` holds the SFT trainer (`sft.py`), the teacher-data builder (`teacher.py`,
+  `teacher_data.py`), the rollout and evaluation code and a multi-turn GRPO trainer (`grpo.py`). Modal entry
+  points are in `infra/modal/train.py` and `infra/modal/serve_qwen.py`; the method is written up in
+  [`docs/training.md`](docs/training.md). Tests: `tests/train/`.
+- **What the reported model is.** The fine-tuned row above is the SFT adapter only. The GRPO trainer is
+  included but no GRPO-trained model is reported. The scored adapter was trained on a single rented H100
+  container, not on Modal.
+- **Not in this repository.** The adapter weights and the teacher episode files.
 
 ## Where agents fall short, and why
 
@@ -255,7 +275,9 @@ The reward can only be earned by running the railway well. What we checked (deta
 | `railway/net/` | simulator engine, interlocking, routing, cost, timetable generator, MCP session and server |
 | `railway/harbor/net_export.py`, `net_verify.py`, `net_templates/` | Harbor task export, replay verifier, oracle client |
 | `datasets/net-dev-mini`, `datasets/net-test-core` | exported Harbor tasks (v0.3 network) |
-| `datasets/t1-dev-mini` | the earlier v0.2 single-track tasks (kept for reference) |
-| `infra/modal/` | benchmark and Harbor runners on Modal |
-| `seeds/net-T*-*.json` | accepted dev and test seeds with scenario hashes |
+| `infra/modal/` | benchmark and Harbor runners, training and model-serving jobs on Modal |
+| `railway/train/`, `docs/training.md` | post-training: SFT and GRPO trainers, teacher data, evaluation |
+| `seeds/net-T*-*.json` | accepted dev, test and training seeds with scenario hashes |
 | `tests/net/` | test suite for the network track |
+| `results/`, `docs/benchmark-results.md` | raw benchmark rows, scoreboard and the full result tables |
+| `archive/` | earlier work kept for reference: the day-1 Harbor spike, the v0.2 single-track tasks, internal planning docs |
