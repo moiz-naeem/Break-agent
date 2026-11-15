@@ -1,8 +1,8 @@
 {
-  "generated_utc": "2026-11-15 07:54 UTC",
+  "generated_utc": "2026-11-15 09:36 UTC",
   "sources": {
-    "local": "D:\\Hoai Anh\\Aalto\\Hobbies\\Afterquery-net\\results\\net_bench",
-    "cluster": "kosh"
+    "local": "results\\net_bench",
+    "cluster": null
   },
   "lineup": {
     "carbon": {
@@ -26,43 +26,43 @@
   },
   "progress": {
     "carbon": {
-      "local_rows": 65,
-      "cluster_rows": 65,
-      "merged": 65,
-      "ok": 65,
+      "local_rows": 87,
+      "cluster_rows": 0,
+      "merged": 87,
+      "ok": 87,
       "errors": 0,
       "expected": 270,
-      "pct": 24.074074074074073,
+      "pct": 32.22222222222222,
       "by_tier": {
         "T1": 58,
-        "T2": 7,
+        "T2": 29,
         "T3": 0
       }
     },
     "qwen": {
-      "local_rows": 5,
-      "cluster_rows": 1,
-      "merged": 5,
-      "ok": 5,
+      "local_rows": 18,
+      "cluster_rows": 0,
+      "merged": 18,
+      "ok": 18,
       "errors": 0,
       "expected": 270,
-      "pct": 1.8518518518518519,
+      "pct": 6.666666666666667,
       "by_tier": {
-        "T1": 5,
-        "T2": 0,
+        "T1": 17,
+        "T2": 1,
         "T3": 0
       }
     },
     "sft": {
-      "local_rows": 1,
+      "local_rows": 13,
       "cluster_rows": 0,
-      "merged": 1,
-      "ok": 1,
+      "merged": 13,
+      "ok": 13,
       "errors": 0,
       "expected": 30,
-      "pct": 3.3333333333333335,
+      "pct": 43.333333333333336,
       "by_tier": {
-        "T1": 1,
+        "T1": 13,
         "T2": 0,
         "T3": 0
       }
@@ -96,187 +96,225 @@
         "cost_usd": 251.264805
       },
       "T2": {
-        "seeds": 6,
-        "episodes_ok": 7,
+        "seeds": 21,
+        "episodes_ok": 29,
         "episodes_error": 0,
-        "mean_reward": -2952.43625,
+        "mean_reward": -6557.152936507937,
         "ci95": [
-          -4612.0008333333335,
-          -1519.0858333333333
+          -8698.723055555556,
+          -4721.375476190476
         ],
-        "within_seed_std": 480.18749999999994,
-        "seeds_with_reps": 1,
-        "C1": 1761.2924999999998,
-        "C2": 1026.5270833333334,
-        "C3": 3.6666666666666665,
+        "within_seed_std": 1314.5941782724617,
+        "seeds_with_reps": 7,
+        "C1": 2674.420119047619,
+        "C2": 3533.467738095238,
+        "C3": 13.26984126984127,
         "C4": 0.0,
-        "C5": 160.95000000000002,
-        "on_time_pct": 71.0825,
-        "passenger_delay_minutes": 202403.83333333334,
-        "freight_delivered_pct": 100.0,
-        "clean_shift": 8.333333333333334,
-        "gridlocks": 0.0,
-        "unfinished": 2.0,
-        "do_nothing_reward": -112223.53333333333,
-        "cost_usd": 85.5208656
+        "C5": 335.99523809523805,
+        "on_time_pct": 60.5995238095238,
+        "passenger_delay_minutes": 272630.77777777775,
+        "freight_delivered_pct": 91.26984126984128,
+        "clean_shift": 4.761904761904762,
+        "gridlocks": 0.14285714285714285,
+        "unfinished": 4.087301587301587,
+        "do_nothing_reward": -114127.25238095237,
+        "cost_usd": 451.9312967
       },
       "ALL": {
-        "seeds": 32,
-        "episodes_ok": 65,
+        "seeds": 47,
+        "episodes_ok": 87,
         "episodes_error": 0,
-        "mean_reward": -1812.9158333333332,
+        "mean_reward": -3787.210656028369,
         "ci95": [
-          -2531.4055729166666,
-          -1212.46921875
+          -5027.7971276595745,
+          -2681.191524822695
         ],
-        "within_seed_std": 319.6023147099439,
-        "seeds_with_reps": 22,
-        "C1": 619.8773177083333,
-        "C2": 1124.8298697916666,
-        "C3": 3.3802083333333335,
+        "within_seed_std": 562.6150954116428,
+        "seeds_with_reps": 28,
+        "C1": 1392.15195035461,
+        "C2": 2213.579060283688,
+        "C3": 7.76241134751773,
         "C4": 0.0,
-        "C5": 64.82843749999999,
-        "on_time_pct": 68.22921875,
-        "passenger_delay_minutes": 68154.8125,
-        "freight_delivered_pct": 82.29171875,
-        "clean_shift": 20.833333333333332,
-        "gridlocks": 0.020833333333333332,
-        "unfinished": 1.7916666666666667,
-        "do_nothing_reward": -44294.5403125,
-        "cost_usd": 336.7856706
+        "C5": 173.7172340425532,
+        "on_time_pct": 64.45595744680851,
+        "passenger_delay_minutes": 142378.24113475176,
+        "freight_delivered_pct": 84.04258865248227,
+        "clean_shift": 15.24822695035461,
+        "gridlocks": 0.07801418439716312,
+        "unfinished": 2.7907801418439715,
+        "do_nothing_reward": -66824.6040425532,
+        "cost_usd": 703.1961017
       }
     },
     "qwen": {
       "T1": {
-        "seeds": 4,
-        "episodes_ok": 5,
+        "seeds": 14,
+        "episodes_ok": 17,
         "episodes_error": 0,
-        "mean_reward": -950.70125,
+        "mean_reward": -2518.4460714285715,
         "ci95": [
-          -1879.8474999999999,
-          -21.555
+          -4127.455714285715,
+          -1234.5217857142857
         ],
-        "within_seed_std": 594.155,
-        "seeds_with_reps": 1,
-        "C1": 153.31125,
-        "C2": 780.575,
-        "C3": 1.25,
+        "within_seed_std": 1812.2516666666668,
+        "seeds_with_reps": 3,
+        "C1": 499.4782142857143,
+        "C2": 1816.9664285714284,
+        "C3": 2.5714285714285716,
         "C4": 0.0,
-        "C5": 15.565,
-        "on_time_pct": 90.5725,
-        "passenger_delay_minutes": 19080.875,
-        "freight_delivered_pct": 87.5,
-        "clean_shift": 50.0,
+        "C5": 199.43,
+        "on_time_pct": 58.94571428571429,
+        "passenger_delay_minutes": 45499.17857142857,
+        "freight_delivered_pct": 92.85714285714286,
+        "clean_shift": 17.857142857142858,
+        "gridlocks": 0.17857142857142858,
+        "unfinished": 2.857142857142857,
+        "do_nothing_reward": -28568.922142857144,
+        "cost_usd": 0.0
+      },
+      "T2": {
+        "seeds": 1,
+        "episodes_ok": 1,
+        "episodes_error": 0,
+        "mean_reward": -2504.87,
+        "ci95": [
+          -2504.87,
+          -2504.87
+        ],
+        "within_seed_std": null,
+        "seeds_with_reps": 0,
+        "C1": 1833.02,
+        "C2": 483.35,
+        "C3": 8.5,
+        "C4": 0.0,
+        "C5": 180.0,
+        "on_time_pct": 81.01,
+        "passenger_delay_minutes": 192446.0,
+        "freight_delivered_pct": 100.0,
+        "clean_shift": 0.0,
         "gridlocks": 0.0,
-        "unfinished": 1.25,
-        "do_nothing_reward": -28417.545,
+        "unfinished": 2.0,
+        "do_nothing_reward": -114443.66,
         "cost_usd": 0.0
       },
       "ALL": {
-        "seeds": 4,
-        "episodes_ok": 5,
+        "seeds": 15,
+        "episodes_ok": 18,
         "episodes_error": 0,
-        "mean_reward": -950.70125,
+        "mean_reward": -2517.5409999999997,
         "ci95": [
-          -1879.8474999999999,
-          -21.555
+          -3998.7003333333337,
+          -1344.1393333333333
         ],
-        "within_seed_std": 594.155,
-        "seeds_with_reps": 1,
-        "C1": 153.31125,
-        "C2": 780.575,
-        "C3": 1.25,
+        "within_seed_std": 1812.2516666666668,
+        "seeds_with_reps": 3,
+        "C1": 588.381,
+        "C2": 1728.0586666666668,
+        "C3": 2.966666666666667,
         "C4": 0.0,
-        "C5": 15.565,
-        "on_time_pct": 90.5725,
-        "passenger_delay_minutes": 19080.875,
-        "freight_delivered_pct": 87.5,
-        "clean_shift": 50.0,
-        "gridlocks": 0.0,
-        "unfinished": 1.25,
-        "do_nothing_reward": -28417.545,
+        "C5": 198.13466666666667,
+        "on_time_pct": 60.416666666666664,
+        "passenger_delay_minutes": 55295.63333333333,
+        "freight_delivered_pct": 93.33333333333333,
+        "clean_shift": 16.666666666666668,
+        "gridlocks": 0.16666666666666666,
+        "unfinished": 2.8,
+        "do_nothing_reward": -34293.90466666667,
         "cost_usd": 0.0
       }
     },
     "sft": {
       "T1": {
-        "seeds": 1,
-        "episodes_ok": 1,
+        "seeds": 13,
+        "episodes_ok": 13,
         "episodes_error": 0,
-        "mean_reward": -305.45,
+        "mean_reward": -1145.298076923077,
         "ci95": [
-          -305.45,
-          -305.45
+          -1765.2088461538463,
+          -632.2492307692307
         ],
         "within_seed_std": null,
         "seeds_with_reps": 0,
-        "C1": 89.45,
-        "C2": 200.0,
-        "C3": 0.0,
+        "C1": 482.6011538461538,
+        "C2": 631.3507692307692,
+        "C3": 6.0,
         "C4": 0.0,
-        "C5": 16.0,
-        "on_time_pct": 90.32,
-        "passenger_delay_minutes": 12523.0,
-        "freight_delivered_pct": 100.0,
-        "clean_shift": 0.0,
+        "C5": 25.346153846153847,
+        "on_time_pct": 66.46538461538461,
+        "passenger_delay_minutes": 43740.230769230766,
+        "freight_delivered_pct": 92.3076923076923,
+        "clean_shift": 15.384615384615385,
         "gridlocks": 0.0,
-        "unfinished": 1.0,
-        "do_nothing_reward": -29120.16,
+        "unfinished": 1.3846153846153846,
+        "do_nothing_reward": -29062.576923076922,
         "cost_usd": 0.0
       },
       "ALL": {
-        "seeds": 1,
-        "episodes_ok": 1,
+        "seeds": 13,
+        "episodes_ok": 13,
         "episodes_error": 0,
-        "mean_reward": -305.45,
+        "mean_reward": -1145.298076923077,
         "ci95": [
-          -305.45,
-          -305.45
+          -1765.2088461538463,
+          -632.2492307692307
         ],
         "within_seed_std": null,
         "seeds_with_reps": 0,
-        "C1": 89.45,
-        "C2": 200.0,
-        "C3": 0.0,
+        "C1": 482.6011538461538,
+        "C2": 631.3507692307692,
+        "C3": 6.0,
         "C4": 0.0,
-        "C5": 16.0,
-        "on_time_pct": 90.32,
-        "passenger_delay_minutes": 12523.0,
-        "freight_delivered_pct": 100.0,
-        "clean_shift": 0.0,
+        "C5": 25.346153846153847,
+        "on_time_pct": 66.46538461538461,
+        "passenger_delay_minutes": 43740.230769230766,
+        "freight_delivered_pct": 92.3076923076923,
+        "clean_shift": 15.384615384615385,
         "gridlocks": 0.0,
-        "unfinished": 1.0,
-        "do_nothing_reward": -29120.16,
+        "unfinished": 1.3846153846153846,
+        "do_nothing_reward": -29062.576923076922,
         "cost_usd": 0.0
       }
     }
   },
   "head_to_head": {
     "T1": {
-      "seeds": 4,
-      "mean_a": -1084.8291666666667,
-      "mean_b": -950.70125,
-      "mean_diff": -134.12791666666664,
+      "seeds": 12,
+      "mean_a": -1955.2097916666664,
+      "mean_b": -1998.5966666666666,
+      "mean_diff": 43.386874999999954,
       "ci95": [
-        -535.95875,
-        154.79166666666674
+        -1515.5731944444444,
+        1509.5619444444446
+      ],
+      "wins": 4,
+      "ties": 0,
+      "losses": 8
+    },
+    "T2": {
+      "seeds": 1,
+      "mean_a": -1112.7775,
+      "mean_b": -2504.87,
+      "mean_diff": 1392.0925,
+      "ci95": [
+        1392.0925,
+        1392.0925
       ],
       "wins": 1,
       "ties": 0,
-      "losses": 3
+      "losses": 0
     },
     "ALL": {
-      "seeds": 4,
-      "mean_a": -1084.8291666666667,
-      "mean_b": -950.70125,
-      "mean_diff": -134.12791666666664,
+      "seeds": 13,
+      "mean_a": -1890.4073076923075,
+      "mean_b": -2037.5407692307692,
+      "mean_diff": 147.1334615384615,
       "ci95": [
-        -535.95875,
-        154.79166666666674
+        -1356.4931410256409,
+        1528.1881410256408
       ],
-      "wins": 1,
+      "wins": 5,
       "ties": 0,
-      "losses": 3
+      "losses": 8
     }
   },
   "integrity": {
@@ -297,8 +335,92 @@
     }
   },
   "post_training": {
-    "seeds": 0,
-    "seed_list": []
+    "seeds": 7,
+    "seed_list": [
+      10000,
+      10001,
+      10003,
+      10012,
+      10017,
+      10018,
+      10025
+    ],
+    "carbon_mean": -1559.2544047619049,
+    "carbon_ci95": [
+      -2161.8626190476193,
+      -936.7299999999999
+    ],
+    "carbon_on_time_pct": 64.17571428571428,
+    "carbon_unfinished": 1.9523809523809523,
+    "carbon_clean_shift": 14.285714285714286,
+    "qwen_mean": -1915.4978571428571,
+    "qwen_ci95": [
+      -3349.6878571428574,
+      -828.3857142857144
+    ],
+    "qwen_on_time_pct": 59.25857142857143,
+    "qwen_unfinished": 2.142857142857143,
+    "qwen_clean_shift": 14.285714285714286,
+    "sft_mean": -1323.715,
+    "sft_ci95": [
+      -2364.242142857143,
+      -467.68285714285713
+    ],
+    "sft_on_time_pct": 62.13142857142857,
+    "sft_unfinished": 1.4285714285714286,
+    "sft_clean_shift": 28.571428571428573,
+    "sft_minus_base": {
+      "seeds": 7,
+      "mean_a": -1323.715,
+      "mean_b": -1915.4978571428571,
+      "mean_diff": 591.7828571428572,
+      "ci95": [
+        -1041.83,
+        2385.034285714286
+      ],
+      "wins": 4,
+      "ties": 2,
+      "losses": 1
+    },
+    "carbon_minus_sft": {
+      "seeds": 7,
+      "mean_a": -1559.2544047619049,
+      "mean_b": -1323.715,
+      "mean_diff": -235.5394047619048,
+      "ci95": [
+        -961.082380952381,
+        460.6917857142856
+      ],
+      "wins": 3,
+      "ties": 0,
+      "losses": 4
+    },
+    "carbon_minus_base": {
+      "seeds": 7,
+      "mean_a": -1559.2544047619049,
+      "mean_b": -1915.4978571428571,
+      "mean_diff": 356.2434523809525,
+      "ci95": [
+        -825.5433333333333,
+        2055.3978571428574
+      ],
+      "wins": 3,
+      "ties": 0,
+      "losses": 4
+    },
+    "gap_closed_pct": 166.11753933656257
   },
-  "sft_vs_base_all_t1": null
+  "sft_vs_base_all_t1": {
+    "seeds": 7,
+    "mean_a": -1323.715,
+    "mean_b": -1915.4978571428571,
+    "mean_diff": 591.7828571428572,
+    "ci95": [
+      -1041.83,
+      2385.034285714286
+    ],
+    "wins": 4,
+    "ties": 2,
+    "losses": 1
+  }
 }
