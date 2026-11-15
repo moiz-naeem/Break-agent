@@ -415,6 +415,10 @@ class Engine:
             return self._act("platform", args, Refusal(NetRule.NO_ROUTE, f"{train_id} already stands in {platform_id}"))
         if not isinstance(self.net.element(platform_id), Platform):
             return self._act("platform", args, Refusal(NetRule.NO_ROUTE, f"{platform_id} is not a platform"))
+        booked_node = self._node(mv.plan[0].platform)
+        if self._node(platform_id) != booked_node:
+            refusal = Refusal(NetRule.NO_ROUTE, f"{platform_id} is not at {booked_node}, where {train_id} calls next")
+            return self._act("platform", args, refusal)
         stops = [(v, False) for v in mv.via] + [(platform_id, False)]
         if self._chain(mv, mv.position, mv.facing(self.net), self._side_in(mv), stops, via_count=len(mv.via)) is None:
             refusal = Refusal(NetRule.NO_ROUTE, f"no route from {mv.position} to {platform_id} for {train_id}")
