@@ -247,16 +247,17 @@ def test_conflicts_order_hold_platform_and_changes_only(sample_timetable, strand
     assert s_mid.call("platform", {"train": "IC1", "station": "C", "n": 1}).startswith("REFUSED R-ALREADY-RUNNING")
     assert s_mid.log[-1]["status"] == "REFUSED"
 
-    # Rescue an UNROUTABLE train with platform().
+    # Rescue an UNROUTABLE train with platform() onto a longer road at the same station.
     u = Session(stranded_timetable)
     u_adv = u.call("advance_to_next_event", {})
     assert "UNROUTABLE IC9" in u_adv
-    assert u.call("platform", {"train": "IC9", "station": "C", "n": "C1"}).startswith("OK")
+    assert u.call("platform", {"train": "IC9", "station": "C", "n": "C1"}).startswith("REFUSED R-NO-ROUTE")
+    assert u.call("platform", {"train": "IC9", "station": "N", "n": "N2"}).startswith("OK")
     while not u.closed:
         u.call("advance_to_next_event", {})
         for c in u.engine._conflicts(u.engine._wanting(15)):
             u.call("order", {"resource": format_key(c.key), "trains": sorted(c.trains)})
-    assert ("IC9", "done", "C1") in [r[:3] for r in u.close().state]
+    assert ("IC9", "done", "N2") in [r[:3] for r in u.close().state]
 
 
 def test_connection_at_risk_shown_in_conflicts():
