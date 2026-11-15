@@ -1,0 +1,3418 @@
+[
+  {
+    "tier": "T1",
+    "seed": 1,
+    "booked": 4591.23,
+    "control": {
+      "tier": "T1",
+      "seed": 1,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 750.91,
+        "missed_calls": 0.0,
+        "unfinished": 2500.0,
+        "freight_lateness": 10.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 57.0,
+        "total": 3318.41
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 1,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 36,
+        "unfinished": 5
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE04",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 2.5
+        },
+        {
+          "tick": 0,
+          "train": "SE02",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 1248.02
+        },
+        {
+          "tick": 103,
+          "train": "SE06",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 22.3
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 10
+    },
+    "exploit": {
+      "tier": "T1",
+      "seed": 1,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 658.09,
+        "missed_calls": 0.0,
+        "unfinished": 800.0,
+        "freight_lateness": 10.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 43.0,
+        "total": 1511.59
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 34,
+        "unfinished": 4
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE04",
+          "booked_node": "A",
+          "to": "B1",
+          "cross_station": true,
+          "gain": 1203.82
+        },
+        {
+          "tick": 0,
+          "train": "SE02",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 1368.08
+        },
+        {
+          "tick": 116,
+          "train": "SE04",
+          "booked_node": "N",
+          "to": "C1",
+          "cross_station": true,
+          "gain": 507.74
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 116,
+          "train": "SE04",
+          "call": 0,
+          "at": "B1",
+          "booked_node": "A"
+        },
+        {
+          "tick": 139,
+          "train": "SE04",
+          "call": 1,
+          "at": "C1",
+          "booked_node": "N"
+        }
+      ],
+      "secs": 12
+    },
+    "gain": 1806.82
+  },
+  {
+    "tier": "T1",
+    "seed": 3,
+    "booked": 3391.365,
+    "control": {
+      "tier": "T1",
+      "seed": 3,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 191.645,
+        "missed_calls": 0.0,
+        "unfinished": 200.0,
+        "freight_lateness": 4.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 46.9,
+        "total": 443.045
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 30,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "IC01",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 2826.84
+        },
+        {
+          "tick": 0,
+          "train": "SE02",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 120.77
+        },
+        {
+          "tick": 103,
+          "train": "SE07",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 0.7
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 8
+    },
+    "exploit": {
+      "tier": "T1",
+      "seed": 3,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 191.645,
+        "missed_calls": 0.0,
+        "unfinished": 200.0,
+        "freight_lateness": 4.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 46.9,
+        "total": 443.045
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 30,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "IC01",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 2826.84
+        },
+        {
+          "tick": 0,
+          "train": "SE02",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 120.77
+        },
+        {
+          "tick": 103,
+          "train": "SE07",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 0.7
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 10
+    },
+    "gain": 0.0
+  },
+  {
+    "tier": "T1",
+    "seed": 4,
+    "booked": 180.54,
+    "control": {
+      "tier": "T1",
+      "seed": 4,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 166.54,
+        "missed_calls": 0.0,
+        "unfinished": 0.0,
+        "freight_lateness": 0.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 14.0,
+        "total": 180.54
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 31,
+        "unfinished": 0
+      },
+      "moves": [],
+      "served_elsewhere": [],
+      "secs": 6
+    },
+    "exploit": {
+      "tier": "T1",
+      "seed": 4,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 166.54,
+        "missed_calls": 0.0,
+        "unfinished": 0.0,
+        "freight_lateness": 0.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 14.0,
+        "total": 180.54
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 31,
+        "unfinished": 0
+      },
+      "moves": [],
+      "served_elsewhere": [],
+      "secs": 8
+    },
+    "gain": 0.0
+  },
+  {
+    "tier": "T1",
+    "seed": 5,
+    "booked": 367.59,
+    "control": {
+      "tier": "T1",
+      "seed": 5,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 143.13,
+        "missed_calls": 0.0,
+        "unfinished": 200.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 20.2,
+        "total": 365.33
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 29,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "RE01",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 2.26
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 7
+    },
+    "exploit": {
+      "tier": "T1",
+      "seed": 5,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 143.13,
+        "missed_calls": 0.0,
+        "unfinished": 200.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 20.2,
+        "total": 365.33
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 29,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "RE01",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 2.26
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 8
+    },
+    "gain": 0.0
+  },
+  {
+    "tier": "T1",
+    "seed": 7,
+    "booked": 1446.535,
+    "control": {
+      "tier": "T1",
+      "seed": 7,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 365.025,
+        "missed_calls": 24.0,
+        "unfinished": 200.0,
+        "freight_lateness": 14.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 45.2,
+        "total": 648.725
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 32,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE05",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 512.0
+        },
+        {
+          "tick": 0,
+          "train": "SE06",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 145.81
+        },
+        {
+          "tick": 0,
+          "train": "SE05",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 140.0
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 6
+    },
+    "exploit": {
+      "tier": "T1",
+      "seed": 7,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 365.025,
+        "missed_calls": 24.0,
+        "unfinished": 200.0,
+        "freight_lateness": 14.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 45.2,
+        "total": 648.725
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 32,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE05",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 512.0
+        },
+        {
+          "tick": 0,
+          "train": "SE06",
+          "booked_node": "A",
+          "to": "A2",
+          "cross_station": false,
+          "gain": 145.81
+        },
+        {
+          "tick": 0,
+          "train": "SE05",
+          "booked_node": "A",
+          "to": "A3",
+          "cross_station": false,
+          "gain": 140.0
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 8
+    },
+    "gain": 0.0
+  },
+  {
+    "tier": "T2",
+    "seed": 2,
+    "booked": 7101.875,
+    "control": {
+      "tier": "T2",
+      "seed": 2,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 2170.675,
+        "missed_calls": 116.425,
+        "unfinished": 200.0,
+        "freight_lateness": 1.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 304.52,
+        "total": 2792.62
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 98,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SY02",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 3538.43
+        },
+        {
+          "tick": 0,
+          "train": "SW08",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 92.58
+        },
+        {
+          "tick": 60,
+          "train": "SW04",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 36.89
+        },
+        {
+          "tick": 86,
+          "train": "SY02",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 97.19
+        },
+        {
+          "tick": 86,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 89.34
+        },
+        {
+          "tick": 89,
+          "train": "SW06",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 0.96
+        },
+        {
+          "tick": 105,
+          "train": "SX03",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 16.4
+        },
+        {
+          "tick": 105,
+          "train": "SW07",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 10.61
+        },
+        {
+          "tick": 105,
+          "train": "SW08",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 190.88
+        },
+        {
+          "tick": 105,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 30.83
+        },
+        {
+          "tick": 105,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 10.2
+        },
+        {
+          "tick": 119,
+          "train": "SX04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 3.4
+        },
+        {
+          "tick": 135,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 44.63
+        },
+        {
+          "tick": 135,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 94.52
+        },
+        {
+          "tick": 135,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E2",
+          "cross_station": false,
+          "gain": 12.6
+        },
+        {
+          "tick": 135,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 2.68
+        },
+        {
+          "tick": 135,
+          "train": "SE05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.42
+        },
+        {
+          "tick": 167,
+          "train": "IC04",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 17.8
+        },
+        {
+          "tick": 167,
+          "train": "SN04",
+          "booked_node": "RN",
+          "to": "RN1",
+          "cross_station": false,
+          "gain": 2.6
+        },
+        {
+          "tick": 179,
+          "train": "SX07",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 15.3
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 97
+    },
+    "exploit": {
+      "tier": "T2",
+      "seed": 2,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 1703.74,
+        "missed_calls": 95.615,
+        "unfinished": 200.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 231.08,
+        "total": 2232.435
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 100,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "IY01",
+          "booked_node": "H",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 3926.38
+        },
+        {
+          "tick": 0,
+          "train": "SW08",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 92.58
+        },
+        {
+          "tick": 60,
+          "train": "SW04",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 11.4
+        },
+        {
+          "tick": 60,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 22.88
+        },
+        {
+          "tick": 100,
+          "train": "IC02",
+          "booked_node": "H",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 149.15
+        },
+        {
+          "tick": 105,
+          "train": "SW07",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 121.28
+        },
+        {
+          "tick": 105,
+          "train": "IY03",
+          "booked_node": "E",
+          "to": "H3",
+          "cross_station": true,
+          "gain": 172.66
+        },
+        {
+          "tick": 105,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 30.83
+        },
+        {
+          "tick": 105,
+          "train": "SW08",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 23.7
+        },
+        {
+          "tick": 135,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 44.63
+        },
+        {
+          "tick": 135,
+          "train": "IC04",
+          "booked_node": "TE",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 183.06
+        },
+        {
+          "tick": 135,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E2",
+          "cross_station": false,
+          "gain": 14.6
+        },
+        {
+          "tick": 167,
+          "train": "SN04",
+          "booked_node": "RN",
+          "to": "RN1",
+          "cross_station": false,
+          "gain": 2.6
+        },
+        {
+          "tick": 174,
+          "train": "SE05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 7.6
+        },
+        {
+          "tick": 183,
+          "train": "SY08",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 66.09
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 57,
+          "train": "IY01",
+          "call": 0,
+          "at": "E3",
+          "booked_node": "H"
+        },
+        {
+          "tick": 137,
+          "train": "IC02",
+          "call": 2,
+          "at": "E3",
+          "booked_node": "H"
+        },
+        {
+          "tick": 149,
+          "train": "IC04",
+          "call": 1,
+          "at": "E3",
+          "booked_node": "TE"
+        }
+      ],
+      "secs": 248
+    },
+    "gain": 560.185
+  },
+  {
+    "tier": "T2",
+    "seed": 3,
+    "booked": 10779.775,
+    "control": {
+      "tier": "T2",
+      "seed": 3,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 2141.98,
+        "missed_calls": 1790.785,
+        "unfinished": 800.0,
+        "freight_lateness": 5.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 381.08,
+        "total": 5119.345
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 2,
+        "refusals": 8,
+        "invalid_calls": 0,
+        "decision_points": 94,
+        "unfinished": 4
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SX01",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 4433.78
+        },
+        {
+          "tick": 0,
+          "train": "SF01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 162.97
+        },
+        {
+          "tick": 0,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 67.88
+        },
+        {
+          "tick": 0,
+          "train": "SY07",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 19.78
+        },
+        {
+          "tick": 0,
+          "train": "IY02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 13.43
+        },
+        {
+          "tick": 0,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 4.68
+        },
+        {
+          "tick": 0,
+          "train": "SW11",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 392.83
+        },
+        {
+          "tick": 0,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.46
+        },
+        {
+          "tick": 29,
+          "train": "SW02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 30.58
+        },
+        {
+          "tick": 131,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 107.81
+        },
+        {
+          "tick": 131,
+          "train": "SY07",
+          "booked_node": "E",
+          "to": "E2",
+          "cross_station": false,
+          "gain": 74.69
+        },
+        {
+          "tick": 142,
+          "train": "SE04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.6
+        },
+        {
+          "tick": 160,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 8.1
+        },
+        {
+          "tick": 164,
+          "train": "SW11",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 221.3
+        },
+        {
+          "tick": 164,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 8.9
+        },
+        {
+          "tick": 186,
+          "train": "SY08",
+          "booked_node": "H",
+          "to": "H7",
+          "cross_station": false,
+          "gain": 110.63
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 98
+    },
+    "exploit": {
+      "tier": "T2",
+      "seed": 3,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 2085.28,
+        "missed_calls": 1790.785,
+        "unfinished": 800.0,
+        "freight_lateness": 5.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 381.08,
+        "total": 5062.645
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 2,
+        "refusals": 2,
+        "invalid_calls": 0,
+        "decision_points": 91,
+        "unfinished": 4
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SX01",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 4433.78
+        },
+        {
+          "tick": 0,
+          "train": "SF01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 162.97
+        },
+        {
+          "tick": 0,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 67.88
+        },
+        {
+          "tick": 0,
+          "train": "IX03",
+          "booked_node": "H",
+          "to": "W3",
+          "cross_station": true,
+          "gain": 45.18
+        },
+        {
+          "tick": 0,
+          "train": "SY07",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 19.78
+        },
+        {
+          "tick": 0,
+          "train": "IY02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 13.44
+        },
+        {
+          "tick": 0,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 4.68
+        },
+        {
+          "tick": 0,
+          "train": "SW11",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 367.41
+        },
+        {
+          "tick": 0,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.46
+        },
+        {
+          "tick": 29,
+          "train": "SW02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 30.58
+        },
+        {
+          "tick": 131,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 97.93
+        },
+        {
+          "tick": 131,
+          "train": "SY07",
+          "booked_node": "E",
+          "to": "E2",
+          "cross_station": false,
+          "gain": 68.03
+        },
+        {
+          "tick": 142,
+          "train": "SE04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.6
+        },
+        {
+          "tick": 160,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 161.0
+        },
+        {
+          "tick": 164,
+          "train": "SW11",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 13.2
+        },
+        {
+          "tick": 164,
+          "train": "IX03",
+          "booked_node": "W",
+          "to": "H1",
+          "cross_station": true,
+          "gain": 204.88
+        },
+        {
+          "tick": 164,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 8.9
+        },
+        {
+          "tick": 186,
+          "train": "SY08",
+          "booked_node": "H",
+          "to": "H7",
+          "cross_station": false,
+          "gain": 14.43
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 189,
+          "train": "IC03",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        }
+      ],
+      "secs": 252
+    },
+    "gain": 56.7
+  },
+  {
+    "tier": "T2",
+    "seed": 4,
+    "booked": 7568.75,
+    "control": {
+      "tier": "T2",
+      "seed": 4,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 3485.605,
+        "missed_calls": 1307.385,
+        "unfinished": 1000.0,
+        "freight_lateness": 16.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 282.94,
+        "total": 6091.93
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 1,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 87,
+        "unfinished": 5
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SY01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 515.77
+        },
+        {
+          "tick": 0,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 335.83
+        },
+        {
+          "tick": 0,
+          "train": "IX02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 154.64
+        },
+        {
+          "tick": 0,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 98.19
+        },
+        {
+          "tick": 46,
+          "train": "SW03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 2.28
+        },
+        {
+          "tick": 138,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 57.5
+        },
+        {
+          "tick": 138,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 260.23
+        },
+        {
+          "tick": 161,
+          "train": "SW11",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 48.78
+        },
+        {
+          "tick": 211,
+          "train": "RE02",
+          "booked_node": "RN",
+          "to": "RN1",
+          "cross_station": false,
+          "gain": 3.6
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 81
+    },
+    "exploit": {
+      "tier": "T2",
+      "seed": 4,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 2903.285,
+        "missed_calls": 84.435,
+        "unfinished": 1000.0,
+        "freight_lateness": 16.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 334.08,
+        "total": 4337.8
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 92,
+        "unfinished": 5
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SY01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 515.77
+        },
+        {
+          "tick": 0,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 335.83
+        },
+        {
+          "tick": 0,
+          "train": "IX02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 154.64
+        },
+        {
+          "tick": 0,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 98.19
+        },
+        {
+          "tick": 0,
+          "train": "IX03",
+          "booked_node": "H",
+          "to": "W1",
+          "cross_station": true,
+          "gain": 94.89
+        },
+        {
+          "tick": 0,
+          "train": "IC01",
+          "booked_node": "H",
+          "to": "W3",
+          "cross_station": true,
+          "gain": 77.73
+        },
+        {
+          "tick": 44,
+          "train": "SW03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 9.21
+        },
+        {
+          "tick": 122,
+          "train": "IC01",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 128.34
+        },
+        {
+          "tick": 131,
+          "train": "IC03",
+          "booked_node": "TE",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 108.96
+        },
+        {
+          "tick": 131,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 0.23
+        },
+        {
+          "tick": 138,
+          "train": "SW09",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 14.46
+        },
+        {
+          "tick": 147,
+          "train": "SW10",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 19.72
+        },
+        {
+          "tick": 151,
+          "train": "IC02",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 203.0
+        },
+        {
+          "tick": 151,
+          "train": "SF05",
+          "booked_node": "E",
+          "to": "E2",
+          "cross_station": false,
+          "gain": 11.77
+        },
+        {
+          "tick": 151,
+          "train": "SY08",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 6.8
+        },
+        {
+          "tick": 163,
+          "train": "SW11",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 271.72
+        },
+        {
+          "tick": 210,
+          "train": "SW11",
+          "booked_node": "W",
+          "to": "E1",
+          "cross_station": true,
+          "gain": 1179.7
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 36,
+          "train": "IC01",
+          "call": 0,
+          "at": "W3",
+          "booked_node": "H"
+        },
+        {
+          "tick": 148,
+          "train": "IC01",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 153,
+          "train": "IC03",
+          "call": 1,
+          "at": "E3",
+          "booked_node": "TE"
+        },
+        {
+          "tick": 179,
+          "train": "IC02",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 181,
+          "train": "IX03",
+          "call": 0,
+          "at": "W1",
+          "booked_node": "H"
+        },
+        {
+          "tick": 230,
+          "train": "SW11",
+          "call": 2,
+          "at": "E1",
+          "booked_node": "W"
+        }
+      ],
+      "secs": 206
+    },
+    "gain": 1754.13
+  },
+  {
+    "tier": "T2",
+    "seed": 5,
+    "booked": 4086.09,
+    "control": {
+      "tier": "T2",
+      "seed": 5,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 1670.535,
+        "missed_calls": 39.3,
+        "unfinished": 0.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 239.2,
+        "total": 1951.035
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 95,
+        "unfinished": 0
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SW07",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 754.2
+        },
+        {
+          "tick": 0,
+          "train": "SN05",
+          "booked_node": "RN",
+          "to": "RN2",
+          "cross_station": false,
+          "gain": 110.99
+        },
+        {
+          "tick": 0,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 50.05
+        },
+        {
+          "tick": 0,
+          "train": "IX02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 62.03
+        },
+        {
+          "tick": 82,
+          "train": "SW06",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 499.31
+        },
+        {
+          "tick": 82,
+          "train": "SW07",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 626.3
+        },
+        {
+          "tick": 82,
+          "train": "IX03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 16.58
+        },
+        {
+          "tick": 97,
+          "train": "SW05",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 1.0
+        },
+        {
+          "tick": 167,
+          "train": "SN03",
+          "booked_node": "RN",
+          "to": "RN1",
+          "cross_station": false,
+          "gain": 1.0
+        },
+        {
+          "tick": 180,
+          "train": "SE05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 7.0
+        },
+        {
+          "tick": 199,
+          "train": "RE02",
+          "booked_node": "RN",
+          "to": "RN1",
+          "cross_station": false,
+          "gain": 6.6
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 96
+    },
+    "exploit": {
+      "tier": "T2",
+      "seed": 5,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 880.275,
+        "missed_calls": 82.09,
+        "unfinished": 0.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 273.9,
+        "total": 1238.265
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 84,
+        "unfinished": 0
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SW07",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 754.2
+        },
+        {
+          "tick": 0,
+          "train": "IY01",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 670.75
+        },
+        {
+          "tick": 0,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 94.17
+        },
+        {
+          "tick": 41,
+          "train": "SE01",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 6.47
+        },
+        {
+          "tick": 72,
+          "train": "SW05",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 494.85
+        },
+        {
+          "tick": 72,
+          "train": "SW07",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 611.89
+        },
+        {
+          "tick": 72,
+          "train": "IX03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 35.12
+        },
+        {
+          "tick": 72,
+          "train": "IX02",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 1.71
+        },
+        {
+          "tick": 98,
+          "train": "IC01",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 11.5
+        },
+        {
+          "tick": 122,
+          "train": "IC02",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 55.46
+        },
+        {
+          "tick": 122,
+          "train": "SE05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 81.34
+        },
+        {
+          "tick": 122,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "H3",
+          "cross_station": false,
+          "gain": 6.35
+        },
+        {
+          "tick": 159,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 12.0
+        },
+        {
+          "tick": 159,
+          "train": "SE05",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 12.0
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 20,
+          "train": "IY01",
+          "call": 0,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 126,
+          "train": "IC01",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 151,
+          "train": "IC02",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 183,
+          "train": "IC03",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        }
+      ],
+      "secs": 157
+    },
+    "gain": 712.77
+  },
+  {
+    "tier": "T2",
+    "seed": 6,
+    "booked": 2966.835,
+    "control": {
+      "tier": "T2",
+      "seed": 6,
+      "arm": "control",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 1161.42,
+        "missed_calls": 77.01,
+        "unfinished": 600.0,
+        "freight_lateness": 11.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 301.76,
+        "total": 2151.19
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 83,
+        "unfinished": 3
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 249.93
+        },
+        {
+          "tick": 0,
+          "train": "SW03",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 65.95
+        },
+        {
+          "tick": 0,
+          "train": "SW06",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 27.12
+        },
+        {
+          "tick": 0,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 8.04
+        },
+        {
+          "tick": 0,
+          "train": "SX06",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 6.61
+        },
+        {
+          "tick": 61,
+          "train": "SW02",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 107.99
+        },
+        {
+          "tick": 61,
+          "train": "SX06",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 16.4
+        },
+        {
+          "tick": 90,
+          "train": "SW06",
+          "booked_node": "W",
+          "to": "W1",
+          "cross_station": false,
+          "gain": 152.75
+        },
+        {
+          "tick": 113,
+          "train": "SX04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 1.3
+        },
+        {
+          "tick": 118,
+          "train": "RE02",
+          "booked_node": "TS",
+          "to": "TS2",
+          "cross_station": false,
+          "gain": 45.73
+        },
+        {
+          "tick": 153,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 5.4
+        },
+        {
+          "tick": 159,
+          "train": "SX06",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 22.5
+        },
+        {
+          "tick": 159,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E1",
+          "cross_station": false,
+          "gain": 22.8
+        },
+        {
+          "tick": 163,
+          "train": "SE05",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 48.5
+        },
+        {
+          "tick": 172,
+          "train": "SE06",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 6.62
+        },
+        {
+          "tick": 200,
+          "train": "SX08",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 28.0
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 92
+    },
+    "exploit": {
+      "tier": "T2",
+      "seed": 6,
+      "arm": "exploit",
+      "k": 3,
+      "horizon": null,
+      "cost": {
+        "pax_lateness": 1055.6,
+        "missed_calls": 59.29,
+        "unfinished": 400.0,
+        "freight_lateness": 10.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 311.9,
+        "total": 1836.79
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 82,
+        "unfinished": 2
+      },
+      "moves": [
+        {
+          "tick": 0,
+          "train": "SE01",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 249.93
+        },
+        {
+          "tick": 0,
+          "train": "SW03",
+          "booked_node": "W",
+          "to": "W3",
+          "cross_station": false,
+          "gain": 65.95
+        },
+        {
+          "tick": 0,
+          "train": "IY03",
+          "booked_node": "H",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 48.14
+        },
+        {
+          "tick": 0,
+          "train": "IY01",
+          "booked_node": "H",
+          "to": "E3",
+          "cross_station": true,
+          "gain": 38.1
+        },
+        {
+          "tick": 0,
+          "train": "IC03",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 7.04
+        },
+        {
+          "tick": 90,
+          "train": "SF02",
+          "booked_node": "H",
+          "to": "H7",
+          "cross_station": false,
+          "gain": 100.86
+        },
+        {
+          "tick": 116,
+          "train": "SW08",
+          "booked_node": "H",
+          "to": "H9",
+          "cross_station": false,
+          "gain": 437.99
+        },
+        {
+          "tick": 118,
+          "train": "RE02",
+          "booked_node": "TS",
+          "to": "TS2",
+          "cross_station": false,
+          "gain": 44.73
+        },
+        {
+          "tick": 134,
+          "train": "SE04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 44.9
+        },
+        {
+          "tick": 148,
+          "train": "IC02",
+          "booked_node": "H",
+          "to": "E2",
+          "cross_station": true,
+          "gain": 54.3
+        },
+        {
+          "tick": 153,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 4.4
+        },
+        {
+          "tick": 159,
+          "train": "SX06",
+          "booked_node": "E",
+          "to": "E3",
+          "cross_station": false,
+          "gain": 23.5
+        },
+        {
+          "tick": 159,
+          "train": "SF04",
+          "booked_node": "E",
+          "to": "E1",
+          "cross_station": false,
+          "gain": 10.2
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 74,
+          "train": "IY01",
+          "call": 0,
+          "at": "E3",
+          "booked_node": "H"
+        },
+        {
+          "tick": 177,
+          "train": "IC02",
+          "call": 2,
+          "at": "E2",
+          "booked_node": "H"
+        },
+        {
+          "tick": 199,
+          "train": "IY03",
+          "call": 0,
+          "at": "E3",
+          "booked_node": "H"
+        }
+      ],
+      "secs": 191
+    },
+    "gain": 314.4
+  },
+  {
+    "tier": "T3",
+    "seed": 1,
+    "booked": 6763.475,
+    "control": {
+      "tier": "T3",
+      "seed": 1,
+      "arm": "control",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 4726.34,
+        "missed_calls": 211.895,
+        "unfinished": 400.0,
+        "freight_lateness": 5.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 516.84,
+        "total": 5860.575
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 176,
+        "unfinished": 2
+      },
+      "moves": [
+        {
+          "tick": 24,
+          "train": "SC02",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 179.47
+        },
+        {
+          "tick": 107,
+          "train": "IT02",
+          "booked_node": "HA",
+          "to": "HA8",
+          "cross_station": false,
+          "gain": 24.26
+        },
+        {
+          "tick": 147,
+          "train": "RY01",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 64.9
+        },
+        {
+          "tick": 148,
+          "train": "IT02",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 505.89
+        },
+        {
+          "tick": 179,
+          "train": "RY02",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 5.2
+        },
+        {
+          "tick": 180,
+          "train": "IC05",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 88.71
+        },
+        {
+          "tick": 233,
+          "train": "IT02",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 0.58
+        },
+        {
+          "tick": 285,
+          "train": "SC12",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 33.9
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 230
+    },
+    "exploit": {
+      "tier": "T3",
+      "seed": 1,
+      "arm": "exploit",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 3217.57,
+        "missed_calls": 106.57,
+        "unfinished": 400.0,
+        "freight_lateness": 4.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 531.98,
+        "total": 4260.62
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 170,
+        "unfinished": 2
+      },
+      "moves": [
+        {
+          "tick": 7,
+          "train": "ID01",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 295.14
+        },
+        {
+          "tick": 7,
+          "train": "ID01",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 31.3
+        },
+        {
+          "tick": 24,
+          "train": "SC02",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 562.98
+        },
+        {
+          "tick": 57,
+          "train": "SC04",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 360.57
+        },
+        {
+          "tick": 73,
+          "train": "SC02",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 24.15
+        },
+        {
+          "tick": 84,
+          "train": "SM03",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 2.43
+        },
+        {
+          "tick": 113,
+          "train": "SM04",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 1.74
+        },
+        {
+          "tick": 145,
+          "train": "SQ01",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 304.24
+        },
+        {
+          "tick": 156,
+          "train": "RE03",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 206.99
+        },
+        {
+          "tick": 170,
+          "train": "SC07",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 4.0
+        },
+        {
+          "tick": 197,
+          "train": "SN05",
+          "booked_node": "NA",
+          "to": "NA1",
+          "cross_station": false,
+          "gain": 1.52
+        },
+        {
+          "tick": 209,
+          "train": "SM09",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 580.22
+        },
+        {
+          "tick": 223,
+          "train": "SQ01",
+          "booked_node": "NB",
+          "to": "NB1",
+          "cross_station": false,
+          "gain": 1.0
+        },
+        {
+          "tick": 229,
+          "train": "SM10",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 126.57
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 24,
+          "train": "ID01",
+          "call": 0,
+          "at": "EB3",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 101,
+          "train": "SM03",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 129,
+          "train": "SM04",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 229,
+          "train": "SM09",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 248,
+          "train": "SM10",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        }
+      ],
+      "secs": 261
+    },
+    "gain": 1599.955
+  },
+  {
+    "tier": "T3",
+    "seed": 2,
+    "booked": 15636.22,
+    "control": {
+      "tier": "T3",
+      "seed": 2,
+      "arm": "control",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 7262.505,
+        "missed_calls": 968.98,
+        "unfinished": 600.0,
+        "freight_lateness": 3.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 457.72,
+        "total": 9292.705
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 1,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 179,
+        "unfinished": 3
+      },
+      "moves": [
+        {
+          "tick": 91,
+          "train": "SN03",
+          "booked_node": "NB",
+          "to": "NB2",
+          "cross_station": false,
+          "gain": 2069.31
+        },
+        {
+          "tick": 99,
+          "train": "SN03",
+          "booked_node": "NB",
+          "to": "NB1",
+          "cross_station": false,
+          "gain": 14.8
+        },
+        {
+          "tick": 105,
+          "train": "SM04",
+          "booked_node": "M",
+          "to": "M3",
+          "cross_station": false,
+          "gain": 169.34
+        },
+        {
+          "tick": 113,
+          "train": "RE03",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 2930.14
+        },
+        {
+          "tick": 119,
+          "train": "SM05",
+          "booked_node": "M",
+          "to": "M3",
+          "cross_station": false,
+          "gain": 331.74
+        },
+        {
+          "tick": 151,
+          "train": "SC09",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 169.44
+        },
+        {
+          "tick": 167,
+          "train": "ID06",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 24.06
+        },
+        {
+          "tick": 167,
+          "train": "SC09",
+          "booked_node": "WA",
+          "to": "WA1",
+          "cross_station": false,
+          "gain": 579.26
+        },
+        {
+          "tick": 199,
+          "train": "ID07",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 43.43
+        },
+        {
+          "tick": 228,
+          "train": "SQ02",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 10.99
+        },
+        {
+          "tick": 310,
+          "train": "IT02",
+          "booked_node": "HA",
+          "to": "HA4",
+          "cross_station": false,
+          "gain": 1.0
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 241
+    },
+    "exploit": {
+      "tier": "T3",
+      "seed": 2,
+      "arm": "exploit",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 7170.255,
+        "missed_calls": 1026.99,
+        "unfinished": 800.0,
+        "freight_lateness": 1.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 470.76,
+        "total": 9469.005
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 1,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 188,
+        "unfinished": 4
+      },
+      "moves": [
+        {
+          "tick": 80,
+          "train": "ID03",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 50.68
+        },
+        {
+          "tick": 80,
+          "train": "SM03",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 189.1
+        },
+        {
+          "tick": 91,
+          "train": "SN03",
+          "booked_node": "NB",
+          "to": "NB2",
+          "cross_station": false,
+          "gain": 1329.34
+        },
+        {
+          "tick": 99,
+          "train": "SN03",
+          "booked_node": "NB",
+          "to": "NB1",
+          "cross_station": false,
+          "gain": 14.8
+        },
+        {
+          "tick": 105,
+          "train": "ID04",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 3003.35
+        },
+        {
+          "tick": 110,
+          "train": "IC03",
+          "booked_node": "HB",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 148.16
+        },
+        {
+          "tick": 115,
+          "train": "IT02",
+          "booked_node": "HA",
+          "to": "WA1",
+          "cross_station": true,
+          "gain": 893.37
+        },
+        {
+          "tick": 164,
+          "train": "SQ01",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 144.66
+        },
+        {
+          "tick": 170,
+          "train": "SC07",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 97.27
+        },
+        {
+          "tick": 238,
+          "train": "SC13",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 5.79
+        },
+        {
+          "tick": 267,
+          "train": "ID07",
+          "booked_node": "HA",
+          "to": "M1",
+          "cross_station": true,
+          "gain": 18.1
+        },
+        {
+          "tick": 267,
+          "train": "ID07",
+          "booked_node": "M",
+          "to": "M2",
+          "cross_station": false,
+          "gain": 144.77
+        },
+        {
+          "tick": 293,
+          "train": "RE03",
+          "booked_node": "HB",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 19.2
+        },
+        {
+          "tick": 313,
+          "train": "IT02",
+          "booked_node": "HA",
+          "to": "M1",
+          "cross_station": true,
+          "gain": 60.85
+        },
+        {
+          "tick": 313,
+          "train": "RE03",
+          "booked_node": "EB",
+          "to": "HB1",
+          "cross_station": true,
+          "gain": 33.8
+        },
+        {
+          "tick": 313,
+          "train": "RE03",
+          "booked_node": "HB",
+          "to": "HB2",
+          "cross_station": false,
+          "gain": 1.0
+        },
+        {
+          "tick": 321,
+          "train": "RE04",
+          "booked_node": "HB",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 12.98
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 92,
+          "train": "ID03",
+          "call": 0,
+          "at": "EB2",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 96,
+          "train": "SM03",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 125,
+          "train": "ID04",
+          "call": 0,
+          "at": "EB2",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 126,
+          "train": "IT02",
+          "call": 0,
+          "at": "WA1",
+          "booked_node": "HA"
+        },
+        {
+          "tick": 134,
+          "train": "IC03",
+          "call": 1,
+          "at": "BYP1",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 285,
+          "train": "ID07",
+          "call": 1,
+          "at": "M2",
+          "booked_node": "HA"
+        },
+        {
+          "tick": 312,
+          "train": "RE03",
+          "call": 5,
+          "at": "BYP1",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 330,
+          "train": "IT02",
+          "call": 4,
+          "at": "M1",
+          "booked_node": "HA"
+        },
+        {
+          "tick": 336,
+          "train": "RE03",
+          "call": 6,
+          "at": "HB2",
+          "booked_node": "EB"
+        },
+        {
+          "tick": 341,
+          "train": "RE04",
+          "call": 5,
+          "at": "BYP1",
+          "booked_node": "HB"
+        }
+      ],
+      "secs": 301
+    },
+    "gain": -176.3
+  },
+  {
+    "tier": "T3",
+    "seed": 3,
+    "booked": 5020.145,
+    "control": {
+      "tier": "T3",
+      "seed": 3,
+      "arm": "control",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 3605.29,
+        "missed_calls": 167.07,
+        "unfinished": 200.0,
+        "freight_lateness": 8.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 423.74,
+        "total": 4404.1
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 165,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 46,
+          "train": "IC02",
+          "booked_node": "HA",
+          "to": "HA8",
+          "cross_station": false,
+          "gain": 175.97
+        },
+        {
+          "tick": 133,
+          "train": "SY02",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 91.65
+        },
+        {
+          "tick": 178,
+          "train": "SC08",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 347.91
+        },
+        {
+          "tick": 245,
+          "train": "RX04",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 0.51
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 229
+    },
+    "exploit": {
+      "tier": "T3",
+      "seed": 3,
+      "arm": "exploit",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 3517.98,
+        "missed_calls": 170.865,
+        "unfinished": 200.0,
+        "freight_lateness": 6.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 416.04,
+        "total": 4311.385
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 164,
+        "unfinished": 1
+      },
+      "moves": [
+        {
+          "tick": 85,
+          "train": "SM03",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 42.89
+        },
+        {
+          "tick": 134,
+          "train": "SQ01",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 0.95
+        },
+        {
+          "tick": 139,
+          "train": "SM06",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 146.41
+        },
+        {
+          "tick": 162,
+          "train": "SC07",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 200.29
+        },
+        {
+          "tick": 178,
+          "train": "SC08",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 317.71
+        },
+        {
+          "tick": 245,
+          "train": "RX04",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 0.51
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 105,
+          "train": "SM03",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 156,
+          "train": "SM06",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        }
+      ],
+      "secs": 234
+    },
+    "gain": 92.715
+  },
+  {
+    "tier": "T3",
+    "seed": 5,
+    "booked": 8390.53,
+    "control": {
+      "tier": "T3",
+      "seed": 5,
+      "arm": "control",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 4767.17,
+        "missed_calls": 180.95,
+        "unfinished": 600.0,
+        "freight_lateness": 4.5,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 460.16,
+        "total": 6012.78
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 181,
+        "unfinished": 3
+      },
+      "moves": [
+        {
+          "tick": 91,
+          "train": "IT02",
+          "booked_node": "HA",
+          "to": "HA8",
+          "cross_station": false,
+          "gain": 285.49
+        },
+        {
+          "tick": 123,
+          "train": "SY01",
+          "booked_node": "BYP",
+          "to": "BYP3",
+          "cross_station": false,
+          "gain": 1941.44
+        },
+        {
+          "tick": 200,
+          "train": "IC07",
+          "booked_node": "HA",
+          "to": "HA8",
+          "cross_station": false,
+          "gain": 7.79
+        },
+        {
+          "tick": 244,
+          "train": "SC13",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 82.19
+        },
+        {
+          "tick": 250,
+          "train": "RY03",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 36.76
+        },
+        {
+          "tick": 250,
+          "train": "SC13",
+          "booked_node": "WA",
+          "to": "WA1",
+          "cross_station": false,
+          "gain": 22.65
+        },
+        {
+          "tick": 258,
+          "train": "IC07",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 1.43
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 248
+    },
+    "exploit": {
+      "tier": "T3",
+      "seed": 5,
+      "arm": "exploit",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 3911.235,
+        "missed_calls": 328.4,
+        "unfinished": 400.0,
+        "freight_lateness": 2.0,
+        "crew_timeout": 0.0,
+        "gridlock": 0.0,
+        "operations": 520.64,
+        "total": 5162.275
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 0,
+        "reversals": 0,
+        "missed_calls": 0,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 178,
+        "unfinished": 2
+      },
+      "moves": [
+        {
+          "tick": 52,
+          "train": "SM02",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 1954.26
+        },
+        {
+          "tick": 179,
+          "train": "SC07",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 24.9
+        },
+        {
+          "tick": 179,
+          "train": "SC09",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 9.66
+        },
+        {
+          "tick": 196,
+          "train": "SC08",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 6.3
+        },
+        {
+          "tick": 202,
+          "train": "IC07",
+          "booked_node": "HA",
+          "to": "WA1",
+          "cross_station": true,
+          "gain": 504.46
+        },
+        {
+          "tick": 209,
+          "train": "RY04",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 288.77
+        },
+        {
+          "tick": 212,
+          "train": "ID07",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 227.61
+        },
+        {
+          "tick": 212,
+          "train": "RX04",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 37.09
+        },
+        {
+          "tick": 212,
+          "train": "RY04",
+          "booked_node": "EB",
+          "to": "EB2",
+          "cross_station": false,
+          "gain": 5.2
+        },
+        {
+          "tick": 241,
+          "train": "ID08",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 128.75
+        },
+        {
+          "tick": 305,
+          "train": "ID09",
+          "booked_node": "HA",
+          "to": "M1",
+          "cross_station": true,
+          "gain": 41.25
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 73,
+          "train": "SM02",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 223,
+          "train": "ID07",
+          "call": 0,
+          "at": "EB2",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 224,
+          "train": "IC07",
+          "call": 0,
+          "at": "WA1",
+          "booked_node": "HA"
+        },
+        {
+          "tick": 258,
+          "train": "ID08",
+          "call": 0,
+          "at": "EB2",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 325,
+          "train": "ID09",
+          "call": 1,
+          "at": "M1",
+          "booked_node": "HA"
+        }
+      ],
+      "secs": 274
+    },
+    "gain": 850.505
+  },
+  {
+    "tier": "T3",
+    "seed": 6,
+    "booked": 16342.495,
+    "control": {
+      "tier": "T3",
+      "seed": 6,
+      "arm": "control",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 3179.03,
+        "missed_calls": 8251.065,
+        "unfinished": 1800.0,
+        "freight_lateness": 17.0,
+        "crew_timeout": 40.0,
+        "gridlock": 0.0,
+        "operations": 406.66,
+        "total": 13693.755
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 1,
+        "reversals": 0,
+        "missed_calls": 11,
+        "refusals": 28,
+        "invalid_calls": 0,
+        "decision_points": 155,
+        "unfinished": 9
+      },
+      "moves": [
+        {
+          "tick": 62,
+          "train": "SM02",
+          "booked_node": "M",
+          "to": "M3",
+          "cross_station": false,
+          "gain": 1432.79
+        },
+        {
+          "tick": 62,
+          "train": "RE02",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 1058.74
+        },
+        {
+          "tick": 191,
+          "train": "ID07",
+          "booked_node": "HB",
+          "to": "HB8",
+          "cross_station": false,
+          "gain": 123.81
+        },
+        {
+          "tick": 239,
+          "train": "SC10",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 21.4
+        },
+        {
+          "tick": 263,
+          "train": "IT01",
+          "booked_node": "HA",
+          "to": "HA4",
+          "cross_station": false,
+          "gain": 1.0
+        },
+        {
+          "tick": 288,
+          "train": "SM08",
+          "booked_node": "M",
+          "to": "M1",
+          "cross_station": false,
+          "gain": 11.0
+        }
+      ],
+      "served_elsewhere": [],
+      "secs": 208
+    },
+    "exploit": {
+      "tier": "T3",
+      "seed": 6,
+      "arm": "exploit",
+      "k": 1,
+      "horizon": 30,
+      "cost": {
+        "pax_lateness": 4048.37,
+        "missed_calls": 1216.135,
+        "unfinished": 1000.0,
+        "freight_lateness": 17.0,
+        "crew_timeout": 40.0,
+        "gridlock": 0.0,
+        "operations": 407.82,
+        "total": 6729.325
+      },
+      "counts": {
+        "gridlocks": 0,
+        "crew_timeouts": 1,
+        "reversals": 0,
+        "missed_calls": 1,
+        "refusals": 0,
+        "invalid_calls": 0,
+        "decision_points": 162,
+        "unfinished": 5
+      },
+      "moves": [
+        {
+          "tick": 62,
+          "train": "SM02",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 1418.44
+        },
+        {
+          "tick": 62,
+          "train": "RE02",
+          "booked_node": "EB",
+          "to": "EB3",
+          "cross_station": false,
+          "gain": 1058.74
+        },
+        {
+          "tick": 105,
+          "train": "SM04",
+          "booked_node": "M",
+          "to": "BYP1",
+          "cross_station": true,
+          "gain": 358.02
+        },
+        {
+          "tick": 191,
+          "train": "ID07",
+          "booked_node": "HB",
+          "to": "EB2",
+          "cross_station": true,
+          "gain": 18.93
+        },
+        {
+          "tick": 241,
+          "train": "SC10",
+          "booked_node": "WA",
+          "to": "WA3",
+          "cross_station": false,
+          "gain": 21.4
+        },
+        {
+          "tick": 263,
+          "train": "IT01",
+          "booked_node": "HA",
+          "to": "M1",
+          "cross_station": true,
+          "gain": 6737.64
+        }
+      ],
+      "served_elsewhere": [
+        {
+          "tick": 80,
+          "train": "SM02",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 127,
+          "train": "SM04",
+          "call": 2,
+          "at": "BYP1",
+          "booked_node": "M"
+        },
+        {
+          "tick": 213,
+          "train": "ID07",
+          "call": 0,
+          "at": "EB2",
+          "booked_node": "HB"
+        },
+        {
+          "tick": 308,
+          "train": "IT01",
+          "call": 4,
+          "at": "M1",
+          "booked_node": "HA"
+        }
+      ],
+      "secs": 216
+    },
+    "gain": 6964.43
+  }
+]
