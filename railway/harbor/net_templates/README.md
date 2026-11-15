@@ -10,7 +10,11 @@ is one shift of a railway network dispatched through the `railway` MCP server ru
 ```bash
 harbor run -y -p {{DATASET}} -a oracle
 harbor run -y -p {{DATASET}} -a nop
+PYTHONPATH=. harbor run -y -p {{DATASET}} -a railway.harbor.agents:NetStopEarlyAgent
 ```
+
+`oracle` is a booked-order dispatcher that plays the whole shift over MCP; `nop` does nothing; the stop-early
+agent dispatches like the oracle for 30 minutes and then ends the shift.
 
 A model run adds `-a opencode -m <provider/model>` (and `--allow-environment-host <provider host>` when
 using an endpoint not already in `allowed_hosts`).

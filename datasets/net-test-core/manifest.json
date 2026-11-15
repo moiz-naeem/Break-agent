@@ -1,0 +1,133 @@
+{
+  "count": 15,
+  "rules_version": "0.3-net",
+  "seed_files": [
+    "net-T1-test.json",
+    "net-T2-test.json",
+    "net-T3-test.json"
+  ],
+  "set": "test",
+  "tasks": [
+    {
+      "scenario_hash": "c9a007a80f430990ed151b73693cd013cd2a1760dee4f808f84dadd1318614ab",
+      "scenario_id": "T1-10000",
+      "seed": 10000,
+      "shift_min": 180,
+      "task": "T1-10000",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "dd2dc115d07d9d46bb599a3f732c33bcb6c53ef813c3654295eb7ff7d156e8fd",
+      "scenario_id": "T1-10001",
+      "seed": 10001,
+      "shift_min": 180,
+      "task": "T1-10001",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "d9936868c5be9916a889382893cb6560a1f13ff1e41ca4b796a1891d4b58709f",
+      "scenario_id": "T1-10003",
+      "seed": 10003,
+      "shift_min": 180,
+      "task": "T1-10003",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "4da5ca6024406f99262bb9eb0f8a9f687e8752679c251f10c6528296dd85bf41",
+      "scenario_id": "T1-10004",
+      "seed": 10004,
+      "shift_min": 180,
+      "task": "T1-10004",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "e716847a06f2a4d40504126fe50b7b0ea4c6f08185d986ac47d26685773901fd",
+      "scenario_id": "T1-10006",
+      "seed": 10006,
+      "shift_min": 180,
+      "task": "T1-10006",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "c072e7425c8101f55499656f6d2ab56528e92375b8f92f366d2437c50655e510",
+      "scenario_id": "T2-10001",
+      "seed": 10001,
+      "shift_min": 240,
+      "task": "T2-10001",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "df07f5c890e93d7a864c7313cafab219c98987c1249696eabf5050c60db2bc15",
+      "scenario_id": "T2-10002",
+      "seed": 10002,
+      "shift_min": 240,
+      "task": "T2-10002",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "2bb91284d96a5f1beb44e50f0fb7d85ce67eed8586416ad2a28bfecbce61e750",
+      "scenario_id": "T2-10003",
+      "seed": 10003,
+      "shift_min": 240,
+      "task": "T2-10003",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "8a83d7c032e833cc3244c769ffe2518a25b85bc181d16d292591db393b7a830f",
+      "scenario_id": "T2-10004",
+      "seed": 10004,
+      "shift_min": 240,
+      "task": "T2-10004",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "41fe38ea2843a72aa34c76d3ce05cefbfc62b07c4defc79e9a6778705fe19d76",
+      "scenario_id": "T2-10005",
+      "seed": 10005,
+      "shift_min": 240,
+      "task": "T2-10005",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "b6c281c16a053afca5e51e90592dbbe96450b1241bdbff1e04b686a226a12f82",
+      "scenario_id": "T3-10000",
+      "seed": 10000,
+      "shift_min": 360,
+      "task": "T3-10000",
+      "tier": "T3"
+    },
+    {
+      "scenario_hash": "0c37bc33e9557b0024ac5fab7e7609c12cff66ea04bd78bfcd0031429bb72187",
+      "scenario_id": "T3-10001",
+      "seed": 10001,
+      "shift_min": 360,
+      "task": "T3-10001",
+      "tier": "T3"
+    },
+    {
+      "scenario_hash": "a7cf7daf8a29c5b499176403aec44072663b3faedab582a32abb20c7e0058f62",
+      "scenario_id": "T3-10002",
+      "seed": 10002,
+      "shift_min": 360,
+      "task": "T3-10002",
+      "tier": "T3"
+    },
+    {
+      "scenario_hash": "c55a99451dced656d63e5551e44936a9cfff3f87eb64d1b388886e2d9884b269",
+      "scenario_id": "T3-10007",
+      "seed": 10007,
+      "shift_min": 360,
+      "task": "T3-10007",
+      "tier": "T3"
+    },
+    {
+      "scenario_hash": "9f297e9f286e9ea8ff600c17b6b65c8bc7612fd59d0cd96be7231425ef393bbf",
+      "scenario_id": "T3-10008",
+      "seed": 10008,
+      "shift_min": 360,
+      "task": "T3-10008",
+      "tier": "T3"
+    }
+  ],
+  "tier": "T1,T2,T3"
+}

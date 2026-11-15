@@ -1,0 +1,37 @@
+{
+  "count": 3,
+  "rules_version": "0.3-net",
+  "seed_files": [
+    "net-T1-dev.json",
+    "net-T2-dev.json",
+    "net-T3-dev.json"
+  ],
+  "set": "dev",
+  "tasks": [
+    {
+      "scenario_hash": "a1a4fd2e36f8039b41efcba9ce83484b56f97db2e11fb448ee6371615033d530",
+      "scenario_id": "T1-1",
+      "seed": 1,
+      "shift_min": 180,
+      "task": "T1-1",
+      "tier": "T1"
+    },
+    {
+      "scenario_hash": "2392c560244e5a92fa815fdfa003e07de635c5c9949a9132a2ccf96b8728e7f2",
+      "scenario_id": "T2-2",
+      "seed": 2,
+      "shift_min": 240,
+      "task": "T2-2",
+      "tier": "T2"
+    },
+    {
+      "scenario_hash": "3016d47cc48dab8561d4fef89b1cbc72006710442a7aad29f479886d6e9605dd",
+      "scenario_id": "T3-1",
+      "seed": 1,
+      "shift_min": 360,
+      "task": "T3-1",
+      "tier": "T3"
+    }
+  ],
+  "tier": "T1,T2,T3"
+}

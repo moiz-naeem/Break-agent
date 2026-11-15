@@ -1,7 +1,11 @@
-"""Harbor agents for score-0 baselines (T07 §2.9). Load with `-a railway.harbor.agents:StopEarlyAgent`.
+"""Harbor baseline agents (T07 §2.9).
 
-The agent uploads a vendored `railway` (sim, tools, policies) into the main container for this trial only
-(it is never part of the image) and plays `StopEarly` through the task's MCP server, like any agent would.
+- `railway.harbor.agents:NetStopEarlyAgent` (v0.3 network tasks, `datasets/net-*`): runs the oracle client
+  `net_templates/solve.py --stop-at 30` in the main container: it dispatches in booked order over MCP for the
+  first 30 minutes, then ends the shift.
+- `railway.harbor.agents:StopEarlyAgent` (v0.2 single-track tasks, `datasets/t1-dev-mini`): uploads a vendored
+  `railway` (sim, tools, policies) into the main container for this trial only (it is never part of the image)
+  and plays `StopEarly` through the task's MCP server, like any agent would.
 """
 
 from __future__ import annotations
@@ -44,3 +48,30 @@ class StopEarlyAgent(BaseAgent):
         result = await environment.exec(f"PYTHONPATH={TARGET} python3 -c {shlex.quote(PLAY)}", timeout_sec=600)
         if result.return_code != 0:  # a crash must be a trial error, never a silent 0
             raise RuntimeError(f"StopEarly failed ({result.return_code}): {result.stderr or result.stdout}")
+
+
+NET_SOLVE = Path(__file__).resolve().parent / "net_templates" / "solve.py"
+NET_STOP_AT_MIN = 30
+
+
+class NetStopEarlyAgent(BaseAgent):
+    """v0.3 network baseline: booked-order dispatching to minute 30, then `end_shift` (needs only `mcp`)."""
+
+    capabilities = AgentCapabilities(mcp_servers=True)
+
+    @staticmethod
+    def name() -> str:
+        return "railway-net-stop-early"
+
+    def version(self) -> str:
+        return "0.3.0"
+
+    async def setup(self, environment: BaseEnvironment) -> None:
+        return None
+
+    async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -> None:
+        script = NET_SOLVE.read_text(encoding="utf-8")
+        cmd = f"python3 -c {shlex.quote(script)} --url {MCP_URL} --stop-at {NET_STOP_AT_MIN}"
+        result = await environment.exec(cmd, timeout_sec=600)
+        if result.return_code != 0:  # a crash must be a trial error, never a silent 0
+            raise RuntimeError(f"NetStopEarly failed ({result.return_code}): {result.stderr or result.stdout}")

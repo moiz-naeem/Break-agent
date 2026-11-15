@@ -4,8 +4,10 @@ and `infra/modal/harbor_runner.py` configuration (Lane H, decisions.md #2, #4, #
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import http.server
+import importlib.util
 import json
 import os
 import re
@@ -15,6 +17,7 @@ import sys
 import threading
 import tomllib
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -29,6 +32,7 @@ from infra.modal.harbor_runner import (
 )
 from railway.harbor.net_export import (
     DEFAULT_PROVIDER_HOSTS,
+    NET_TEMPLATES,
     ExportOptions,
     export_task,
     export_timetables,
@@ -37,6 +41,7 @@ from railway.harbor.net_export import (
 from railway.harbor.net_verify import mcp_startup_failure
 from railway.net.cost import COMPONENTS, cost
 from railway.net.events import Event, EventLog
+from railway.net.exploits import build_timetable
 from railway.net.formats import NET_RULES_VERSION
 from railway.net.manual import TOOL_BUDGET
 from railway.net.server import spawn
@@ -415,6 +420,189 @@ def test_real_t1_do_nothing_is_penalised_and_oracle_beats_it(t1_timetable, tmp_p
         assert vres.returncode == 0, vres.stdout + vres.stderr
     oracle = json.loads((oracle_logs / "details.json").read_text(encoding="utf-8"))
     assert oracle["reward"] > nop["reward"]
+
+
+# ---------------------------------------------------------------- 2b. Oracle solve.py over an in-memory MCP stub
+
+
+def _load_solve():
+    spec = importlib.util.spec_from_file_location("net_oracle_solve", NET_TEMPLATES / "solve.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class _StubClient:
+    """`mcp.Client` stand-in: `call_tool` answers from `respond(tool, args)` and records every call."""
+
+    def __init__(self, respond):
+        self.respond = respond
+        self.calls: list[tuple[str, dict]] = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def call_tool(self, tool: str, args: dict):
+        self.calls.append((tool, dict(args)))
+        return SimpleNamespace(content=[SimpleNamespace(text=self.respond(tool, args))])
+
+
+def _play_stub(monkeypatch, respond, **play_kwargs) -> _StubClient:
+    solve = _load_solve()
+    client = _StubClient(respond)
+    monkeypatch.setattr(solve, "Client", lambda url: client)
+    asyncio.run(solve.play("http://stub/mcp", **play_kwargs))
+    return client
+
+
+def test_oracle_solve_py_uses_only_public_mcp_tools():
+    src = (NET_TEMPLATES / "solve.py").read_text(encoding="utf-8")
+    assert not re.search(r"^\s*(from|import)\s+railway", src, re.M)
+    assert not re.search(r"\bopen\(|read_text|read_bytes|pathlib|os\.environ", src), "the oracle reads no files"
+    solve = _load_solve()
+    assert solve.MAX_STEPS >= 590
+
+
+@pytest.mark.parametrize(("tier", "seed", "shift_min"), [("T1", 1, 180), ("T2", 2, 120), ("T3", 1, 180)])
+def test_oracle_solve_py_finishes_every_tier_over_in_memory_mcp(monkeypatch, tier, seed, shift_min):
+    """The oracle plays T1/T2/T3 shifts (with disruptions) to their end through MCP text alone, far ahead of nop."""
+    tt = build_timetable(tier, seed, shift_min=shift_min)
+    assert tt.disruptions
+    session = Session(tt)
+    client = _play_stub(monkeypatch, session.call)
+    tools = [t for t, _ in client.calls]
+    assert session.closed
+    assert session.close().tick == tt.shift_min, "oracle stopped before the shift ended"
+    assert "end_shift" not in tools, "the shift should end by advancing, not by giving up"
+    assert tools.count("advance_to_next_event") > 1
+    assert session.close().cost.total * 5 < Session(tt).close().cost.total  # red-team floor: >= 5.4x on dev seeds
+
+
+def test_oracle_stall_guard_needs_four_identical_idle_advances(monkeypatch):
+    stuck = "t=50 stop: BLOCKED\nchanges since t=50:\n  (none)\nbudget: 1/600"
+    client = _play_stub(monkeypatch, lambda tool, args: stuck if tool == "advance_to_next_event" else "{}")
+    tools = [t for t, _ in client.calls]
+    assert tools.count("advance_to_next_event") == 4
+    assert tools[-1] == "end_shift"
+
+
+def test_oracle_keeps_going_through_same_minute_decisions_with_actions(monkeypatch):
+    """Identical advance headers are fine while the oracle is acting on them: many decisions share one minute."""
+    same = "t=50 stop: CONFLICT\nC1 B-C.u (B->C): L1 S +0 @50 | F2 FB +3 @52\nchanges since t=50:\n  (none)"
+    n = {"adv": 0}
+
+    def respond(tool, args):
+        if tool != "advance_to_next_event":
+            return "OK" if tool == "order" else "{}"
+        n["adv"] += 1
+        return same if n["adv"] <= 10 else "t=180 stop: SHIFT_END\nSHIFT ENDED at t=180. Final cost 0"
+
+    client = _play_stub(monkeypatch, respond)
+    tools = [t for t, _ in client.calls]
+    assert tools.count("advance_to_next_event") == 11
+    assert tools.count("order") == 10 and "end_shift" not in tools
+    assert client.calls[tools.index("order")][1] == {"resource": "B-C.u", "trains": ["L1", "F2"]}
+
+
+def test_oracle_relieves_warned_crews_only_where_relief_is_possible(monkeypatch):
+    network = {
+        "platforms": [
+            {"id": "A1", "node": "A", "crew_relief": True},
+            {"id": "B1", "node": "B", "crew_relief": False},
+            {"id": "C1", "node": "C", "crew_relief": True},
+        ]
+    }
+    timetable = {
+        "trains": [
+            # berthed at relief point A1, then runs off the network at X: works past its crew's duty
+            {"id": "IC1", "exit_node": "X", "calls": [{"platform": "A1", "arrive": 140, "depart": 170}]},
+            # still booked to call at relief point C1, late in the shift
+            {
+                "id": "F2",
+                "entry_tick": 0,
+                "exit_node": None,
+                "calls": [
+                    {"platform": "B1", "arrive": 100, "depart": 110},
+                    {"platform": "C1", "arrive": 200, "depart": None},
+                ],
+            },
+            # no relief point left on its way
+            {"id": "S3", "exit_node": None, "calls": [{"platform": "B1", "arrive": 240, "depart": None}]},
+            # at a relief point, but its work ends before its crew's duty does: relief would only delay it
+            {"id": "L4", "exit_node": None, "calls": [{"platform": "C1", "arrive": 160, "depart": None}]},
+        ]
+    }
+    status = {
+        "trains": [
+            {
+                "id": "IC1",
+                "phase": "berthed",
+                "position": "A1",
+                "delay": 0,
+                "next_call": {"platform": "A1", "arrive": 140, "depart": 170},
+            },
+            {
+                "id": "F2",
+                "phase": "running",
+                "position": "B-C.u",
+                "delay": 0,
+                "next_call": {"platform": "B1", "arrive": 100, "depart": 110},
+            },
+            {
+                "id": "S3",
+                "phase": "running",
+                "position": "A-B.u",
+                "delay": 0,
+                "next_call": {"platform": "B1", "arrive": 240, "depart": None},
+            },
+            {
+                "id": "L4",
+                "phase": "berthed",
+                "position": "C1",
+                "delay": 5,
+                "next_call": {"platform": "C1", "arrive": 160, "depart": None},
+            },
+        ]
+    }
+    bulletins = [
+        {"tick": 145, "kind": "CREW_WARNING", "train": t, "detail": {"remaining_min": 30}}
+        for t in ("IC1", "F2", "S3", "L4")
+    ]
+    advances = iter(
+        [
+            "t=145 stop: CREW IC1, F2, S3, L4\nchanges since t=140:\n  t=145 IC1 crew_warning\nbudget: 3/600",
+            "t=146 stop: CREW S3\nchanges since t=145:\n  t=146 S3 crew_timeout\nbudget: 9/600",
+            "t=180 stop: SHIFT_END\nSHIFT ENDED at t=180. Final cost 0",
+        ]
+    )
+    answers = {
+        "timetable": json.dumps(timetable),
+        "network": json.dumps(network),
+        "status": json.dumps(status),
+        "bulletins": json.dumps(bulletins),
+    }
+    client = _play_stub(
+        monkeypatch,
+        lambda tool, args: next(advances) if tool == "advance_to_next_event" else answers.get(tool, "OK"),
+    )
+    relieved = [args["train"] for tool, args in client.calls if tool == "relieve_crew"]
+    assert relieved == ["F2", "IC1"], "IC1 berths at a relief point, F2 calls at one; S3 can't, L4 needn't"
+    assert all(tool in {*answers, "advance_to_next_event", "relieve_crew"} for tool, _ in client.calls)
+
+
+def test_net_stop_early_baseline_quits_at_minute_30_and_is_heavily_penalised(monkeypatch, t1_timetable):
+    """`solve.py --stop-at 30` (NetStopEarlyAgent) dispatches to minute 30, quits, and pays for the rest."""
+    session = Session(t1_timetable)
+    client = _play_stub(monkeypatch, session.call, stop_at=30)
+    assert client.calls[-1][0] == "end_shift"
+    quit_at = next(e["tick"] for e in session.log if e["tool"] == "end_shift")
+    assert 30 <= quit_at < 60
+    full = Session(t1_timetable)
+    _play_stub(monkeypatch, full.call)
+    assert session.close().cost.total > 5 * full.close().cost.total
 
 
 def test_verifier_nonzero_cost_and_events_jsonl_with_populated_event_log(sample_timetable, tmp_path):

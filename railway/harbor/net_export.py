@@ -1,7 +1,12 @@
 """Export v0.3 railway network (`Timetable`) scenarios as Harbor 0.26 tasks (decisions.md #2, #4, #10).
 
-    python -m railway.harbor.net_export --tier T1 --seeds 1,2,3 --shift-min 180 --out datasets/t1-net-dev
+    python -m railway.harbor.net_export --seed-file seeds/net-T1-test.json --seed-file seeds/net-T2-test.json \
+        --seed-file seeds/net-T3-test.json --first 5 --set test --out datasets/net-test-core
+    python -m railway.harbor.net_export --tier T2 --seeds 2,3 --out datasets/t2-net-dev
     python -m railway.harbor.net_export --timetable-file path/to/timetable.json --out datasets/custom
+
+Scenarios come from `railway.net.exploits.build_timetable` (timetable plus disruptions), the generator behind
+the seed lists and the benchmark; `--seed-file` refuses any scenario whose hash differs from its seed list.
 
 No greedy or reference anchors are computed or stored: `norm.json` is dropped completely, `reward.txt` is
 `-(total cost)`, and `solution/solve.sh` runs a booked-order MCP client (`solve.py`) strictly over HTTP MCP.
@@ -343,32 +348,49 @@ def export_timetables(
 # ---------------------------------------------------------------- generator convenience + CLI
 
 
-def generate_timetable(tier: str, seed: int, shift_min: int = 180) -> Timetable:
-    """Generate a `Timetable` for `tier` (`T1`, plus `T2`/`T3` once template builders are present)."""
-    from railway.net import templates as net_templates
-    from railway.net.timetable import generate
+def generate_timetable(tier: str, seed: int, shift_min: int | None = None) -> Timetable:
+    """The benchmark scenario for `(tier, seed)`: the tier's timetable with its disruptions attached.
 
-    tier_u = tier.upper()
-    if tier_u == "T1":
-        net = net_templates.trunk_and_branches()
-        core, fill = net_templates.t1_services()
-        return generate(net, core, fill, shift_min, seed, "T1")
-    net_fn = getattr(net_templates, f"{tier_u.lower()}_network", None)
-    svc_fn = getattr(net_templates, f"{tier_u.lower()}_services", None)
-    if callable(net_fn) and callable(svc_fn):
-        net = net_fn()
-        core, fill = svc_fn()
-        return generate(net, core, fill, shift_min, seed, tier_u)
-    raise ValueError(f"unsupported tier {tier!r} (no template builder in railway.net.templates)")
+    Uses the same generator as the seed lists and the benchmark (`railway.net.exploits.build_timetable`), at the
+    tier's default shift length unless `shift_min` is given.
+    """
+    from railway.net.exploits import build_timetable
+
+    try:
+        return build_timetable(tier.upper(), seed, shift_min=shift_min)
+    except KeyError as exc:
+        raise ValueError(f"unsupported tier {tier!r}") from exc
+
+
+def seed_file_timetables(path: Path, first: int | None = None) -> list[tuple[str, Timetable]]:
+    """The accepted scenarios of a `seeds/net-T*-*.json` list, regenerated and checked against their hashes."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    rows = data["accepted"][:first] if first else data["accepted"]
+    items: list[tuple[str, Timetable]] = []
+    for row in rows:
+        tier = row["scenario_id"].partition("-")[0]
+        tt = generate_timetable(tier, int(row["seed"]), int(row["shift_min"]))
+        got = content_hash(tt.model_dump(mode="json"))
+        if got != row["scenario_hash"]:
+            raise ValueError(f"{row['scenario_id']}: regenerated hash {got} != seed list {row['scenario_hash']}")
+        items.append((scenario_id_for(tt), tt))
+    return items
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Export v0.3 railway network Timetables as Harbor 0.26 tasks.")
     p.add_argument("--tier", default="T1", help="network tier, e.g. T1")
     p.add_argument("--seeds", default="1", help="comma-separated integer seeds (ignored if --timetable-file is set)")
-    p.add_argument("--shift-min", type=int, default=180)
+    p.add_argument("--shift-min", type=int, default=None, help="shift length (default: the tier's own)")
     p.add_argument("--set", dest="set_name", default="dev")
     p.add_argument("--timetable-file", action="append", default=[], help="existing Timetable JSON file(s) to export")
+    p.add_argument(
+        "--seed-file",
+        action="append",
+        default=[],
+        help="seeds/net-T*-*.json list(s) to export, hash-checked (repeatable; overrides --tier/--seeds)",
+    )
+    p.add_argument("--first", type=int, default=None, help="with --seed-file: only the first N accepted seeds of each")
     p.add_argument("--out", required=True, help="output dataset directory")
     p.add_argument("--allow-host", action="append", default=[])
     p.add_argument("--no-default-hosts", action="store_true")
@@ -387,7 +409,12 @@ def main(argv: list[str] | None = None) -> int:
         probe=a.probe,
     )
     items: list[tuple[str, Timetable]] = []
-    if a.timetable_file:
+    if a.seed_file:
+        for seed_path in a.seed_file:
+            items += seed_file_timetables(Path(seed_path), a.first)
+        tiers = sorted({tt.tier for _, tt in items})
+        meta = {"tier": ",".join(tiers), "set": a.set_name, "seed_files": [Path(p).name for p in a.seed_file]}
+    elif a.timetable_file:
         for raw_path in a.timetable_file:
             data = json.loads(Path(raw_path).read_text(encoding="utf-8"))
             data.pop("rules_version", None)
@@ -399,7 +426,7 @@ def main(argv: list[str] | None = None) -> int:
         for seed in seed_list:
             tt = generate_timetable(a.tier, seed, a.shift_min)
             items.append((scenario_id_for(tt), tt))
-        meta = {"tier": a.tier.upper(), "set": a.set_name, "shift_min": a.shift_min}
+        meta = {"tier": a.tier.upper(), "set": a.set_name, "shift_min": items[0][1].shift_min if items else None}
 
     manifest = export_timetables(items, Path(a.out), opts, meta=meta)
     print(f"exported {len(manifest['tasks'])} task(s) to {a.out}")
