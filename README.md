@@ -4,7 +4,7 @@ A long-horizon planning benchmark: an agent dispatches trains on a single-track 
 through the tools of the `railway` MCP server. The score is anchored on a greedy dispatcher (0) and a
 scripted reference dispatcher (1). Design: `DESIGN.md`; contracts: `docs/PRD.md`; work plan: `docs/tickets/`.
 
-> Draft (T07). T09 finishes this README with results and the held-out dataset.
+> Draft (T07). T09 finishes this README with results and the held-out dataset. 
 
 ## Run the judges' checks
 
