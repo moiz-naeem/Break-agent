@@ -1,110 +1,110 @@
 {
   "qwen38-think|ALL": {
     "ci95": [
-      -4078.1800000000003,
-      -1352.0483333333332
+      -3843.3705882352942,
+      -1551.804411764706
     ],
     "components": {
-      "C1": 566.2305555555555,
-      "C2": 1767.8294444444446,
-      "C3": 2.888888888888889,
+      "C1": 759.5845,
+      "C2": 1642.7805,
+      "C3": 2.625,
       "C4": 0.0,
-      "C5": 195.18222222222224
+      "C5": 188.56400000000002
     },
-    "episodes": 18,
+    "episodes": 20,
     "infra_errors": 0,
-    "invalid_rate": 0.0045708481462671405,
+    "invalid_rate": 0.004253509145044662,
     "kpis": {
-      "clean_shift_rate": 0.16666666666666666,
-      "freight_delivered_pct": 94.44444444444444,
-      "on_time_pct": 61.31666666666667,
-      "passenger_delay_minutes": 52818.61111111111
+      "clean_shift_rate": 0.15,
+      "freight_delivered_pct": 95.0,
+      "on_time_pct": 59.0,
+      "passenger_delay_minutes": 70246.7
     },
-    "mean_reward": -2517.5409999999997,
-    "ok": 18,
-    "refusal_rate": 0.013712544438801422,
-    "seeds": 15,
+    "mean_reward": -2591.519705882353,
+    "ok": 20,
+    "refusal_rate": 0.013611229264142918,
+    "seeds": 17,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 1177338.888888889,
-      "out": 255139.27777777778,
-      "reasoning": 245260.16666666666
+      "in": 1262104.4,
+      "out": 267725.6,
+      "reasoning": 258054.65
     },
-    "tool_calls_mean": 109.38888888888889,
+    "tool_calls_mean": 117.55,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 6923.693222222222
+    "wall_s_mean": 7438.4562000000005
   },
   "qwen38-think|T1": {
     "ci95": [
-      -4069.798928571429,
-      -1225.5342857142857
+      -3935.786333333334,
+      -1368.2253333333333
     ],
     "components": {
-      "C1": 491.7135294117647,
-      "C2": 1843.3870588235295,
-      "C3": 2.5588235294117645,
+      "C1": 555.4058333333334,
+      "C2": 1769.8344444444444,
+      "C3": 2.4444444444444446,
       "C4": 0.0,
-      "C5": 196.07529411764708
+      "C5": 185.8488888888889
     },
-    "episodes": 17,
+    "episodes": 18,
     "infra_errors": 0,
-    "invalid_rate": 0.0035885167464114833,
+    "invalid_rate": 0.003395585738539898,
     "kpis": {
-      "clean_shift_rate": 0.17647058823529413,
-      "freight_delivered_pct": 94.11764705882354,
-      "on_time_pct": 60.15823529411765,
-      "passenger_delay_minutes": 44605.23529411765
+      "clean_shift_rate": 0.16666666666666666,
+      "freight_delivered_pct": 94.44444444444444,
+      "on_time_pct": 57.63333333333334,
+      "passenger_delay_minutes": 49523.88888888889
     },
-    "mean_reward": -2518.4460714285715,
-    "ok": 17,
-    "refusal_rate": 0.016148325358851676,
-    "seeds": 14,
+    "mean_reward": -2495.224,
+    "ok": 18,
+    "refusal_rate": 0.016411997736276173,
+    "seeds": 15,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 1050960.8823529412,
-      "out": 236343.11764705883,
-      "reasoning": 226755.4705882353
+      "in": 1052429.0,
+      "out": 237684.72222222222,
+      "reasoning": 228402.72222222222
     },
-    "tool_calls_mean": 98.3529411764706,
+    "tool_calls_mean": 98.16666666666667,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 6861.026176470588
+    "wall_s_mean": 7132.489444444444
   },
   "qwen38-think|T2": {
     "ci95": [
-      -2504.87,
+      -4122.605,
       -2504.87
     ],
     "components": {
-      "C1": 1833.02,
-      "C2": 483.35,
-      "C3": 8.5,
+      "C1": 2597.1925,
+      "C2": 499.295,
+      "C3": 4.25,
       "C4": 0.0,
-      "C5": 180.0
+      "C5": 213.0
     },
-    "episodes": 1,
+    "episodes": 2,
     "infra_errors": 0,
-    "invalid_rate": 0.010101010101010102,
+    "invalid_rate": 0.00684931506849315,
     "kpis": {
       "clean_shift_rate": 0.0,
       "freight_delivered_pct": 100.0,
-      "on_time_pct": 81.01,
-      "passenger_delay_minutes": 192446.0
+      "on_time_pct": 71.30000000000001,
+      "passenger_delay_minutes": 256752.0
     },
-    "mean_reward": -2504.87,
-    "ok": 1,
-    "refusal_rate": 0.0,
-    "seeds": 1,
+    "mean_reward": -3313.7374999999997,
+    "ok": 2,
+    "refusal_rate": 0.005136986301369863,
+    "seeds": 2,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 3325765.0,
-      "out": 574674.0,
-      "reasoning": 559840.0
+      "in": 3149183.0,
+      "out": 538093.5,
+      "reasoning": 524922.0
     },
-    "tool_calls_mean": 297.0,
+    "tool_calls_mean": 292.0,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 7989.033
+    "wall_s_mean": 10192.157000000001
   }
 }

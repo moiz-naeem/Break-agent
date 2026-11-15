@@ -16,23 +16,23 @@ from an offline teacher on the disjoint train seeds (20000+), so no test seed wa
 
 ## Reading of the current snapshot
 
-- Gemini 4 Carbon has finished 87 of 270 planned episodes (32%).
-- Qwen 3.8 27B (base) has finished 18 of 270 planned episodes (7%).
+- Gemini 4 Carbon has finished 89 of 270 planned episodes (33%).
+- Qwen 3.8 27B (base) has finished 20 of 270 planned episodes (7%).
 - Qwen 3.8 27B (fine-tuned) has finished 13 of 30 planned episodes (43%).
-- On T1, over 12 seeds both models finished, Carbon scores -1,955.2 and base Qwen -1,998.6 (43.4 points apart, 95% CI [-1,515.6, 1,509.6]): the difference is not yet distinguishable from noise.
-- On T2, over 1 seeds both models finished, Carbon scores -1,112.8 and base Qwen -2,504.9 (1,392.1 points apart, 95% CI [1,392.1, 1,392.1]): too few paired seeds for a verdict (need 5).
+- On T1, over 13 seeds both models finished, Carbon scores -1,829.5 and base Qwen -2,011.8 (182.3 points apart, 95% CI [-1,281.4, 1,620.4]): the difference is not yet distinguishable from noise.
+- On T2, over 2 seeds both models finished, Carbon scores -2,157.5 and base Qwen -3,313.7 (1,156.3 points apart, 95% CI [920.4, 1,392.1]): too few paired seeds for a verdict (need 5).
 - On the 7 T1 test seeds all three models finished, fine-tuning moved Qwen from -1,915.5 to -1,323.7 (+591.8, 95% CI [-1,041.8, 2,385.0]; better on 4 seeds, worse on 1), against -1,559.3 for Carbon, closing 166.1% of the gap.
 
 ## Tables
 
-_Snapshot: 2026-11-15 09:36 UTC._
+_Snapshot: 2026-11-15 09:51 UTC._
 
 ### Progress
 
 | model | id | episodes ok / expected | T1 | T2 | T3 | errors |
 |---|---|---|---|---|---|---|
-| Gemini 4 Carbon | `gemini-carbon-high` | 87 / 270 (32%) | 58 | 29 | 0 | 0 |
-| Qwen 3.8 27B (base) | `qwen38-think` | 18 / 270 (7%) | 17 | 1 | 0 | 0 |
+| Gemini 4 Carbon | `gemini-carbon-high` | 89 / 270 (33%) | 58 | 29 | 2 | 0 |
+| Qwen 3.8 27B (base) | `qwen38-think` | 20 / 270 (7%) | 18 | 2 | 0 | 0 |
 | Qwen 3.8 27B (fine-tuned) | `qwen38-think-sft` | 13 / 30 (43%) | 13 | 0 | 0 | 0 |
 
 ### Overall score per tier
@@ -42,12 +42,13 @@ Reward = −(C1+C2+C3+C4+C5), higher is better; averaged per seed first. CI = 95
 | tier | model | seeds | eps | mean reward [95% CI] | rep std | do-nothing floor | C1 | C2 | C3 | C4 | C5 | on-time % | pax delay min | freight % | clean % | gridlocks | unfinished |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | T1 | Gemini 4 Carbon | 26 | 58 | **-1,549.9** [-2,407.2, -943.2] | 312.0 | -28,618.6 | 356.5 | 1,147.5 | 3.3 | 0.0 | 42.6 | 67.6 | 37,174 | 78.2 | 23.7 | 0.03 | 1.74 |
-| T1 | Qwen 3.8 27B (base) | 14 | 17 | **-2,518.4** [-4,127.5, -1,234.5] | 1,812.3 | -28,568.9 | 499.5 | 1,817.0 | 2.6 | 0.0 | 199.4 | 58.9 | 45,499 | 92.9 | 17.9 | 0.18 | 2.86 |
+| T1 | Qwen 3.8 27B (base) | 15 | 18 | **-2,495.2** [-3,906.1, -1,319.6] | 1,812.3 | -28,698.0 | 575.4 | 1,730.5 | 2.4 | 0.0 | 186.9 | 56.0 | 51,342 | 93.3 | 16.7 | 0.17 | 2.80 |
 | T1 | Qwen 3.8 27B (fine-tuned) | 13 | 13 | **-1,145.3** [-1,765.2, -632.2] | – | -29,062.6 | 482.6 | 631.4 | 6.0 | 0.0 | 25.3 | 66.5 | 43,740 | 92.3 | 15.4 | 0.00 | 1.38 |
 | T2 | Gemini 4 Carbon | 21 | 29 | **-6,557.2** [-8,698.7, -4,721.4] | 1,314.6 | -114,127.3 | 2,674.4 | 3,533.5 | 13.3 | 0.0 | 336.0 | 60.6 | 272,631 | 91.3 | 4.8 | 0.14 | 4.09 |
-| T2 | Qwen 3.8 27B (base) | 1 | 1 | **-2,504.9** [-2,504.9, -2,504.9] | – | -114,443.7 | 1,833.0 | 483.4 | 8.5 | 0.0 | 180.0 | 81.0 | 192,446 | 100.0 | 0.0 | 0.00 | 2.00 |
-| ALL | Gemini 4 Carbon | 47 | 87 | **-3,787.2** [-5,027.8, -2,681.2] | 562.6 | -66,824.6 | 1,392.2 | 2,213.6 | 7.8 | 0.0 | 173.7 | 64.5 | 142,378 | 84.0 | 15.2 | 0.08 | 2.79 |
-| ALL | Qwen 3.8 27B (base) | 15 | 18 | **-2,517.5** [-3,998.7, -1,344.1] | 1,812.3 | -34,293.9 | 588.4 | 1,728.1 | 3.0 | 0.0 | 198.1 | 60.4 | 55,296 | 93.3 | 16.7 | 0.17 | 2.80 |
+| T2 | Qwen 3.8 27B (base) | 2 | 2 | **-3,313.7** [-4,122.6, -2,504.9] | – | -116,655.2 | 2,597.2 | 499.3 | 4.2 | 0.0 | 213.0 | 71.3 | 256,752 | 100.0 | 0.0 | 0.00 | 2.00 |
+| T3 | Gemini 4 Carbon | 2 | 2 | **-12,162.2** [-14,705.8, -9,618.7] | – | -302,892.3 | 6,649.3 | 5,158.4 | 52.0 | 20.0 | 282.5 | 62.8 | 665,084 | 100.0 | 0.0 | 0.00 | 6.50 |
+| ALL | Gemini 4 Carbon | 49 | 89 | **-4,129.0** [-5,435.9, -2,957.8] | 562.6 | -76,460.0 | 1,606.7 | 2,333.8 | 9.6 | 0.8 | 178.2 | 64.4 | 163,713 | 84.7 | 14.6 | 0.07 | 2.94 |
+| ALL | Qwen 3.8 27B (base) | 17 | 20 | **-2,591.5** [-3,851.3, -1,530.2] | 1,812.3 | -39,045.9 | 813.3 | 1,585.6 | 2.6 | 0.0 | 190.0 | 57.8 | 75,508 | 94.1 | 14.7 | 0.15 | 2.71 |
 | ALL | Qwen 3.8 27B (fine-tuned) | 13 | 13 | **-1,145.3** [-1,765.2, -632.2] | – | -29,062.6 | 482.6 | 631.4 | 6.0 | 0.0 | 25.3 | 66.5 | 43,740 | 92.3 | 15.4 | 0.00 | 1.38 |
 
 ### Head-to-head: Gemini 4 Carbon vs Qwen 3.8 27B (base), paired seeds
@@ -56,9 +57,9 @@ Difference = Carbon − Qwen in mean reward on seeds both finished; positive mea
 
 | tier | paired seeds | Carbon | Qwen base | difference [95% CI] | Carbon wins / ties / Qwen wins |
 |---|---|---|---|---|---|
-| T1 | 12 | -1,955.2 | -1,998.6 | **43.4** [-1,515.6, 1,509.6] | 4 / 0 / 8 |
-| T2 | 1 | -1,112.8 | -2,504.9 | **1,392.1** [1,392.1, 1,392.1] | 1 / 0 / 0 |
-| ALL | 13 | -1,890.4 | -2,037.5 | **147.1** [-1,356.5, 1,528.2] | 5 / 0 / 8 |
+| T1 | 13 | -1,829.5 | -2,011.8 | **182.3** [-1,281.4, 1,620.4] | 5 / 0 / 8 |
+| T2 | 2 | -2,157.5 | -3,313.7 | **1,156.3** [920.4, 1,392.1] | 2 / 0 / 0 |
+| ALL | 15 | -1,873.2 | -2,185.4 | **312.2** [-995.2, 1,546.0] | 7 / 0 / 8 |
 
 ### Post-training: what fine-tuning changed (T1 held-out test seeds)
 
