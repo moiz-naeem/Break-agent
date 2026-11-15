@@ -160,9 +160,9 @@ run on rented GPU containers and a university cluster rather than on Modal.
 Held-out **test** seeds only; every row's scenario hash matches `seeds/net-T*-test.json`. Each seed is played
 up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% bootstrap over seeds.
 
-> **Status (snapshot 2026-11-15 11:23 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
+> **Status (snapshot 2026-11-15 11:43 UTC, full table in [`docs/benchmark-results.md`](docs/benchmark-results.md)).**
 > The benchmark was still running at this snapshot, so every number below is partial. Finished so far:
-> Gemini 4 Carbon 127 of 270 planned episodes (58 T1, 33 T2, 36 T3); base Qwen 26 of 270 planned episodes (20 T1, 6 T2); fine-tuned Qwen 21 of 30 planned episodes (21 T1).
+> Gemini 4 Carbon 127 of 270 planned episodes (58 T1, 33 T2, 36 T3); base Qwen 26 of 270 planned episodes (20 T1, 6 T2); fine-tuned Qwen 22 of 30 planned episodes (22 T1).
 > One episode takes about an hour of model time, which is why the counts are low. Base Qwen's earlier attempts
 > were stopped by the serving setup (context-window and "no upstreams" errors, see
 > [`docs/failure-analysis.md`](docs/failure-analysis.md)); those are infrastructure errors and are not scored.
@@ -174,7 +174,7 @@ up to 3 times; reps are averaged per seed, then seeds are averaged. CI = 95% boo
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Gemini 4 Carbon (`gemini-carbon-high`) | 26 | 58 | **−1,549.9** [−2,407.2, −943.2] | 356.5 | 1,147.5 | 3.3 | 0.0 | 42.6 | 67.6 % | 78.2 % | 23.7 % |
 | Qwen 3.8 27B, base (`qwen38-think`) | 16 | 20 | **−2,993.4** [−4,590.0, −1,594.0] | 551.3 | 2,199.2 | 2.4 | 0.0 | 240.5 | 56.9 % | 93.8 % | 15.6 % |
-| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 21 | 21 | **−1,179.4** [−1,627.6, −788.3] | 497.5 | 654.5 | 4.3 | 0.0 | 23.1 | 67.0 % | 92.9 % | 19.0 % |
+| Qwen 3.8 27B, fine-tuned (`qwen38-sft`) | 22 | 22 | **−1,225.7** [−1,644.8, −836.1] | 490.6 | 708.5 | 4.3 | 0.0 | 22.3 | 67.3 % | 93.2 % | 18.2 % |
 
 The three rows cover different seeds (each model has finished a different subset), so compare models only
 through the paired numbers below, not by reading down the mean column.
@@ -191,15 +191,15 @@ T2 and T3: Carbon has finished 33 T2 episodes on 24 seeds (mean **−7,611.5**, 
 The fine-tuned model is Qwen 3.8 27B after supervised fine-tuning on dispatcher traces from a stronger
 teacher, Claude Opus 5.5\*. The teacher traces were collected only on the disjoint **training** seeds (20000+),
 so no test seed was seen in training. The comparison is paired: base vs fine-tuned on the exact
-9 T1 seeds finished by all three models so far.
+10 T1 seeds finished by all three models so far.
 
 | Tier | Paired seeds | Carbon | Base Qwen | Fine-tuned Qwen | SFT − Base [95% CI] |
 |---|---|---|---|---|---|
-| T1 | 9 | −1,274.6 | −1,575.4 | **−1,086.8** | **+488.6** [−738.0, 1,882.8] |
+| T1 | 10 | −1,379.5 | −1,578.8 | **−1,198.1** | **+380.7** [−729.4, 1,655.2] |
 
-On those 9 paired T1 test seeds, fine-tuning improved Qwen by **+488.6** points (wins/ties/losses: 4 / 3 / 2), changed its clean-shift rate (22.2 % → 33.3 %), reduced unfinished trains (1.83 → 1.22), and closed **162.4 %** of the Carbon-to-Qwen gap (moving ahead of Carbon by 187.8 points on that subset, though the 9-seed CI still spans zero).
+On those 10 paired T1 test seeds, fine-tuning improved Qwen by **+380.7** points (wins/ties/losses: 4 / 3 / 3), changed its clean-shift rate (20.0 % → 30.0 %), reduced unfinished trains (1.95 → 1.40), and closed **191.0 %** of the Carbon-to-Qwen gap (moving ahead of Carbon by 181.4 points on that subset, though the 10-seed CI still spans zero).
 
-Across all 10 T1 seeds finished by both Qwen variants (Carbon not required): SFT − Base = **+1,221.1** [−389.9, 3,142.2] (wins/ties/losses: 5 / 3 / 2).
+Across all 11 T1 seeds finished by both Qwen variants (Carbon not required): SFT − Base = **+1,056.4** [−425.4, 2,839.7] (wins/ties/losses: 5 / 3 / 3).
 
 \* Why Opus 5.5: it is the only model for which we could collect proper reasoning traces, and we could get
 them only through the Factory Droid harness. That harness gives the model a different context from the
