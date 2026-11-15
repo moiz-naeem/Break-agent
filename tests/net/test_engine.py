@@ -178,9 +178,10 @@ def test_a_train_with_nowhere_to_go_is_reported_once():
 def test_re_platforming_frees_a_stranded_train():
     eng = engine(stranded_trips())
     assert eng.advance().kind == "UNROUTABLE"
-    assert eng.platform("IC9", "C1") is None
+    assert eng.platform("IC9", "C1").rule == NetRule.NO_ROUTE
+    assert eng.platform("IC9", "N2") is None
     run(eng, first="IC9")
-    assert ("IC9", "done", "C1") in [row[:3] for row in eng.state()]
+    assert ("IC9", "done", "N2") in [row[:3] for row in eng.state()]
 
 
 def test_a_deadlock_is_reported_once_and_then_the_shift_runs_out():

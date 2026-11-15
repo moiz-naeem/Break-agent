@@ -8,7 +8,7 @@ Reward on the network track is **`-(total cost)`** (`railway/net/cost.py`, `rail
 ## Reproducing everything here
 
 ```bash
-# Fast regression tests (2 strict xfails pinning F1 + 1 positive battery check)
+# Fast regression tests (3 passing tests pinning the F1 fix + battery invariants)
 pytest tests/net/test_redteam.py
 
 # Local probes on individual tiers/seeds
@@ -23,7 +23,7 @@ Committed artifacts from the 15-seed Modal run: `results/redteam-net/battery-dev
 
 ---
 
-## Finding F1 (open): `platform()` serves a booked stop at another station without a missed-call charge
+## Finding F1 (closed on `redteam-net`): `platform()` served a booked stop at another station without a missed-call charge
 
 ### Mechanism
 
@@ -73,9 +73,9 @@ At each decision point, each candidate is rolled out to shift end under `booked_
 - **T2 (`5/5` dev seeds exploited, mean gain `679.64` / `−18.8%`):** Every T2 hub-and-branches seed is exploited. Hub calls booked at `H` (or terminal `TE` / station `W`) are served at adjacent corridor stations `E1`–`E3` or `W1`–`W3` (e.g. on `T2-4`, 6 calls across `IC01`, `IC02`, `IC03`, `IX03`, and `SW11` are served at foreign stations, cutting cost from `6091.93` to `4337.80`, `−28.8%`).
 - **T3 (`4/5` dev seeds exploited even with `k=1, horizon=30`, mean gain `1866.26` / `−23.8%`):** T3's bypass station `BYP` and twin hubs `HA`/`HB` make cross-station substitution systematic: stopping services booked at `M` (`SM02`–`SM10`) re-platform their `M` call onto `BYP1`, and intercity/regional services (`IT01`, `ID01`–`ID09`, `IC07`) serve `HA`/`HB` hub calls at `M1`, `EB2`, or `WA1`. On `T3-6`, 4 cross-station calls cut `missed_calls` from `11` (`8251.07`) to `1` (`1216.14`), `unfinished` from `9` to `5`, and total cost from `13693.76` to `6729.33` (`−50.9%`, saving `6964.43`). (`T3-2`'s `−176.30` reflects greedy myopia: an early greedy cross-station move alters downstream traffic; because `control`'s action set is a subset of `exploit`'s, a planning agent is never worse off.)
 
-### Candidate fix and owner decision
+### Fix applied (`Engine.platform`)
 
-Closing F1 in `Engine.platform` (`railway/net/engine.py:418`) takes four lines:
+`Engine.platform` (`railway/net/engine.py:418`) now enforces that the target platform belongs to the station of `mv.plan[0].platform`, returning `R-NO-ROUTE` otherwise:
 
 ```diff
 --- a/railway/net/engine.py
@@ -91,15 +91,11 @@ Closing F1 in `Engine.platform` (`railway/net/engine.py:418`) takes four lines:
          stops = [(v, False) for v in mv.via] + [(platform_id, False)]
 ```
 
-`railway/net/engine.py` is left unchanged on `redteam-net` because two existing unit tests intentionally move `IC9` (260 m, booked into 200 m `N1` at `N`) to `C1` at station `C`:
+The two unit tests that previously moved stranded `IC9` (260 m, booked into 200 m `N1` at `N`) across stations to `C1` now rescue `IC9` onto the 750 m passing loop `N2` at the same station `N` (matching `railway/harbor/net_templates/solve.py`) and assert that `"C1"` is refused with `R-NO-ROUTE`:
 
 - `tests/net/test_engine.py:178` (`test_re_platforming_frees_a_stranded_train`)
-- `tests/net/test_session.py:254` (`test_conflicts_order_hold_platform_and_changes_only`, via `stranded_timetable` in `tests/net/conftest.py:29`, also exported as `T1-202` in `tests/net/test_harbor_net.py:200`)
-
-**Owner options:**
-
-1. **Enforce same-station `platform()` (recommended):** apply the 4-line guard above, update `stranded_timetable` so the stranded train has a valid longer/open platform at its booked station (e.g. booked into a short or closed face at `A` or `C` and rescued onto another face at the same station), and remove `@pytest.mark.xfail` from `tests/net/test_redteam.py`.
-2. **Allow cross-station diversion only with missed-call billing:** if re-platforming to another station is meant to work as an ad-hoc diversion, emit `CALL_MISSED` for the abandoned station's booked call (matching `skip()` and `route()`).
+- `tests/net/test_session.py:254` (`test_conflicts_order_hold_platform_and_changes_only`)
+- `tests/net/test_redteam.py` (all 3 regression tests passing)
 
 ---
 
