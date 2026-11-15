@@ -1,39 +1,39 @@
 {
   "qwen38-think|ALL": {
     "ci95": [
-      -4986.381578947368,
-      -2052.866052631579
+      -4822.828625,
+      -2004.305125
     ],
     "components": {
-      "C1": 877.306,
-      "C2": 2391.7458,
-      "C3": 2.42,
+      "C1": 863.7376923076923,
+      "C2": 2309.0375,
+      "C3": 2.326923076923077,
       "C4": 0.0,
-      "C5": 255.5584
+      "C5": 253.86769230769232
     },
-    "episodes": 25,
+    "episodes": 26,
     "infra_errors": 0,
-    "invalid_rate": 0.0035149384885764497,
+    "invalid_rate": 0.0034666666666666665,
     "kpis": {
-      "clean_shift_rate": 0.12,
-      "freight_delivered_pct": 96.0,
-      "on_time_pct": 60.123999999999995,
-      "passenger_delay_minutes": 84370.6
+      "clean_shift_rate": 0.11538461538461539,
+      "freight_delivered_pct": 96.15384615384616,
+      "on_time_pct": 61.335,
+      "passenger_delay_minutes": 84516.96153846153
     },
-    "mean_reward": -3446.5984210526317,
-    "ok": 25,
-    "refusal_rate": 0.01698886936145284,
-    "seeds": 19,
+    "mean_reward": -3323.1415,
+    "ok": 26,
+    "refusal_rate": 0.0168,
+    "seeds": 20,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 1512573.76,
-      "out": 307983.12,
-      "reasoning": 297782.64
+      "in": 1609489.9615384615,
+      "out": 325490.53846153844,
+      "reasoning": 314920.3076923077
     },
-    "tool_calls_mean": 136.56,
+    "tool_calls_mean": 144.23076923076923,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 8392.483520000002
+    "wall_s_mean": 8754.829653846155
   },
   "qwen38-think|T1": {
     "ci95": [
@@ -73,38 +73,38 @@
   },
   "qwen38-think|T2": {
     "ci95": [
-      -9936.977499999999,
-      -3598.4600000000005
+      -8352.348124999999,
+      -1747.029375
     ],
     "components": {
-      "C1": 2239.625,
-      "C2": 3681.2529999999997,
-      "C3": 2.1,
+      "C1": 1953.7758333333331,
+      "C2": 3107.9325000000003,
+      "C3": 1.75,
       "C4": 0.0,
-      "C5": 393.8
+      "C5": 363.43333333333334
     },
-    "episodes": 5,
+    "episodes": 6,
     "infra_errors": 0,
-    "invalid_rate": 0.0041753653444676405,
+    "invalid_rate": 0.003948110547095319,
     "kpis": {
       "clean_shift_rate": 0.0,
       "freight_delivered_pct": 100.0,
-      "on_time_pct": 69.14,
-      "passenger_delay_minutes": 229532.4
+      "on_time_pct": 72.885,
+      "passenger_delay_minutes": 205973.0
     },
-    "mean_reward": -5863.724999999999,
-    "ok": 5,
-    "refusal_rate": 0.011134307585247043,
-    "seeds": 3,
+    "mean_reward": -4642.15875,
+    "ok": 6,
+    "refusal_rate": 0.011844331641285956,
+    "seeds": 4,
     "tokens_mean": {
       "cached": 0.0,
-      "in": 3314247.0,
-      "out": 565606.2,
-      "reasoning": 550598.4
+      "in": 3433938.3333333335,
+      "out": 598534.5,
+      "reasoning": 582725.6666666666
     },
-    "tool_calls_mean": 287.4,
+    "tool_calls_mean": 295.5,
     "usd_mean": 0.0,
     "usd_total": 0.0,
-    "wall_s_mean": 11241.497
+    "wall_s_mean": 12336.828000000001
   }
 }
